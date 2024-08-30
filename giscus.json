@@ -1,0 +1,6 @@
+/**
+ * 配置giscus最新排序，无关uni-app
+ */
+{
+	"defaultCommentOrder": "newest"
+}
