@@ -1,0 +1,10 @@
+{
+	"deploymentTarget": "11",
+	"validArchitectures": [
+		"arm64"
+	],
+	"dependencies-pods": [{
+		"name": "SVGKit",
+		"version": "3.0.0"
+	}]
+}
