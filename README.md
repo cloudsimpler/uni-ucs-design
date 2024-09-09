@@ -1,14 +1,14 @@
-<p align="center"><img alt="logo" src="https://foruda.gitee.com/avatar/1724390775036197350/14460483_cloudsimpler_1724390775.png!avatar200" width="123"></p>
-<h1 align="center">uni-ucs</h1>
+<p align="center"><img alt="logo" src="https://ucs.cloudsimpler.com/logo.svg" width="123"></p>
+<h1 align="center">ucs-design</h1>
 <p align="center">多平台 uni-app / uni-app-x 生态组件库</p>
 <div align="center">
 
-[![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs?style=social)](https://github.com/cloudsimpler/uni-ucs)
-[![forks](https://img.shields.io/github/forks/cloudsimpler/uni-ucs?style=social)](https://github.com/cloudsimpler/uni-ucs)
-[![watchers](https://img.shields.io/github/watchers/cloudsimpler/uni-ucs?style=social)](https://github.com/cloudsimpler/uni-ucs)
-[![license](https://img.shields.io/github/license/cloudsimpler/uni-ucs?style=social)](https://github.com/cloudsimpler/uni-ucs)
-[![star](https://gitee.com/cloudsimpler/uni-ucs/badge/star.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs)
-[![fork](https://gitee.com/cloudsimpler/uni-ucs/badge/fork.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs)
+[![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design)
+[![forks](https://img.shields.io/github/forks/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design)
+[![watchers](https://img.shields.io/github/watchers/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design)
+[![license](https://img.shields.io/github/license/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design)
+[![star](https://gitee.com/cloudsimpler/uni-ucs-design/badge/star.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design)
+[![fork](https://gitee.com/cloudsimpler/uni-ucs-design/badge/fork.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design)
 
 </div>
 
