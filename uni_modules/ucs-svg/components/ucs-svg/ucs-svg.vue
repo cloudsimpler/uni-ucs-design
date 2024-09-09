@@ -1,9 +1,21 @@
 <template>
+	<!-- #ifdef UNI-APP-X -->
+	<!-- #ifdef APP -->
+	<ucs-uts-svg :style="{width:`${width}${unit}`,height:`${height}${unit}`}" :src="src" />
+	<!-- #endif -->
+	<!-- #ifndef APP -->
+	<image :src="`data:image/svg+xml;charset=utf-8,${encodeURIComponent(src)}`"
+		:style="{width:`${width}${unit}`,height:`${height}${unit}`}" />
+	<!-- #endif -->
+	<!-- #endif -->
+	<!-- #ifndef UNI-APP-X -->
 	<!-- #ifdef APP-PLUS-NVUE -->
 	<ucs-uts-svg :style="{width:`${width}${unit}`,height:`${height}${unit}`}" :src="src" />
 	<!-- #endif -->
 	<!-- #ifndef APP-PLUS-NVUE -->
-	<image :src="`data:image/svg+xml;charset=utf-8,${encodeURIComponent(src)}`" :style="{width:`${width}${unit}`,height:`${height}${unit}`}" />
+	<image :src="`data:image/svg+xml;charset=utf-8,${encodeURIComponent(src)}`"
+		:style="{width:`${width}${unit}`,height:`${height}${unit}`}" />
+	<!-- #endif -->
 	<!-- #endif -->
 </template>
 
