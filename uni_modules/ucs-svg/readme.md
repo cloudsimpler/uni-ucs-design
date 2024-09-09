@@ -1,5 +1,5 @@
-<p align="center"><img alt="logo" src="https://ucs.cloudsimpler.com/logo/svg.svg" width="128"></p>
-<h1 align="center">ucs-svg 矢量图形</h1>
+<p align="center"><img alt="logo" src="https://ucs.cloudsimpler.com/logo/svg.svg" width="123"></p>
+<h3 align="center">ucs-svg 矢量图形</h3>
 
 ## 简述
 矢量图形组件是框架中用于渲染和操作 SVG 资源的组件。允许开发者将 SVG 图形封装成独立的组件，并在应用中灵活使用。SVG 图形组件具有响应式设计、组件化、易于维护、跨平台支持、丰富的社区和生态系统等特点。通过使用 SVG 图组件，开发者可以轻松地创建各种复杂和动态的 SVG 图形效果，以满足不同前端开发需求。
@@ -10,8 +10,13 @@
 - 跨平台支持：支持多平台跨端，这意味着你可以使用相同的 SVG 图形组件在不同平台上运行，不需对修改代码完美适配。
 - 社区和生态系统：有一个庞大的社区和丰富的生态系统，你可以找到大量的 SVG 图形组件和库。这些组件和库可以帮助你快速实现各种复杂的 SVG 图形效果。
 
+## 重要提示
+因跨平台需求及性能考虑，`uni-app-x[app]` 和 `uni-app[app-nvue]` 采用 `uts` 插件实现以优化性能，这两端需要配置 `uts` 插件运行配置后 `自定义基座` 使用。其余端不受此约束，可直接使用。  
+- [Android UTS插件运行编译配置](https://uniapp.dcloud.net.cn/tutorial/run/uts-development-android.html)
+- [IOS UTS插件运行编译配置](https://uniapp.dcloud.net.cn/tutorial/run/uts-development-ios.html)
+
 ## 官方文档
-官网地址：[ucs-svg 矢量图形官网](https://ucs.cloudsimpler.com/library/ucs-svg/)
+官网地址：[https://ucs.cloudsimpler.com/library/ucs-svg](https://ucs.cloudsimpler.com/library/ucs-svg)
 
 ## 源码
 [![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-svg)
