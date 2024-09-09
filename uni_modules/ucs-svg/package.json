@@ -1,10 +1,10 @@
 {
-	"id": "ucs-uts-svg",
-	"displayName": "ucs-uts-svg",
+	"id": "ucs-svg",
+	"displayName": "ucs-svg 矢量图形",
 	"version": "1.0.0",
-	"description": "ucs-uts-svg",
+	"description": "ucs-svg",
 	"keywords": [
-		"ucs-uts-svg"
+		"ucs-svg,svg,矢量图形,vue3"
 	],
 	"repository": "",
 	"engines": {
