@@ -1,5 +1,5 @@
 <template>
-	<ucs-svg :width="size" :height="size" :src="iconSvg" />
+	<ucs-iconPark :width="size" :height="size" :src="iconSvg" />
 </template>
 <script>
 	import iconMixin from "../../mixins/iconMixin.uts";
