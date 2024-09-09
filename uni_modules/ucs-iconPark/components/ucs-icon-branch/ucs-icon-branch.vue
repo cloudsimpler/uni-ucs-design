@@ -2,7 +2,12 @@
 	<ucs-iconPark :width="size" :height="size" :src="iconSvg" />
 </template>
 <script>
+	// #ifdef UNI-APP-X
 	import iconMixin from "../../mixins/iconMixin.uts";
+	// #endif
+	// #ifndef UNI-APP-X
+	import iconMixin from "../../mixins/iconMixin.js";
+	// #endif
 	/**
 	 * @description 《分支》图标
 	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-iconPark
@@ -16,7 +21,12 @@
 	export default {
 		mixins: [iconMixin],
 		computed: {
+			// #ifdef UNI-APP-X
 			iconSvg(): string {
+			// #endif
+			// #ifndef UNI-APP-X
+			iconSvg() {
+			// #endif
 				return `<?xml version="1.0" encoding="UTF-8"?><svg width="${this.size}" height="${this.size}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M40 28C42.2091 28 44 26.2091 44 24C44 21.7909 42.2091 20 40 20C37.7909 20 36 21.7909 36 24C36 26.2091 37.7909 28 40 28Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M9 12C11.2091 12 13 10.2091 13 8C13 5.79086 11.2091 4 9 4C6.79086 4 5 5.79086 5 8C5 10.2091 6.79086 12 9 12Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M9 44C11.2091 44 13 42.2091 13 40C13 37.7909 11.2091 36 9 36C6.79086 36 5 37.7909 5 40C5 42.2091 6.79086 44 9 44Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M9 12V36V24.0083H36" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/></svg>`
 			}
 		}

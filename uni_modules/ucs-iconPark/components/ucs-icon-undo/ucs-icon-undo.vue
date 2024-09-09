@@ -2,7 +2,12 @@
 	<ucs-iconPark :width="size" :height="size" :src="iconSvg" />
 </template>
 <script>
+	// #ifdef UNI-APP-X
 	import iconMixin from "../../mixins/iconMixin.uts";
+	// #endif
+	// #ifndef UNI-APP-X
+	import iconMixin from "../../mixins/iconMixin.js";
+	// #endif
 	/**
 	 * @description 《撤销》图标
 	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-iconPark
@@ -16,7 +21,12 @@
 	export default {
 		mixins: [iconMixin],
 		computed: {
+			// #ifdef UNI-APP-X
 			iconSvg(): string {
+			// #endif
+			// #ifndef UNI-APP-X
+			iconSvg() {
+			// #endif
 				return `<?xml version="1.0" encoding="UTF-8"?><svg width="${this.size}" height="${this.size}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.2721 36.7279C14.5294 39.9853 19.0294 42 24 42C33.9411 42 42 33.9411 42 24C42 14.0589 33.9411 6 24 6C19.0294 6 14.5294 8.01472 11.2721 11.2721C9.61407 12.9301 6 17 6 17" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M6 9V17H14" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/></svg>`
 			}
 		}

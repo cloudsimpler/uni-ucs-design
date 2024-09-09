@@ -2,7 +2,12 @@
 	<ucs-iconPark :width="size" :height="size" :src="iconSvg" />
 </template>
 <script>
+	// #ifdef UNI-APP-X
 	import iconMixin from "../../mixins/iconMixin.uts";
+	// #endif
+	// #ifndef UNI-APP-X
+	import iconMixin from "../../mixins/iconMixin.js";
+	// #endif
 	/**
 	 * @description 《更多1》图标
 	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-iconPark
@@ -16,7 +21,12 @@
 	export default {
 		mixins: [iconMixin],
 		computed: {
+			// #ifdef UNI-APP-X
 			iconSvg(): string {
+			// #endif
+			// #ifndef UNI-APP-X
+			iconSvg() {
+			// #endif
 				return `<?xml version="1.0" encoding="UTF-8"?><svg width="${this.size}" height="${this.size}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="12" r="3" fill="${this.colors(0)}"/><circle cx="24" cy="24" r="3" fill="${this.colors(0)}"/><circle cx="24" cy="35" r="3" fill="${this.colors(0)}"/></svg>`
 			}
 		}
