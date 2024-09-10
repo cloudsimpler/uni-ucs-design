@@ -10,7 +10,7 @@
 - 跨平台支持：支持多平台跨端，这意味着你可以使用相同的 SVG 图形组件在不同平台上运行，不需对修改代码完美适配。
 - 社区和生态系统：有一个庞大的社区和丰富的生态系统，你可以找到大量的 SVG 图形组件和库。这些组件和库可以帮助你快速实现各种复杂的 SVG 图形效果。
 
-## 重要提示
+## * 重要提示
 因跨平台需求及性能考虑，`uni-app-x[app]` 和 `uni-app[app-nvue]` 采用 `uts` 插件实现以优化性能，这两端需要配置 `uts` 插件运行配置后 `自定义基座` 使用。其余端不受此约束，可直接使用。  
 - [Android UTS插件运行编译配置](https://uniapp.dcloud.net.cn/tutorial/run/uts-development-android.html)
 - [IOS UTS插件运行编译配置](https://uniapp.dcloud.net.cn/tutorial/run/uts-development-ios.html)
@@ -19,12 +19,12 @@
 官网地址：[https://ucs.cloudsimpler.com/library/ucs-svg](https://ucs.cloudsimpler.com/library/ucs-svg)
 
 ## 源码
-[![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-svg)
-[![forks](https://img.shields.io/github/forks/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-svg)
-[![watchers](https://img.shields.io/github/watchers/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-svg)
-[![license](https://img.shields.io/github/license/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-svg)
-[![star](https://gitee.com/cloudsimpler/uni-ucs-design/badge/star.svg?theme=white)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-svg)
-[![fork](https://gitee.com/cloudsimpler/uni-ucs-design/badge/fork.svg?theme=white)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-svg)
+[![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
+[![forks](https://img.shields.io/github/forks/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
+[![watchers](https://img.shields.io/github/watchers/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
+[![license](https://img.shields.io/github/license/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
+[![star](https://gitee.com/cloudsimpler/uni-ucs-design/badge/star.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
+[![fork](https://gitee.com/cloudsimpler/uni-ucs-design/badge/fork.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
 
 ## 版权信息
 - 遵循 `MIT` 开源协议，无需支付任何费用，也无需授权，即可将框架应用到产品中。

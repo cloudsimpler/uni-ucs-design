@@ -11,7 +11,7 @@
 - 开源免费商用：是一个开源项目，可以免费用于商业项目，这对于个人和中小型企业来说是一个巨大的优势，因为它们可以节省购买图标授权的费用。
 - 主题和颜色变换：支持在线换肤功能，提供多种主题和颜色选项，使得图标可以快速适应不同的设计需求。
 
-## 重要提示
+## * 重要提示
 因跨平台需求及性能考虑，`uni-app-x[app]` 和 `uni-app[app-nvue]` 采用 `uts` 插件实现以优化性能，这两端需要配置 `uts` 插件运行配置后 `自定义基座` 使用。其余端不受此约束，可直接使用。  
 - [Android UTS插件运行编译配置](https://uniapp.dcloud.net.cn/tutorial/run/uts-development-android.html)
 - [IOS UTS插件运行编译配置](https://uniapp.dcloud.net.cn/tutorial/run/uts-development-ios.html)
@@ -20,12 +20,12 @@
 官网地址：[https://ucs.cloudsimpler.com/library/ucs-iconPark](https://ucs.cloudsimpler.com/library/ucs-iconPark)
 
 ## 源码
-[![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-iconPark)
-[![forks](https://img.shields.io/github/forks/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-iconPark)
-[![watchers](https://img.shields.io/github/watchers/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-iconPark)
-[![license](https://img.shields.io/github/license/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-iconPark)
-[![star](https://gitee.com/cloudsimpler/uni-ucs-design/badge/star.svg?theme=white)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-iconPark)
-[![fork](https://gitee.com/cloudsimpler/uni-ucs-design/badge/fork.svg?theme=white)](https://github.com/cloudsimpler/uni-ucs-design/tree/main/uni_modules/ucs-iconPark)
+[![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-iconPark)
+[![forks](https://img.shields.io/github/forks/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-iconPark)
+[![watchers](https://img.shields.io/github/watchers/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-iconPark)
+[![license](https://img.shields.io/github/license/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-iconPark)
+[![star](https://gitee.com/cloudsimpler/uni-ucs-design/badge/star.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-iconPark)
+[![fork](https://gitee.com/cloudsimpler/uni-ucs-design/badge/fork.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-iconPark)
 
 ## 版权信息
 - `ucs-iconPark` 图标库来源于高质量开源图标库 iconPark - 字节跳动出品，致谢 iconPark 官方所有工作人员，点赞。
