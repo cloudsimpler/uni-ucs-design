@@ -1,8 +1,6 @@
 <template>
 	<view>
-		<ucs-icon-elevator />
-		<ucs-icon-green-house />
-		<ucs-icon-pearl-of-the-orient />
+		<view class="w-12_1" style="height: 200px;background-color: red;"></view>
 	</view>
 </template>
 
