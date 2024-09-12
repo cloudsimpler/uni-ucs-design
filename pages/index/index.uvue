@@ -1,17 +1,14 @@
 <template>
 	<view>
-		<view class="w-12_1" style="height: 200px;background-color: red;"></view>
+		<!-- <view class="w-12_1" style="height: 200px;background-color: red;"></view> -->
 	</view>
 </template>
 
-<script>
-	export default {
-		data() {
-			return {
-				
-			}
-		}
-	}
+<script lang="uts" setup>
+	import { rgbToHsv } from "@/uni_modules/ucs-color";
+	
+	// RGB颜色值转HSL颜色值
+	console.log(rgbToHsv(255,0,0))
 </script>
 
 <style>

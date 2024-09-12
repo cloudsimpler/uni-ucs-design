@@ -1,0 +1,19 @@
+import { colorPalette } from './palette.uts';
+import { colorPaletteDark } from './palette-dark.uts';
+
+/**
+ * 获取基础色对应的调色板，可以直接获取 0-9 10个色阶的调色板集合，也可以根据索引值单独获取调色板的某个颜色
+ * @param color  基础色
+ * @param mode = ['dark','light'] 暗黑模式，默认值：light
+ */
+export function generate(color : string = "#604cfc", mode : string = 'light') : string[] {
+	const list : string[] = [];
+	for (let i = 1; i <= 10; i++) {
+		if (mode == 'dark') {
+			list.push(colorPaletteDark(color, i));
+		} else {
+			list.push(colorPalette(color, i));
+		};
+	};
+	return list;
+};
