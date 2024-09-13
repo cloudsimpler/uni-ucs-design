@@ -1,13 +1,8 @@
 <template>
 	<ucs-iconPark :width="size" :height="size" :src="iconSvg" />
 </template>
-<script>
-	// #ifdef UNI-APP-X
+<script lang="uts">
 	import iconMixin from "../../mixins/iconMixin.uts";
-	// #endif
-	// #ifndef UNI-APP-X
-	import iconMixin from "../../mixins/iconMixin.js";
-	// #endif
 	/**
 	 * @description 《提醒》图标
 	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-iconPark
@@ -21,12 +16,7 @@
 	export default {
 		mixins: [iconMixin],
 		computed: {
-			// #ifdef UNI-APP-X
 			iconSvg(): string {
-			// #endif
-			// #ifndef UNI-APP-X
-			iconSvg() {
-			// #endif
 				return `<?xml version="1.0" encoding="UTF-8"?><svg width="${this.size}" height="${this.size}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 4C16.268 4 10 10.268 10 18V38H38V18C38 10.268 31.732 4 24 4Z" fill="${this.colors(1)}"/><path d="M10 38V18C10 10.268 16.268 4 24 4C31.732 4 38 10.268 38 18V38M4 38H44" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M24 44C26.7614 44 29 41.7614 29 39V38H19V39C19 41.7614 21.2386 44 24 44Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/></svg>`
 			}
 		}

@@ -1,13 +1,8 @@
 <template>
 	<ucs-iconPark :width="size" :height="size" :src="iconSvg" />
 </template>
-<script>
-	// #ifdef UNI-APP-X
+<script lang="uts">
 	import iconMixin from "../../mixins/iconMixin.uts";
-	// #endif
-	// #ifndef UNI-APP-X
-	import iconMixin from "../../mixins/iconMixin.js";
-	// #endif
 	/**
 	 * @description 《四个箭头》图标
 	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-iconPark
@@ -21,12 +16,7 @@
 	export default {
 		mixins: [iconMixin],
 		computed: {
-			// #ifdef UNI-APP-X
 			iconSvg(): string {
-			// #endif
-			// #ifndef UNI-APP-X
-			iconSvg() {
-			// #endif
 				return `<?xml version="1.0" encoding="UTF-8"?><svg width="${this.size}" height="${this.size}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 24L19 19M24 8V24V8ZM24 24L29 19L24 24Z" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M24 24L19 29M24 40V24V40ZM24 24L29 29L24 24Z" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M20 12C22.2091 12 24 10.2091 24 8C24 5.79086 22.2091 4 20 4C17.7909 4 16 5.79086 16 8C16 10.2091 17.7909 12 20 12Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M8 32C10.2091 32 12 30.2091 12 28C12 25.7909 10.2091 24 8 24C5.79086 24 4 25.7909 4 28C4 30.2091 5.79086 32 8 32Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M8 24H40" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M40 24C42.2091 24 44 22.2091 44 20C44 17.7909 42.2091 16 40 16C37.7909 16 36 17.7909 36 20C36 22.2091 37.7909 24 40 24Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M28 44C30.2091 44 32 42.2091 32 40C32 37.7909 30.2091 36 28 36C25.7909 36 24 37.7909 24 40C24 42.2091 25.7909 44 28 44Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/></svg>`
 			}
 		}

@@ -1,13 +1,8 @@
 <template>
 	<ucs-iconPark :width="size" :height="size" :src="iconSvg" />
 </template>
-<script>
-	// #ifdef UNI-APP-X
+<script lang="uts">
 	import iconMixin from "../../mixins/iconMixin.uts";
-	// #endif
-	// #ifndef UNI-APP-X
-	import iconMixin from "../../mixins/iconMixin.js";
-	// #endif
 	/**
 	 * @description 《服务器》图标
 	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-iconPark
@@ -21,12 +16,7 @@
 	export default {
 		mixins: [iconMixin],
 		computed: {
-			// #ifdef UNI-APP-X
 			iconSvg(): string {
-			// #endif
-			// #ifndef UNI-APP-X
-			iconSvg() {
-			// #endif
 				return `<?xml version="1.0" encoding="UTF-8"?><svg width="${this.size}" height="${this.size}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M44 4H4V20H44V4Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M44 28H4V44H44V28Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linejoin="${this.strokeLinejoin}"/><path d="M13 10H11C10.4477 10 10 10.4477 10 11V13C10 13.5523 10.4477 14 11 14H13C13.5523 14 14 13.5523 14 13V11C14 10.4477 13.5523 10 13 10Z" fill="${this.colors(2)}"/><path d="M13 34H11C10.4477 34 10 34.4477 10 35V37C10 37.5523 10.4477 38 11 38H13C13.5523 38 14 37.5523 14 37V35C14 34.4477 13.5523 34 13 34Z" fill="${this.colors(2)}"/><path d="M21 10H19C18.4477 10 18 10.4477 18 11V13C18 13.5523 18.4477 14 19 14H21C21.5523 14 22 13.5523 22 13V11C22 10.4477 21.5523 10 21 10Z" fill="${this.colors(2)}"/><path d="M21 34H19C18.4477 34 18 34.4477 18 35V37C18 37.5523 18.4477 38 19 38H21C21.5523 38 22 37.5523 22 37V35C22 34.4477 21.5523 34 21 34Z" fill="${this.colors(2)}"/></svg>`
 			}
 		}

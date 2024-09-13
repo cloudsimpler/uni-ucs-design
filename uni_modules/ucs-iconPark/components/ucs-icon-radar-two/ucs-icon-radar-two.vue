@@ -1,13 +1,8 @@
 <template>
 	<ucs-iconPark :width="size" :height="size" :src="iconSvg" />
 </template>
-<script>
-	// #ifdef UNI-APP-X
+<script lang="uts">
 	import iconMixin from "../../mixins/iconMixin.uts";
-	// #endif
-	// #ifndef UNI-APP-X
-	import iconMixin from "../../mixins/iconMixin.js";
-	// #endif
 	/**
 	 * @description 《雷达》图标
 	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-iconPark
@@ -21,12 +16,7 @@
 	export default {
 		mixins: [iconMixin],
 		computed: {
-			// #ifdef UNI-APP-X
 			iconSvg(): string {
-			// #endif
-			// #ifndef UNI-APP-X
-			iconSvg() {
-			// #endif
 				return `<?xml version="1.0" encoding="UTF-8"?><svg width="${this.size}" height="${this.size}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 20V4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44C35.0457 44 44 35.0457 44 24" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/><path fill-rule="evenodd" clip-rule="evenodd" d="M24 28C26.2091 28 28 26.2091 28 24C28 21.7909 26.2091 20 24 20C21.7909 20 20 21.7909 20 24C20 26.2091 21.7909 28 24 28Z" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}" stroke-linejoin="${this.strokeLinejoin}"/></svg>`
 			}
 		}
