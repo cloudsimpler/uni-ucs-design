@@ -14,12 +14,12 @@
 官网地址：[https://ucs.cloudsimpler.com/library/ucs-color](https://ucs.cloudsimpler.com/library/ucs-color)
 
 ## 源码
-[![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
-[![forks](https://img.shields.io/github/forks/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
-[![watchers](https://img.shields.io/github/watchers/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
-[![license](https://img.shields.io/github/license/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
-[![star](https://gitee.com/cloudsimpler/uni-ucs-design/badge/star.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
-[![fork](https://gitee.com/cloudsimpler/uni-ucs-design/badge/fork.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg)
+[![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-color)
+[![forks](https://img.shields.io/github/forks/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-color)
+[![watchers](https://img.shields.io/github/watchers/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-color)
+[![license](https://img.shields.io/github/license/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-color)
+[![star](https://gitee.com/cloudsimpler/uni-ucs-design/badge/star.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-color)
+[![fork](https://gitee.com/cloudsimpler/uni-ucs-design/badge/fork.svg?theme=white)](https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-color)
 
 ## 版权信息
 - 遵循 `MIT` 开源协议，无需支付任何费用，也无需授权，即可将框架应用到产品中。
