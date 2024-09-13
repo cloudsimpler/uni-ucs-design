@@ -45,9 +45,9 @@ function isThresholdValue(num : number) : number {
  * @param b 蓝色
  * @returns HSL
  * @example
- * const rgbColor: RGBColor = { r: 255, g: 0, b: 0 };
- * const hslColor: HSLColor = rgbToHsl(rgbColor);
- * console.log(hslColor); // 输出：{ h: 0, s: 1, l: 0.5 }
+ * const rgbColor = {b: 252, g: 76, r: 96};
+ * const hslColor = rgbToHsl(rgbColor.r,rgbColor.g,rgbColor.b);
+ * console.log(hslColor); // 输出：{h: 246.8181818181818, l: 0.6431372549019608, s: 0.9670329670329672}
  */
 export function rgbToHsl(r : number, g : number, b : number) : HSL {
 	const hsl : HSL = {
@@ -100,9 +100,9 @@ export function rgbToHsl(r : number, g : number, b : number) : HSL {
  * @param b 蓝色
  * @returns HSV
  * @example
- * const rgbColor: RGBColor = { r: 0, g: 188, b: 121 };
- * const hsvColor: HSVColor = rgbToHsv(rgbColor);
- * console.log(hsvColor); // 输出：{ h: 159, s: 1.0, v: 0.74 }
+ * const rgbColor = {b: 252, g: 76, r: 96};
+ * const hsvColor = rgbToHsv(rgbColor);
+ * console.log(hsvColor); // 输出：{h: 246.8181818181818, s: 0.6984126984126984, v: 0.9882352941176471}
  */
 export function rgbToHsv(r : number, g : number, b : number) : HSV {
 	const r1 = r / 255;
@@ -148,9 +148,9 @@ export function rgbToHsv(r : number, g : number, b : number) : HSV {
  * @param v [0, 1]
  * @returns RGB
  * @example
- * const hsvColor: HSVColor = { h: 159, s: 1.0, v: 0.74 };
- * const rgbColor: RGBColor = hsvToRgb(hsvColor);
- * console.log(rgbColor); // 输出：{ r: 0, g: 189, b: 123 }
+ * const hsvColor = {h: 246.8181818181818, s: 0.6984126984126984, v: 0.9882352941176471};
+ * const rgbColor = hsvToRgb(hsvColor.h,hsvColor.s,hsvColor.v);
+ * console.log(rgbColor); // 输出：{b: 252, g: 76, r: 96}
  */
 export function hsvToRgb(h : number, s : number, v : number) : RGB {
 	const hue = h / 60;
@@ -205,9 +205,9 @@ export function hsvToRgb(h : number, s : number, v : number) : RGB {
  * @param l [0, 1]
  * @returns RGB
  * @example
- * const hslColor: HSLColor = { h: 0, s: 1, l: 0.5 };
- * const rgbColor: RGBColor = hslToRgb(hslColor);
- * console.log(rgbColor); // 输出：{ r: 255, g: 0, b: 0 }
+ * const hslColor = {h: 246.8181818181818, l: 0.6431372549019608, s: 0.9670329670329672};
+ * const rgbColor = hslToRgb(hslColor.h,hslColor.s,hslColor.l);
+ * console.log(rgbColor); // 输出：{b: 252, g: 76, r: 96}
  */
 export function hslToRgb(h : number, s : number, l : number) : RGB {
 	let rgb : RGB = { r: 0, g: 0, b: 0 };
@@ -266,9 +266,9 @@ export function hslToRgb(h : number, s : number, l : number) : RGB {
  * @param hex HEX十六进制颜色值
  * @returns RGB
  * @example
- * const hexColor = '#ff5733';
+ * const hexColor = '#604CFC';
  * const rgbColor = hexToRgb(hexColor);
- * console.log(rgbColor); // 输出：{ r: 255, g: 87, b: 51 }
+ * console.log(rgbColor); // 输出：{b: 252, g: 76, r: 96}
  */
 export function hexToRgb(hex : string) : RGB {
 	// 检查输入的十六进制颜色值是否有效
@@ -310,9 +310,9 @@ function rgbToHexValue(value : number) : string {
  * @param b 蓝色
  * @returns string
  * @example 
- * const rgbColor = { r: 255, g: 87, b: 51 };
+ * const rgbColor = {b: 252, g: 76, r: 96};
  * const hexColor = rgbToHex(rgbColor.r, rgbColor.g, rgbColor.b);
- * console.log(hexColor); // 输出：#ff5733
+ * console.log(hexColor); // 输出：#604CFC
  */
 export function rgbToHex(r : number, g : number, b : number) : string {
 	// 将 RGB 值转换为 HEX 十六进制颜色值
@@ -332,9 +332,9 @@ export function rgbToHex(r : number, g : number, b : number) : string {
  * @param l lightness亮度，0-1之间
  * @returns string
  * @example
- * const hslColor = { h: 251, s: 0.5, l: 0.3 };
+ * const hslColor = {h: 246.8181818181818, l: 0.6431372549019608, s: 0.9670329670329672};
  * const hexColor = hslToHex(hslColor.h, hslColor.s, hslColor.l);
- * console.log(hexColor); // 输出：#342673
+ * console.log(hexColor); // 输出：#604cfc
  */
 export function hslToHex(h : number, s : number, l : number) : string {
 	const { r, g, b } = hslToRgb(h, s, l);
@@ -349,9 +349,9 @@ export function hslToHex(h : number, s : number, l : number) : string {
  * @param v value亮度，0-1之间
  * @returns string
  * @example
- * const hsvColor = { h: 159, s: 1.0, v: 0.74 };
+ * const hsvColor = {h: 246.8181818181818, s: 0.6984126984126984, v: 0.9882352941176471};
  * const hexColor = hsvToHex(hsvColor.h, hsvColor.s, hsvColor.v);
- * console.log(hexColor); // 输出 #0ac785
+ * console.log(hexColor); // 输出 #604CFC
  */
 export function hsvToHex(h : number, s : number, v : number) : string {
 	const { r, g, b } = hsvToRgb(h, s, v);
@@ -359,13 +359,13 @@ export function hsvToHex(h : number, s : number, v : number) : string {
 };
 
 /**
- * HEX 颜色值转为 HSV 十六进制颜色值
+ * HEX 十六进制颜色值转为 HSV 颜色值
  * @param hex hex颜色值
  * @returns HSV
  * @example
- * const hexColor = '#F76965';
+ * const hexColor = '#604cfc';
  * const hsvColor = hexToHsv(hexColor);
- * console.log(hsvColor); // 输出：{h: 1.6438356164383563, s: 0.5910931174089068, v: 0.9686274509803922}
+ * console.log(hsvColor); // 输出：{h: 246.8181818181818, s: 0.6984126984126984, v: 0.9882352941176471}
  */
 export function hexToHsv(hex : string) : HSV {
 	const { r, g, b } = hexToRgb(hex);
