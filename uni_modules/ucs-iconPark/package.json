@@ -1,7 +1,7 @@
 {
 	"id": "ucs-iconPark",
 	"displayName": "ucs-iconPark 图标库",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "一个通过技术驱动矢量图标样式的开源图标库，可以实现根据单一SVG源文件变换出多种主题，具备丰富的分类、更轻量的代码和更灵活的使用场景。",
 	"keywords": [
         "iconPark,svg,icon,图标"
