@@ -1,8 +1,9 @@
 import { hsvToHex, hexToHsv } from "./color.uts";
 
 /**
- * 动态梯度算法，参考 [Arco Design色彩算法](https://arco.design/palette/list)
- * @param primaryColor 基础色，仅支持hex十六进制格式
+ * 浅色系颜色动态梯度算法
+ * @param color 基础色，仅支持hex十六进制格式
+ * @param index 索引 [1-10]
  * @returns string
  */
 export function colorPalette(originColor : string, i : number) : string {

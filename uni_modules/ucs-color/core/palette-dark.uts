@@ -11,7 +11,10 @@ function calculateSaturation(r : number, g : number, b : number) : number {
 };
 
 /**
- * 暗黑模式动态梯度算法，参考 [Arco Design色彩算法](https://arco.design/palette/list)
+ * 暗色系颜色动态梯度算法
+ * @param color 基础色，仅支持hex十六进制格式
+ * @param index 索引 [1-10]
+ * @returns string
  */
 export function colorPaletteDark(originColor : string, i : number) : string {
 	const lightColor = hexToRgb(colorPalette(originColor, 10 - i + 1));

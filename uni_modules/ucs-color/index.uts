@@ -1,2 +1,4 @@
 export * from "./core/color.uts";
 export * from "./core/generate.uts";
+export * from "./core/palette.uts";
+export * from "./core/palette-dark.uts";
