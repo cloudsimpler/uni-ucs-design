@@ -1,0 +1,97 @@
+import { reactive } from "vue";
+const vuex = reactive({});
+
+class useStore {
+	static getState(key : string) : any {
+		return getData(key);
+	};
+	static setState(key : string, value : any) : void {
+		setData(key, value);
+	};
+
+	static getStore(key : string) : any {
+		return getStorageSync(key);
+	};
+	static setStore(key : string, value : any) : void {
+		setData(key, value);
+		uni.setStorageSync(key, value);
+	};
+};
+
+function getStorageSync(key : string) : any {
+	const temp = uni.getStorageSync(key);
+
+	if (temp === "") {
+		return getData(key);
+	};
+	if (getData(key) !== "") {
+		return getData(key);
+	};
+
+	return temp as any;
+};
+
+function getDeepProperty(obj : UTSJSONObject, path : string) {
+	// 将路径字符串分割成数组
+	const keys = path.split('.');
+	console.log(keys)
+
+	keys.forEach(element => {
+		console.log(element)
+		// array.pop() // 此行为在 Android 平台会造成闪退，在 iOS 平台会输出 'a', 'b', 'c', 而 JS 会输出 'a', 'b'
+	});
+}
+
+function getData(key : string) : any {
+	if (vuex[key] == null) {
+		return "";
+	};
+	// #ifndef APP-ANDROID 
+	if (vuex[key] == undefined) {
+		return "";
+	};
+	// #endif
+	if (vuex[key] == "") {
+		return "";
+	};
+	if (typeof vuex[key] === 'object') {
+		const temp = vuex[key] as UTSJSONObject;
+		// console.log(temp)
+		getDeepProperty(temp, 'test.test2.test3')
+
+	};
+
+	return vuex[key] as any;
+};
+
+function setData(key : string, value : any) : void {
+	vuex[key] = value;
+};
+
+const mixinStore =
+	// #ifdef UNI-APP-X
+	defineMixin(
+		// #endif
+		{
+			methods: {
+				getState(key : string) : any {
+					return useStore.getState(key);
+				},
+				setState(key : string, value : any) : void {
+					useStore.setState(key, value);
+				},
+				getStore(key : string) : any {
+					return useStore.getStore(key);
+				},
+				setStore(key : string, value : any) : void {
+					useStore.setStore(key, value);
+				}
+			}
+		}
+		// #ifdef UNI-APP-X
+	);
+// #endif
+export {
+	useStore,
+	mixinStore
+}

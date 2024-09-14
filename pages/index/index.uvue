@@ -1,14 +1,16 @@
 <template>
-	<view>
-		<!-- <view class="w-12_1" style="height: 200px;background-color: red;"></view> -->
-	</view>
+	<scroll-view style="flex: 1;">
+		{{useStore.getState("test")}}
+		<button @tap="onTap">点击设置</button>
+	</scroll-view>
 </template>
 
-<script lang="uts" setup>
-	import { rgbToHsv } from "@/uni_modules/ucs-color";
-	
-	// RGB颜色值转HSL颜色值
-	console.log(rgbToHsv(255,0,0))
+<script setup>
+	import { useStore } from "@/uni_modules/ucs-store";
+
+	const onTap = () => {
+		useStore.setState("test", { test: "测试值", test2: { test3: "123" } })
+	};
 </script>
 
 <style>
