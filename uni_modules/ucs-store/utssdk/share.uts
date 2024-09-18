@@ -1,0 +1,3 @@
+import { reactive } from "vue";
+const share = reactive({});
+export default share;

@@ -1,15 +1,16 @@
 <template>
 	<scroll-view style="flex: 1;">
-		{{useStore.getState("test",'test')}}
+		{{ucsShare.getStore("test",'test2.number')}}
 		<button @tap="onTap">点击设置</button>
 		<button @tap="onTap2">点击修改</button>
+		<button @tap="onTap3">点击删除</button>
 	</scroll-view>
 </template>
 
 <script setup>
-	import { useStore } from "@/uni_modules/ucs-store";
+	import { ucsShare } from "@/uni_modules/ucs-store";
 
-
+	
 
 	const onTap = () => {
 		const data = {
@@ -22,14 +23,24 @@
 		}
 		const data1 = [{ a1: 2 }, { a1: 2 }]
 
-		useStore.setState("test", data)
+		ucsShare.setStore("test", data)
 	};
-	
+
 	const onTap2 = () => {
 		const data = {
-			test: "测试值2"
+			test: "测试值2",
+			test2: {
+				string: "123",
+				number: 45,
+				array: [{ a1: 2 }, { a1: 2 }]
+			}
 		}
-		useStore.setState("test", data)
+		ucsShare.setStore("test", data)
+	};
+	
+	const onTap3 = () => {
+		
+		ucsShare.removeStore("test")
 	};
 </script>
 
