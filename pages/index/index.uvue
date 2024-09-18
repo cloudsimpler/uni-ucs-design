@@ -1,15 +1,35 @@
 <template>
 	<scroll-view style="flex: 1;">
-		{{useStore.getState("test")}}
+		{{useStore.getState("test",'test')}}
 		<button @tap="onTap">点击设置</button>
+		<button @tap="onTap2">点击修改</button>
 	</scroll-view>
 </template>
 
 <script setup>
 	import { useStore } from "@/uni_modules/ucs-store";
 
+
+
 	const onTap = () => {
-		useStore.setState("test", { test: "测试值", test2: { test3: "123" } })
+		const data = {
+			test: "测试值",
+			test2: {
+				string: "123",
+				number: 456.205,
+				array: [{ a1: 2 }, { a1: 2 }]
+			}
+		}
+		const data1 = [{ a1: 2 }, { a1: 2 }]
+
+		useStore.setState("test", data)
+	};
+	
+	const onTap2 = () => {
+		const data = {
+			test: "测试值2"
+		}
+		useStore.setState("test", data)
 	};
 </script>
 
