@@ -1,45 +1,16 @@
 <template>
-	<scroll-view style="flex: 1;">
-		{{ucsShare.getState("test",'test2.number')}}
-		<button @tap="onTap">点击设置</button>
-		<button @tap="onTap2">点击修改</button>
-		<button @tap="onTap3">点击删除</button>
-	</scroll-view>
+	<view>
+		<!-- 显示：测试值 -->
+		{{ucsShare.getState("test")}}
+	</view>
 </template>
 
-<script setup>
+<script lang="uts" setup>
 	import { ucsShare } from "@/uni_modules/ucs-share";
-
-	const onTap = () => {
-		const data = {
-			test: "测试值",
-			test2: {
-				string: "123",
-				number: 456.205,
-				array: [{ a1: 2 }, { a1: 2 }]
-			}
-		}
-		const data1 = [{ a1: 2 }, { a1: 2 }]
-
-		ucsShare.setState("test", data)
-	};
-
-	const onTap2 = () => {
-		const data = {
-			test: "测试值2",
-			test2: {
-				string: "123",
-				number: 45,
-				array: [{ a1: 2 }, { a1: 2 }]
-			}
-		}
-		ucsShare.setState("test", data)
-	};
-	
-	const onTap3 = () => {
-		
-		ucsShare.removeState("test")
-	};
+	/**
+	 * 示例设置共享状态键值
+	 */
+	ucsShare.setState("test", "测试值");
 </script>
 
 <style>

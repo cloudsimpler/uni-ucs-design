@@ -1,8 +1,7 @@
 type tempType = {
 	type : string;
 	obj : UTSJSONObject;
-	string : string;
-	number : number;
+	any : any;
 	array : any[]
 }
 
@@ -12,8 +11,7 @@ export function getDeepProperty(obj : any, path : string) : any {
 	let temp : tempType = {
 		type: "string",
 		obj: {},
-		string: "",
-		number: 0,
+		any: "",
 		array: []
 	};
 
@@ -33,24 +31,26 @@ export function getDeepProperty(obj : any, path : string) : any {
 			 */
 			try {
 				if (element.indexOf("[") != -1 && element.indexOf("]") != -1) {
-					const str = element.replace("[", "").replace("]", "")
-					temp.obj = temp.array[parseFloat(str)] as UTSJSONObject;
+					const str = element.replace("[", "").replace("]", "");
+					if (typeof temp.array[parseFloat(str)] == "object") {
+						temp.obj = temp.array[parseFloat(str)] as UTSJSONObject;
+						temp.type = "obj";
+					} else {
+						temp.any = temp.array[parseFloat(str)] as any;
+						temp.type = "any";
+					};
 				} else {
 					temp.obj = temp.obj[element] as UTSJSONObject;
+					temp.type = "obj";
 				};
-				temp.type = "obj";
 			} catch (e) {
 				temp.array = temp.obj[element] as any[];
 				temp.type = "array";
 			};
-		} else if (type == "string") {
-			temp.string = temp.obj[element] as string;
-			temp.type = "string";
-		} else if (type == "Int" || type == "Double" || type == "number") {
-			temp.number = temp.obj[element] as number;
-			temp.type = "number";
 		} else {
-			console.error(`当前参数属性类型为：${type}未进行适配，请联系作者进行适配`);
+			// string,Int,Double,number
+			temp.any = temp.obj[element] as any;
+			temp.type = "any";
 		};
 	});
 
