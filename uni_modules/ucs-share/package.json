@@ -44,7 +44,9 @@
 					"vue2": "n",
 					"vue3": "y"
 				},
-                "App": {
+				"App": {
+					"app-android": "y",
+					"app-ios": "y"
 				},
 				"H5-mobile": {
 					"Safari": "y",
