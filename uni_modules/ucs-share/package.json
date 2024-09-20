@@ -1,17 +1,17 @@
 {
 	"id": "ucs-share",
-	"displayName": "ucs-share",
+	"displayName": "ucs-share 状态共享",
 	"version": "1.0.0",
-	"description": "ucs-share",
+	"description": "为应用提供状态共享模式，它通过集中存储和管理应用的所有组件的状态，实现组件间的通信和数据共享。",
 	"keywords": [
-		"ucs-share"
-	],
-	"repository": "",
+        "share,ucs,状态管理"
+    ],
+	"repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-share",
 	"engines": {
-		"HBuilderX": "^3.1.0"
+		"HBuilderX": "^4.24"
 	},
 	"dcloudext": {
-		"type": "sdk-js",
+		"type": "uts",
 		"sale": {
 			"regular": {
 				"price": "0.00"
@@ -21,12 +21,12 @@
 			}
 		},
 		"contact": {
-			"qq": ""
+			"qq": "1827239383"
 		},
 		"declaration": {
-			"ads": "",
-			"data": "",
-			"permissions": ""
+			"ads": "无",
+			"data": "插件不采集任何数据",
+			"permissions": "无"
 		},
 		"npmurl": ""
 	},
@@ -35,47 +35,44 @@
 		"encrypt": [],
 		"platforms": {
 			"cloud": {
-				"tcb": "u",
-				"aliyun": "u",
-				"alipay": "u"
+				"tcb": "y",
+				"aliyun": "y",
+				"alipay": "y"
 			},
 			"client": {
 				"Vue": {
-					"vue2": "u",
-					"vue3": "u"
+					"vue2": "n",
+					"vue3": "y"
 				},
-				"App": {
-					"app-vue": "u",
-					"app-nvue": "u",
-					"app-uvue": "u"
+                "App": {
 				},
 				"H5-mobile": {
-					"Safari": "u",
-					"Android Browser": "u",
-					"微信浏览器(Android)": "u",
-					"QQ浏览器(Android)": "u"
+					"Safari": "y",
+					"Android Browser": "y",
+					"微信浏览器(Android)": "y",
+					"QQ浏览器(Android)": "y"
 				},
 				"H5-pc": {
-					"Chrome": "u",
-					"IE": "u",
-					"Edge": "u",
-					"Firefox": "u",
-					"Safari": "u"
+					"Chrome": "y",
+					"IE": "y",
+					"Edge": "y",
+					"Firefox": "y",
+					"Safari": "y"
 				},
 				"小程序": {
-					"微信": "u",
-					"阿里": "u",
-					"百度": "u",
-					"字节跳动": "u",
-					"QQ": "u",
-					"钉钉": "u",
-					"快手": "u",
-					"飞书": "u",
-					"京东": "u"
+					"微信": "y",
+					"阿里": "y",
+					"百度": "y",
+					"字节跳动": "y",
+					"QQ": "y",
+					"钉钉": "y",
+					"快手": "y",
+					"飞书": "y",
+					"京东": "y"
 				},
 				"快应用": {
-					"华为": "u",
-					"联盟": "u"
+					"华为": "y",
+					"联盟": "y"
 				}
 			}
 		}
