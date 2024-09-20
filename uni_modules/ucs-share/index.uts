@@ -1,29 +1,6 @@
 import { getDeepProperty } from "./utssdk/deep.uts";
 import share from "./utssdk/share.uts";
 
-class ucsShare {
-	static getState(key : string, path : string = "") : any {
-		return getData(key, path);
-	};
-	static setState(key : string, value : any) : void {
-		setData(key, value);
-	};
-	static removeState(key : string) : void {
-		share[key] = "";
-	};
-	static getStore(key : string, path : string = "") : any {
-		return getStorageSync(key, path);
-	};
-	static setStore(key : string, value : any) : void {
-		setData(key, value);
-		uni.setStorageSync(key, value);
-	};
-	static removeStore(key : string) : void {
-		share[key] = "";
-		uni.removeStorageSync(key);
-	};
-};
-
 function getStorageSync(key : string, path : string = "") : any {
 	const temp = uni.getStorageSync(key);
 
@@ -69,36 +46,25 @@ function setData(key : string, value : any) : void {
 	share[key] = value;
 };
 
-const ucsShareMixin =
-	// #ifdef UNI-APP-X
-	defineMixin(
-		// #endif
-		{
-			methods: {
-				getState(key : string, path : string = "") : any {
-					return ucsShare.getState(key, path);
-				},
-				setState(key : string, value : any) : void {
-					ucsShare.setState(key, value);
-				},
-				removeState(key : string) : void {
-					ucsShare.removeState(key)
-				},
-				getStore(key : string, path : string = "") : any {
-					return ucsShare.getStore(key, path);
-				},
-				setStore(key : string, value : any) : void {
-					ucsShare.setStore(key, value);
-				},
-				removeStore(key : string) : void {
-					ucsShare.removeStore(key)
-				}
-			}
-		}
-		// #ifdef UNI-APP-X
-	);
-// #endif
-export {
-	ucsShare,
-	ucsShareMixin
-}
+export default class ucsShare {
+	static getState(key : string, path : string = "") : any {
+		return getData(key, path);
+	};
+	static setState(key : string, value : any) : void {
+		setData(key, value);
+	};
+	static removeState(key : string) : void {
+		share[key] = "";
+	};
+	static getStore(key : string, path : string = "") : any {
+		return getStorageSync(key, path);
+	};
+	static setStore(key : string, value : any) : void {
+		setData(key, value);
+		uni.setStorageSync(key, value);
+	};
+	static removeStore(key : string) : void {
+		share[key] = "";
+		uni.removeStorageSync(key);
+	};
+};
