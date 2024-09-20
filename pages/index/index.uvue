@@ -1,16 +1,11 @@
 <template>
 	<view>
-		<!-- 显示：测试值 -->
-		{{ucsShare.getState("test")}}
+		
 	</view>
 </template>
 
-<script lang="uts" setup>
-	import { ucsShare } from "@/uni_modules/ucs-share";
-	/**
-	 * 示例设置共享状态键值
-	 */
-	ucsShare.setState("test", "测试值");
+<script setup>
+	
 </script>
 
 <style>
