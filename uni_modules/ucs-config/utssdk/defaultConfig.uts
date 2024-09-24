@@ -1,0 +1,29 @@
+import { reactive } from "vue";
+const defaultConfig = reactive({
+	themeConfig: {
+		osTheme: "light",
+		primary: "#604CFC",
+		success: "#07C160",
+		warning: "#EDA20C",
+		danger: "#D9514C"
+	},
+	emptyConfog: ["1", 2, "3"]
+});
+
+
+for (let i in defaultConfig) {
+	console.log(typeof defaultConfig[i])
+}
+
+console.log(Array.isArray(defaultConfig['emptyConfog']))
+
+
+const defaultThemeConfig = (config : UTSJSONObject) : UTSJSONObject => {
+	let initThemeConfig = defaultConfig['themeConfig'] as UTSJSONObject;
+	defaultConfig['themeConfig'] = UTSJSONObject.assign(initThemeConfig, config);
+	return defaultConfig['themeConfig'] as UTSJSONObject;
+};
+
+export {
+	defaultConfig, defaultThemeConfig
+}

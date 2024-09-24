@@ -1,0 +1,4 @@
+export * from "./utssdk/defaultTheme.uts";
+import { initDefaultColors } from "./utssdk/defaultColors.uts";
+// 初始化色彩配置
+initDefaultColors();
