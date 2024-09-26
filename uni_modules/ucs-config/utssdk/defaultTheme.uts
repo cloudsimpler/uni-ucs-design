@@ -1,5 +1,0 @@
-import { defaultThemeConfig } from "./defaultConfig.uts";
-
-export const themeConfig = (config : UTSJSONObject) : UTSJSONObject => {
-	return defaultThemeConfig(config);
-}

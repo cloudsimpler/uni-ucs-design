@@ -1,4 +1,4 @@
-export * from "./utssdk/defaultTheme.uts";
+export { defineConfig } from "./utssdk/defaultConfig.uts";
 import { initDefaultColors } from "./utssdk/defaultColors.uts";
 // 初始化色彩配置
 initDefaultColors();

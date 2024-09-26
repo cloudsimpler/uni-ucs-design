@@ -1,29 +1,44 @@
 import { reactive } from "vue";
 const defaultConfig = reactive({
-	themeConfig: {
-		osTheme: "light",
+	osTheme: "light",
+	color: {
 		primary: "#604CFC",
 		success: "#07C160",
 		warning: "#EDA20C",
 		danger: "#D9514C"
-	},
-	emptyConfog: ["1", 2, "3"]
+	}
 });
 
+/**
+ * object深度合并
+ * @param first 原始object数据
+ * @param second 需要被合并的object数据
+ * @returns object
+ */
+const deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
+	for (let f in first) {
+		if (typeof second[f] === 'object' && !Array.isArray(second[f]) && second[f] != null) {
+			const tempFirst = first[f] as UTSJSONObject;
+			const tempSecond = second[f] as UTSJSONObject;
+			deepMergeObject(tempFirst, tempSecond);
+		} else {
+			if (second[f] != null) {
+				first[f] = second[f];
+			};
+		}
+	};
 
-for (let i in defaultConfig) {
-	console.log(typeof defaultConfig[i])
-}
+	return first as UTSJSONObject;
+};
 
-console.log(Array.isArray(defaultConfig['emptyConfog']))
-
-
-const defaultThemeConfig = (config : UTSJSONObject) : UTSJSONObject => {
-	let initThemeConfig = defaultConfig['themeConfig'] as UTSJSONObject;
-	defaultConfig['themeConfig'] = UTSJSONObject.assign(initThemeConfig, config);
-	return defaultConfig['themeConfig'] as UTSJSONObject;
+/**
+ * 定义配置
+ * @param config 配置object
+ */
+const defineConfig = (config : UTSJSONObject) : UTSJSONObject => {
+	return deepMergeObject(defaultConfig, config)
 };
 
 export {
-	defaultConfig, defaultThemeConfig
+	defineConfig, defaultConfig
 }
