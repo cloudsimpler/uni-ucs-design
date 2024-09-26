@@ -1,5 +1,5 @@
-import { themeConfig } from "@/uni_modules/ucs-config";
+import { defineConfig } from "@/uni_modules/ucs-config";
 
-themeConfig({
-	primary: "#1890ff"
+defineConfig({
+	osTheme: "dark"
 })
