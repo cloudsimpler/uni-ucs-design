@@ -17,17 +17,16 @@ const defaultConfig = reactive({
  */
 const deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
 	for (let f in first) {
-		if (typeof second[f] === 'object' && !Array.isArray(second[f]) && second[f] != null) {
-			const tempFirst = first[f] as UTSJSONObject;
-			const tempSecond = second[f] as UTSJSONObject;
-			deepMergeObject(tempFirst, tempSecond);
+		
+		if (typeof first[f] === 'object' && !Array.isArray(first[f]) && first[f] != null && typeof second[f] === 'object' && !Array.isArray(second[f]) && second[f] != null) {
+			deepMergeObject(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
 		} else {
-			if (second[f] != null) {
+			if(typeof first[f] === typeof second[f] && second[f] != null){
 				first[f] = second[f];
 			};
 		}
 	};
-
+	console.log(first)
 	return first as UTSJSONObject;
 };
 

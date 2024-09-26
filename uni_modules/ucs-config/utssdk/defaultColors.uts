@@ -8,7 +8,7 @@ const darkGrey = ["#17171a", "#2e2e30", "#484849", "#5f5f60", "#78787a", "#92929
 
 const defaultColors = reactive({});
 
-console.log(defaultConfig);
+// console.log(defaultConfig);
 
 export const initDefaultColors = () => {
 	// console.log(defaultConfig)
