@@ -1,0 +1,31 @@
+/**
+ * 文本字体大小
+ */
+.text-xs{font-size: 12px;line-height: 16px;}
+.text-sm{font-size: 14px;line-height: 20px;}
+.text-md{font-size: 16px;line-height: 24px;}
+.text-lg{font-size: 18px;line-height: 28px;}
+.text-xl{font-size: 20px;line-height: 28px;}
+.text-2xl{font-size: 24px;line-height: 32px;}
+.text-3xl{font-size: 30px;line-height: 36px;}
+.text-4xl{font-size: 36px;line-height: 40px;}
+.text-5xl{font-size: 48px;line-height: 1;}
+.text-6xl{font-size: 60px;line-height: 1;}
+.text-7xl{font-size: 72px;line-height: 1;}
+.text-8xl{font-size: 96px;line-height: 1;}
+.text-9xl{font-size: 128px;line-height: 1;}
+/**
+ * 文本加粗
+ */
+.font-normal{font-weight: normal;}
+.font-bold{font-weight: bold;}
+/**
+ * 行高
+ */
+.leading-0 {line-height: 0px;}.leading-1 {line-height: 1px;}.leading-2 {line-height: 2px;}.leading-3 {line-height: 3px;}.leading-4 {line-height: 4px;}.leading-5 {line-height: 5px;}.leading-6 {line-height: 6px;}.leading-7 {line-height: 7px;}.leading-8 {line-height: 8px;}.leading-9 {line-height: 9px;}.leading-10 {line-height: 10px;}.leading-11 {line-height: 11px;}.leading-12 {line-height: 12px;}.leading-13 {line-height: 13px;}.leading-14 {line-height: 14px;}.leading-15 {line-height: 15px;}.leading-16 {line-height: 16px;}.leading-17 {line-height: 17px;}.leading-18 {line-height: 18px;}.leading-19 {line-height: 19px;}.leading-20 {line-height: 20px;}.leading-21 {line-height: 21px;}.leading-22 {line-height: 22px;}.leading-23 {line-height: 23px;}.leading-24 {line-height: 24px;}.leading-25 {line-height: 25px;}.leading-26 {line-height: 26px;}.leading-27 {line-height: 27px;}.leading-28 {line-height: 28px;}.leading-29 {line-height: 29px;}.leading-30 {line-height: 30px;}.leading-31 {line-height: 31px;}.leading-32 {line-height: 32px;}.leading-33 {line-height: 33px;}.leading-34 {line-height: 34px;}.leading-35 {line-height: 35px;}.leading-36 {line-height: 36px;}.leading-37 {line-height: 37px;}.leading-38 {line-height: 38px;}.leading-39 {line-height: 39px;}.leading-40 {line-height: 40px;}
+.leading-none{line-height: 1;}
+.leading-tight{line-height: 1.25;}
+.leading-snug{line-height: 1.375;}
+.leading-normal{line-height: 1.5;}
+.leading-relaxed{line-height: 1.625;}
+.leading-loose{line-height: 2;}

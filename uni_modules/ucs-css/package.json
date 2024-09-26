@@ -1,83 +1,83 @@
 {
-  "id": "ucs-css",
-  "displayName": "ucs-css",
-  "version": "1.0.0",
-  "description": "ucs-css",
-  "keywords": [
-    "ucs-css"
-],
-  "repository": "",
-  "engines": {
-    "HBuilderX": "^3.1.0"
-  },
-  "dcloudext": {
-    "type": "sdk-js",
-    "sale": {
-      "regular": {
-        "price": "0.00"
-      },
-      "sourcecode": {
-        "price": "0.00"
-      }
-    },
-    "contact": {
-      "qq": ""
-    },
-    "declaration": {
-      "ads": "",
-      "data": "",
-      "permissions": ""
-    },
-    "npmurl": ""
-  },
-  "uni_modules": {
-    "dependencies": [],
-    "encrypt": [],
-    "platforms": {
-      "cloud": {
-        "tcb": "u",
-        "aliyun": "u",
-        "alipay": "u"
-      },
-      "client": {
-        "Vue": {
-          "vue2": "u",
-          "vue3": "u"
-        },
-        "App": {
-          "app-vue": "u",
-          "app-nvue": "u",
-          "app-uvue": "u"
-        },
-        "H5-mobile": {
-          "Safari": "u",
-          "Android Browser": "u",
-          "微信浏览器(Android)": "u",
-          "QQ浏览器(Android)": "u"
-        },
-        "H5-pc": {
-          "Chrome": "u",
-          "IE": "u",
-          "Edge": "u",
-          "Firefox": "u",
-          "Safari": "u"
-        },
-        "小程序": {
-          "微信": "u",
-          "阿里": "u",
-          "百度": "u",
-          "字节跳动": "u",
-          "QQ": "u",
-          "钉钉": "u",
-          "快手": "u",
-          "飞书": "u",
-          "京东": "u"
-        },
-        "快应用": {
-          "华为": "u",
-          "联盟": "u"
-        }
-      }
-    }
-  }
+	"id": "ucs-css",
+	"displayName": "ucs-css 原子化样式",
+	"version": "1.0.0",
+	"description": "CSS原子化是一种将CSS样式分解为最小可复用单元的方法，每个类只包含单一的作用，例如只设置颜色、字体大小或边距。这种方式提高了样式的可维护性、可复用性和可读性，使得开发更加模块化和高效",
+	"keywords": [
+        "css,原子化样式"
+    ],
+	"repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-css",
+	"engines": {
+		"HBuilderX": "^4.24"
+	},
+	"dcloudext": {
+		"type": "uts",
+		"sale": {
+			"regular": {
+				"price": "0.00"
+			},
+			"sourcecode": {
+				"price": "0.00"
+			}
+		},
+		"contact": {
+			"qq": ""
+		},
+		"declaration": {
+			"ads": "无",
+			"data": "插件不采集任何数据",
+			"permissions": "无"
+		},
+		"npmurl": ""
+	},
+	"uni_modules": {
+		"dependencies": [],
+		"encrypt": [],
+		"platforms": {
+			"cloud": {
+				"tcb": "y",
+				"aliyun": "y",
+				"alipay": "y"
+			},
+			"client": {
+				"Vue": {
+					"vue2": "y",
+					"vue3": "y"
+				},
+				"App": {
+					"app-android": "y",
+					"app-ios": "y",
+					"app-harmony": "y"
+				},
+				"H5-mobile": {
+					"Safari": "y",
+					"Android Browser": "y",
+					"微信浏览器(Android)": "y",
+					"QQ浏览器(Android)": "y"
+				},
+				"H5-pc": {
+					"Chrome": "y",
+					"IE": "y",
+					"Edge": "y",
+					"Firefox": "y",
+					"Safari": "y"
+				},
+				"小程序": {
+					"微信": "y",
+					"阿里": "y",
+					"百度": "y",
+					"字节跳动": "y",
+					"QQ": "y",
+					"钉钉": "y",
+					"快手": "y",
+					"飞书": "y",
+					"京东": "y"
+				},
+				"快应用": {
+					"华为": "y",
+					"联盟": "y"
+				}
+			}
+		}
+	}
 }
