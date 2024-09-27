@@ -15,27 +15,29 @@ const defaultConfig = reactive({
  * @param second 需要被合并的object数据
  * @returns object
  */
-const deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
+
+let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => void) | null = null;
+
+deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) => {
 	for (let f in first) {
-		
-		if (typeof first[f] === 'object' && !Array.isArray(first[f]) && first[f] != null && typeof second[f] === 'object' && !Array.isArray(second[f]) && second[f] != null) {
-			deepMergeObject(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
-		} else {
-			if(typeof first[f] === typeof second[f] && second[f] != null){
-				first[f] = second[f];
-			};
-		}
+		if (second.hasOwnProperty(f)) {
+			if (typeof first[f] === 'object' && !Array.isArray(first[f]) && first[f] != null && typeof second[f] === 'object' && !Array.isArray(second[f]) && second[f] != null) {
+				deepMergeObject?.(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
+			} else {
+				if (typeof first[f] === typeof second[f] && second[f] != null) {
+					first[f] = second[f];
+				};
+			}
+		};
 	};
-	console.log(first)
-	return first as UTSJSONObject;
 };
 
 /**
  * 定义配置
  * @param config 配置object
  */
-const defineConfig = (config : UTSJSONObject) : UTSJSONObject => {
-	return deepMergeObject(defaultConfig, config)
+const defineConfig = (config : UTSJSONObject) => {
+	deepMergeObject?.(defaultConfig, config);
 };
 
 export {

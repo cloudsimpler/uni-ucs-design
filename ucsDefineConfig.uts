@@ -1,5 +1,8 @@
 import { defineConfig } from "@/uni_modules/ucs-config";
 
-defineConfig({
-	osTheme: "dark"
-})
+// defineConfig({
+// 	osTheme: "light",
+// 	color: {
+// 		primary: "#1890ff"
+// 	}
+// })

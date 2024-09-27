@@ -1,15 +1,23 @@
-import { reactive } from "vue";
+import { reactive, nextTick } from "vue";
 import { defaultConfig } from "./defaultConfig.uts";
-import { generate } from "../lib/ucs-color/generate";
+import { generateObject } from "../lib/ucs-color/generate";
 // 浅色【中性灰】
 const lightGrey = ["#f7f8fa", "#f2f3f5", "#e5e6eb", "#c9cdd4", "#a9aeb8", "#86909c", "#6b7785", "#4e5969", "#272e3b", "#1d2129"];
 // 暗色【中性灰】
 const darkGrey = ["#17171a", "#2e2e30", "#484849", "#5f5f60", "#78787a", "#929293", "#ababac", "#c5c5c5", "#dfdfdf", "#f6f6f6"];
 
-const defaultColors = reactive({});
-
-// console.log(defaultConfig);
+let defaultColors = reactive({
+	gray: "#1d2129"
+});
 
 export const initDefaultColors = () => {
-	// console.log(defaultConfig)
+	let color = defaultConfig['color'] as UTSJSONObject;
+	for (let c in color) {
+		defaultColors = UTSJSONObject.assign(defaultColors, generateObject(color[c] as string, c, defaultConfig['osTheme'] as string));
+	};
+};
+
+
+export {
+	defaultColors
 }
