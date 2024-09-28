@@ -1,5 +1,6 @@
-import { reactive } from "vue";
-const defaultConfig = reactive({
+import { setDefaultColors } from "./defaultColors.uts";
+
+let defaultConfig = {
 	osTheme: "light",
 	color: {
 		primary: "#604CFC",
@@ -7,18 +8,19 @@ const defaultConfig = reactive({
 		warning: "#EDA20C",
 		danger: "#D9514C"
 	}
-});
+};
 
+/**
+ * 声明函数
+ */
+let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSONObject) | null = null;
 /**
  * object深度合并
  * @param first 原始object数据
  * @param second 需要被合并的object数据
  * @returns object
  */
-
-let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => void) | null = null;
-
-deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) => {
+deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
 	for (let f in first) {
 		if (second.hasOwnProperty(f)) {
 			if (typeof first[f] === 'object' && !Array.isArray(first[f]) && first[f] != null && typeof second[f] === 'object' && !Array.isArray(second[f]) && second[f] != null) {
@@ -30,14 +32,17 @@ deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) => {
 			}
 		};
 	};
+	return first as UTSJSONObject;
 };
 
 /**
  * 定义配置
  * @param config 配置object
  */
-const defineConfig = (config : UTSJSONObject) => {
-	deepMergeObject?.(defaultConfig, config);
+const defineConfig = (config : UTSJSONObject) : UTSJSONObject | null => {
+	const deepMergeDefaultConfig = deepMergeObject?.(defaultConfig, config);
+	setDefaultColors(deepMergeDefaultConfig as UTSJSONObject);
+	return deepMergeDefaultConfig;
 };
 
 export {

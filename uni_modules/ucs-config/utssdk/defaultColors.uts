@@ -1,23 +1,123 @@
-import { reactive, nextTick } from "vue";
-import { defaultConfig } from "./defaultConfig.uts";
+import { reactive } from "vue";
 import { generateObject } from "../lib/ucs-color/generate";
+import { defaultConfig } from "./defaultConfig.uts";
 // 浅色【中性灰】
-const lightGrey = ["#f7f8fa", "#f2f3f5", "#e5e6eb", "#c9cdd4", "#a9aeb8", "#86909c", "#6b7785", "#4e5969", "#272e3b", "#1d2129"];
+const lightGrey = { "grey-1": "#f7f8fa", "grey-2": "#f2f3f5", "grey-3": "#e5e6eb", "grey-4": "#c9cdd4", "grey-5": "#a9aeb8", "grey-6": "#86909c", "grey-7": "#6b7785", "grey-8": "#4e5969", "grey-9": "#272e3b", "grey-10": "#1d2129", "grey": "#86909c", };
 // 暗色【中性灰】
-const darkGrey = ["#17171a", "#2e2e30", "#484849", "#5f5f60", "#78787a", "#929293", "#ababac", "#c5c5c5", "#dfdfdf", "#f6f6f6"];
+const darkGrey = { "grey-1": "#17171a", "grey-2": "#2e2e30", "grey-3": "#484849", "grey-4": "#5f5f60", "grey-5": "#78787a", "grey-6": "#929293", "grey-7": "#ababac", "grey-8": "#c5c5c5", "grey-9": "#dfdfdf", "grey-10": "#f6f6f6", "grey": "#929293", };
 
 let defaultColors = reactive({
-	gray: "#1d2129"
+	"danger-1": "#FFEDE8",
+	"danger-2": "#F7CEC5",
+	"danger-3": "#F0AFA5",
+	"danger-4": "#E88F85",
+	"danger-5": "#E17068",
+	"danger-6": "#D9514C",
+	"danger-7": "#B63030",
+	"danger-8": "#931A1E",
+	"danger-9": "#700A11",
+	"danger-10": "#4D0008",
+	"danger": "#D9514C",
+	"primary-1": "#EFE8FF",
+	"primary-2": "#D6C9FE",
+	"primary-3": "#BCA9FE",
+	"primary-4": "#9F8AFD",
+	"primary-5": "#816BFD",
+	"primary-6": "#604CFC",
+	"primary-7": "#3C2FD0",
+	"primary-8": "#2019A4",
+	"primary-9": "#0B0978",
+	"primary-10": "#00014D",
+	"primary": "#604CFC",
+	"success-1": "#E8FFEF",
+	"success-2": "#B2F3C9",
+	"success-3": "#81E6A8",
+	"success-4": "#54DA8C",
+	"success-5": "#2BCD74",
+	"success-6": "#07C160",
+	"success-7": "#04A457",
+	"success-8": "#02874B",
+	"success-9": "#016A3E",
+	"success-10": "#004D2F",
+	"success": "#07C160",
+	"warning-1": "#FFFBE8",
+	"warning-2": "#FBEEBA",
+	"warning-3": "#F8DF8C",
+	"warning-4": "#F4CD60",
+	"warning-5": "#F1B836",
+	"warning-6": "#EDA20C",
+	"warning-7": "#C57F07",
+	"warning-8": "#9D6004",
+	"warning-9": "#754301",
+	"warning-10": "#4D2900",
+	"warning": "#EDA20C",
+	"grey-1": "#f7f8fa",
+	"grey-2": "#f2f3f5",
+	"grey-3": "#e5e6eb",
+	"grey-4": "#c9cdd4",
+	"grey-5": "#a9aeb8",
+	"grey-6": "#86909c",
+	"grey-7": "#6b7785",
+	"grey-8": "#4e5969",
+	"grey-9": "#272e3b",
+	"grey-10": "#1d2129",
+	"grey": "#86909c"
 });
-
-export const initDefaultColors = () => {
-	let color = defaultConfig['color'] as UTSJSONObject;
+/**
+ * 设置全局颜色
+ * @param config defaultConfig全局配置参数
+ */
+const setDefaultColors = (config : UTSJSONObject) => {
+	const color = config['color'] as UTSJSONObject;
+	const osTheme = config['osTheme'] as string;
 	for (let c in color) {
-		defaultColors = UTSJSONObject.assign(defaultColors, generateObject(color[c] as string, c, defaultConfig['osTheme'] as string));
+		const colorJson = generateObject(color[c] as string, c, osTheme);
+		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
+	};
+	if (osTheme !== "dark") {
+		for (let i in lightGrey) { defaultColors[i] = lightGrey[i]; };
+	} else {
+		for (let i in darkGrey) { defaultColors[i] = darkGrey[i]; };
 	};
 };
 
+/**
+ * 获取颜色值
+ * @param str 颜色值，可以是primary、success、warning、danger配置定义颜色，也可以是hex值
+ */
+const getColor = (str : string) : string => {
+	return defaultColors.hasOwnProperty(str) ? defaultColors[str] as string : str;
+};
+
+/**
+ * 动态设置主题颜色
+ */
+const setPrimaryColor = (color : string) => {
+	const osTheme = defaultConfig['osTheme'] as string;
+	const colorJson = generateObject(color, "primary", osTheme);
+	for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
+};
+
+/**
+ * 切换暗黑主题模式
+ * @param osTheme [light,dark] 模式主题
+ */
+const setOsTheme = (osTheme : string) => {
+	const color = defaultConfig['color'] as UTSJSONObject;
+	for (let c in color) {
+		const colorJson = generateObject(color[c] as string, c, osTheme);
+		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
+	};
+	if (osTheme !== "dark") {
+		for (let i in lightGrey) { defaultColors[i] = lightGrey[i]; };
+	} else {
+		for (let i in darkGrey) { defaultColors[i] = darkGrey[i]; };
+	};
+};
 
 export {
-	defaultColors
+	getColor,
+	setOsTheme,
+	setPrimaryColor,
+	setDefaultColors
 }

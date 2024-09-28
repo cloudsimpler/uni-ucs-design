@@ -1,12 +1,26 @@
 <template>
 	<view>
-		{{defaultColors['primary']}}
+		<ucs-approve-status />
+		{{getColor('primary')}}
+
+		<button @click="setTheme">设置主题色</button>
+		<button @click="setThemeDark">切换暗黑模式</button>
+		<button @click="setThemeLight">切换浅色模式</button>
 	</view>
 </template>
 
 <script setup>
-	import {defaultColors} from "@/uni_modules/ucs-config";
-	console.log(defaultColors['primary'])
+	import { getColor, setPrimaryColor, setOsTheme } from "@/uni_modules/ucs-config";
+
+	const setTheme = () => {
+		setPrimaryColor("#D9514C")
+	}
+	const setThemeDark = () => {
+		setOsTheme('dark')
+	}
+	const setThemeLight = () => {
+		setOsTheme("light")
+	}
 </script>
 
 <style>
