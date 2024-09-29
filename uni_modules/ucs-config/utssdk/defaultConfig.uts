@@ -23,7 +23,7 @@ let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSO
 deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
 	for (let f in first) {
 		if (second.hasOwnProperty(f)) {
-			if (typeof first[f] === 'object' && !Array.isArray(first[f]) && first[f] != null && typeof second[f] === 'object' && !Array.isArray(second[f]) && second[f] != null) {
+			if (typeof first[f] === 'object' && !Array.isArray(first[f]) && typeof second[f] === 'object' && !Array.isArray(second[f])) {
 				deepMergeObject?.(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
 			} else {
 				if (typeof first[f] === typeof second[f] && second[f] != null) {
