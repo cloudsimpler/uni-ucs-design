@@ -2,7 +2,7 @@ import { defineConfig } from "@/uni_modules/ucs-config";
 
 defineConfig({
 	osTheme: "light",
-	color: {
+	osColor: {
 		primary: "#1890ff"
 	}
 })

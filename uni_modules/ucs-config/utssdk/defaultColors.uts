@@ -68,10 +68,10 @@ let defaultColors = reactive({
  * @param config defaultConfig全局配置参数
  */
 const setDefaultColors = (config : UTSJSONObject) => {
-	const color = config['color'] as UTSJSONObject;
+	const osColor = config['osColor'] as UTSJSONObject;
 	const osTheme = config['osTheme'] as string;
-	for (let c in color) {
-		const colorJson = generateObject(color[c] as string, c, osTheme);
+	for (let c in osColor) {
+		const colorJson = generateObject(osColor[c] as string, c, osTheme);
 		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
 	};
 	if (osTheme !== "dark") {
@@ -103,9 +103,9 @@ const setPrimaryColor = (color : string) => {
  * @param osTheme [light,dark] 模式主题
  */
 const setOsTheme = (osTheme : string) => {
-	const color = defaultConfig['color'] as UTSJSONObject;
-	for (let c in color) {
-		const colorJson = generateObject(color[c] as string, c, osTheme);
+	const osColor = defaultConfig['osColor'] as UTSJSONObject;
+	for (let c in osColor) {
+		const colorJson = generateObject(osColor[c] as string, c, osTheme);
 		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
 	};
 	if (osTheme !== "dark") {

@@ -2,7 +2,7 @@ import { setDefaultColors } from "./defaultColors.uts";
 
 let defaultConfig = {
 	osTheme: "light",
-	color: {
+	osColor: {
 		primary: "#604CFC",
 		success: "#07C160",
 		warning: "#EDA20C",
