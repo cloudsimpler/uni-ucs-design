@@ -1,7 +1,7 @@
 {
   "id": "ucs-color",
   "displayName": "ucs-color 色彩",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "一个用于颜色处理的工具库，根据给定颜色通过算法生成指定包含十个颜色的梯度色板，也可生成暗色模式下包含十个颜色的色板",
   "keywords": [
     "color,颜色,颜色转换"
