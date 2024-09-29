@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { generateObject } from "../lib/ucs-color/generate";
+import { generateObject } from "../../../uni_modules/ucs-color";
 import { defaultConfig } from "./defaultConfig.uts";
 // 浅色【中性灰】
 const lightGrey = { "grey-1": "#f7f8fa", "grey-2": "#f2f3f5", "grey-3": "#e5e6eb", "grey-4": "#c9cdd4", "grey-5": "#a9aeb8", "grey-6": "#86909c", "grey-7": "#6b7785", "grey-8": "#4e5969", "grey-9": "#272e3b", "grey-10": "#1d2129", "grey": "#86909c", };

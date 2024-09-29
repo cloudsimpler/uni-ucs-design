@@ -1,12 +1,11 @@
 <template>
 	<view>
-		{{defaultColors['primary']}}
+		
 	</view>
 </template>
 
 <script setup>
-	import {defaultColors} from "@/uni_modules/ucs-config";
-	console.log(defaultColors['primary'])
+	
 </script>
 
 <style>

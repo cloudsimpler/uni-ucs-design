@@ -1,6 +1,6 @@
 <template>
 	<view>
-		<ucs-approve-status />
+		
 		{{getColor('primary')}}
 
 		<button @click="setTheme">设置主题色</button>
