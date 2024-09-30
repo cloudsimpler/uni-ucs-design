@@ -2,9 +2,37 @@ import { reactive } from "vue";
 import { generateObject } from "../../../uni_modules/ucs-color";
 import { defaultConfig } from "./defaultConfig.uts";
 // 浅色【中性灰】
-const lightGrey = { "grey-1": "#f7f8fa", "grey-2": "#f2f3f5", "grey-3": "#e5e6eb", "grey-4": "#c9cdd4", "grey-5": "#a9aeb8", "grey-6": "#86909c", "grey-7": "#6b7785", "grey-8": "#4e5969", "grey-9": "#272e3b", "grey-10": "#1d2129", "grey": "#86909c", };
+const lightGrey = {
+	"grey-1": "#ffffff",
+	"grey-2": "#f7f8fa",
+	"grey-3": "#f2f3f5",
+	"grey-4": "#e5e6eb",
+	"grey-5": "#c9cdd4",
+	"grey-6": "#a9aeb8",
+	"grey-7": "#86909c",
+	"grey-8": "#6b7785",
+	"grey-9": "#4e5969",
+	"grey-10": "#272e3b",
+	"grey-11": "#1d2129",
+	"grey-12": "#000000",
+	"grey": "#86909c"
+};
 // 暗色【中性灰】
-const darkGrey = { "grey-1": "#17171a", "grey-2": "#2e2e30", "grey-3": "#484849", "grey-4": "#5f5f60", "grey-5": "#78787a", "grey-6": "#929293", "grey-7": "#ababac", "grey-8": "#c5c5c5", "grey-9": "#dfdfdf", "grey-10": "#f6f6f6", "grey": "#929293", };
+const darkGrey = {
+	"grey-1": "#000000",
+	"grey-2": "#17171a",
+	"grey-3": "#2e2e30",
+	"grey-4": "#484849",
+	"grey-5": "#5f5f60",
+	"grey-6": "#78787a",
+	"grey-7": "#929293",
+	"grey-8": "#ababac",
+	"grey-9": "#c5c5c5",
+	"grey-10": "#dfdfdf",
+	"grey-11": "#f6f6f6",
+	"grey-12": "#ffffff",
+	"grey": "#929293"
+};
 
 let defaultColors = reactive({
 	"danger-1": "#FFEDE8",
@@ -51,16 +79,18 @@ let defaultColors = reactive({
 	"warning-9": "#754301",
 	"warning-10": "#4D2900",
 	"warning": "#EDA20C",
-	"grey-1": "#f7f8fa",
-	"grey-2": "#f2f3f5",
-	"grey-3": "#e5e6eb",
-	"grey-4": "#c9cdd4",
-	"grey-5": "#a9aeb8",
-	"grey-6": "#86909c",
-	"grey-7": "#6b7785",
-	"grey-8": "#4e5969",
-	"grey-9": "#272e3b",
-	"grey-10": "#1d2129",
+	"grey-1": "#ffffff",
+	"grey-2": "#f7f8fa",
+	"grey-3": "#f2f3f5",
+	"grey-4": "#e5e6eb",
+	"grey-5": "#c9cdd4",
+	"grey-6": "#a9aeb8",
+	"grey-7": "#86909c",
+	"grey-8": "#6b7785",
+	"grey-9": "#4e5969",
+	"grey-10": "#272e3b",
+	"grey-11": "#1d2129",
+	"grey-12": "#000000",
 	"grey": "#86909c"
 });
 /**
