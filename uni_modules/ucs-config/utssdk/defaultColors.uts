@@ -92,14 +92,14 @@ const getColor = (str : string) : string => {
 /**
  * 动态设置主题颜色
  */
-const setPrimaryColor = (color : string) => {
+const setOsColorPrimary = (color : string) => {
 	const osTheme = defaultConfig['osTheme'] as string;
 	const colorJson = generateObject(color, "primary", osTheme);
 	for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
 };
 
 /**
- * 切换暗黑主题模式
+ * 切换深色主题模式
  * @param osTheme [light,dark] 模式主题
  */
 const setOsTheme = (osTheme : string) => {
@@ -118,6 +118,6 @@ const setOsTheme = (osTheme : string) => {
 export {
 	getColor,
 	setOsTheme,
-	setPrimaryColor,
+	setOsColorPrimary,
 	setDefaultColors
 }
