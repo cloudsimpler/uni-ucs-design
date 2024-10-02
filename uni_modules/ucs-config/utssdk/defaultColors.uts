@@ -115,7 +115,7 @@ const setDefaultColors = (config : UTSJSONObject) => {
  * 获取颜色值
  * @param str 颜色值，可以是primary、success、warning、danger配置定义颜色，也可以是hex值
  */
-const getColor = (str : string) : string => {
+const getBuiltInColor = (str : string) : string => {
 	return defaultColors.hasOwnProperty(str) ? defaultColors[str] as string : str;
 };
 
@@ -146,7 +146,7 @@ const setOsTheme = (osTheme : string) => {
 };
 
 export {
-	getColor,
+	getBuiltInColor,
 	setOsTheme,
 	setOsColorPrimary,
 	setDefaultColors
