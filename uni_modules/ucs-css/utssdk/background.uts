@@ -1,4 +1,0 @@
-// 背景色
-export const test = () : any => {
-	return { backgroundColor: "red" }
-}

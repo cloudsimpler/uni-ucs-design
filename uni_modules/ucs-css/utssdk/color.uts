@@ -1,0 +1,10 @@
+import { getBuiltInColor } from "../../ucs-config";
+// 背景色
+export const getColor = (color : string) : UTSJSONObject => {
+	return { color: getBuiltInColor(color) }
+}
+
+// 背景色
+export const getBackground = (color : string) : UTSJSONObject => {
+	return { backgroundColor: getBuiltInColor(color) }
+}
