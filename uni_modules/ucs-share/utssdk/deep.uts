@@ -1,58 +1,91 @@
 type tempType = {
 	type : string;
-	obj : UTSJSONObject;
+	object : UTSJSONObject;
 	any : any;
 	array : any[]
-}
-
-export function getDeepProperty(obj : any, path : string) : any {
-	// 将路径字符串分割成数组
-	const keys = path.split('.');
-	let temp : tempType = {
-		type: "string",
-		obj: {},
-		any: "",
-		array: []
+};
+/**
+ * 临时存储转化
+ */
+let temp : tempType = {
+	type: "object",
+	object: {},
+	any: "",
+	array: []
+};
+/**
+ * 获取数据类型
+ */
+const getDataType = (data : any) : string => {
+	if (typeof data === 'object') {
+		if (Array.isArray(data)) {
+			return 'array';
+		} else {
+			return 'object';
+		};
+	} else {
+		return 'any';
 	};
-
-	try {
-		temp.obj = obj as UTSJSONObject
-	} catch (e) {
-		temp.array = obj as any[]
+};
+/**
+ * 初始化赋值
+ */
+const initTempData = (data : any) => {
+	const type = getDataType(data);
+	if (type === 'object') {
+		temp.object = data as UTSJSONObject;
+		temp.type = "object";
+	} else if (type === 'array') {
+		temp.array = data as any[];
+		temp.type = "array";
+	} else {
+		temp.any = data as any;
+		temp.type = "any";
 	};
-
-	keys.forEach(element => {
-		const type = typeof temp.obj[element];
-
-		if (type == "object") {
-			/**
-			 * 因为array在typeof识别类型为object
-			 * 所以同时在这里进行处理，array类型在异常处理中赋值
-			 */
-			try {
-				if (element.indexOf("[") != -1 && element.indexOf("]") != -1) {
-					const str = element.replace("[", "").replace("]", "");
-					if (typeof temp.array[parseFloat(str)] == "object") {
-						temp.obj = temp.array[parseFloat(str)] as UTSJSONObject;
-						temp.type = "obj";
-					} else {
-						temp.any = temp.array[parseFloat(str)] as any;
-						temp.type = "any";
-					};
-				} else {
-					temp.obj = temp.obj[element] as UTSJSONObject;
-					temp.type = "obj";
-				};
-			} catch (e) {
-				temp.array = temp.obj[element] as any[];
-				temp.type = "array";
+};
+/**
+ * 设置临时数据
+ */
+const setTempData = (data : any, key : string) => {
+	const type = getDataType(data);
+	if (type === 'object') {
+		const object = data as UTSJSONObject;
+		// 当给定的key不存在时，则返回整个Object数据
+		if (object.hasOwnProperty(key)) {
+			initTempData(object[key] as any);
+		} else {
+			initTempData(object);
+		};
+	} else if (type === 'array') {
+		// 当按规则书写时验证
+		if (key.indexOf("[") != -1 && key.indexOf("]") != -1) {
+			const num = parseFloat(key.replace("[", "").replace("]", ""));
+			const arrays = data as any[];
+			// 当给定的下标不正确时，则返回整个Array数组
+			if (num < arrays.length) {
+				initTempData(arrays[num]);
+			} else {
+				initTempData(arrays);
 			};
 		} else {
-			// string,Int,Double,number
-			temp.any = temp.obj[element] as any;
-			temp.type = "any";
+			// 未按规则书写则返回整个数据
+			initTempData(data);
 		};
-	});
+	} else {
+		initTempData(data);
+	};
+};
 
-	return temp[temp.type] as any
+
+export function getDeepProperty(data : any, path : string) : any {
+	// 初始化
+	initTempData(data);
+	// 将路径字符串分割成数组
+	const keys = path.split('.');
+	// 循环keys
+	keys.forEach(element => {
+		setTempData(temp[temp.type] as any, element)
+	});
+	// 返回值
+	return temp[temp.type] as any;
 }

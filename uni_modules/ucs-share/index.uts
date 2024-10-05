@@ -2,44 +2,29 @@ import { getDeepProperty } from "./utssdk/deep.uts";
 import share from "./utssdk/share.uts";
 
 function getStorageSync(key : string, path : string = "") : any {
-	const temp = uni.getStorageSync(key);
-
-	if (temp == "" || getData(key) != "") {
+	if (share.hasOwnProperty(key)) {
 		return getData(key, path);
 	} else {
-		if (path != "") {
-			if (typeof temp === 'object') {
-				try {
-					return getDeepProperty(temp as any, path);
-				} catch (e) {
-					return "";
-				};
-			};
+		const temp = uni.getStorageSync(key);
+		if (temp != "") {
+			share[key] = temp;
+			return getData(key, path);
+		} else {
+			return "";
 		};
 	};
-	return temp as any;
 };
 
 function getData(key : string, path : string = "") : any {
-	if (share[key] == null || share[key] == "") {
-		return "";
-	};
-	// #ifndef APP-ANDROID 
-	if (share[key] == undefined) {
-		return "";
-	};
-	// #endif
-
 	if (path != "") {
-		if (typeof share[key] === 'object') {
-			try {
-				return getDeepProperty(share[key] as any, path);
-			} catch (e) {
-				return "";
-			};
+		return getDeepProperty(share[key] as any, path);
+	} else {
+		if (share.hasOwnProperty(key)) {
+			return share[key] as any;
+		} else {
+			return ""
 		};
 	};
-	return share[key] as any;
 };
 
 function setData(key : string, value : any) : void {
