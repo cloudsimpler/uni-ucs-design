@@ -6,24 +6,20 @@ function getStorageSync(key : string, path : string = "") : any {
 		return getData(key, path);
 	} else {
 		const temp = uni.getStorageSync(key);
-		if (temp != "") {
-			share[key] = temp;
-			return getData(key, path);
-		} else {
-			return "";
-		};
+		share[key] = temp;
+		return getData(key, path);
 	};
 };
 
 function getData(key : string, path : string = "") : any {
-	if (path != "") {
-		return getDeepProperty(share[key] as any, path);
-	} else {
-		if (share.hasOwnProperty(key)) {
+	if (share.hasOwnProperty(key)) {
+		if(path != ""){
+			return getDeepProperty(share[key] as any, path);
+		}else{
 			return share[key] as any;
-		} else {
-			return ""
-		};
+		}
+	} else {
+		return ""
 	};
 };
 
