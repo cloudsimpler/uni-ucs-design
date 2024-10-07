@@ -1,8 +1,8 @@
 <template>
-	<ucs-iconPark :width="size" :height="size" :src="iconSvg" />
+	<ucs-svg :width="size" :height="size" :src="iconSvg" />
 </template>
 <script lang="uts">
-	import iconMixin from "../../mixins/iconMixin.uts";
+	import iconMixin from "../../utssdk/iconMixin.uts";
 	/**
 	 * @description 《腹部》图标
 	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-iconPark
