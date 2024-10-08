@@ -1,0 +1,24 @@
+<template>
+	<ucs-svg :width="size" :height="size" :src="iconSvg" />
+</template>
+<script lang="uts">
+	import iconMixin from "../../mixins/iconMixin.uts";
+	/**
+	 * @description 《分类管理》图标
+	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-iconPark
+	 * @property {Number} size 图标大小
+	 * @property {Number} strokeWidth 线段粗细
+	 * @property {String} theme 图标大小
+	 * @property {Array} fill 图标颜色，["外部描边颜色","外部填充颜色","内部描边颜色","内部填充颜色"]
+	 * @property {String} strokeLinecap 图标大小
+	 * @property {String} strokeLinejoin 图标大小
+	 */
+	export default {
+		mixins: [iconMixin],
+		computed: {
+			iconSvg(): string {
+				return `<?xml version="1.0" encoding="UTF-8"?><svg width="${this.size}" height="${this.size}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="28" width="36" height="14" rx="4" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}"/><path d="M20 7H10C7.79086 7 6 8.79086 6 11V17C6 19.2091 7.79086 21 10 21H20" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}" stroke-linecap="${this.strokeLinecap}"/><circle cx="34" cy="14" r="8" fill="${this.colors(1)}" stroke="${this.colors(0)}" stroke-width="${this.strokeWidth}"/><circle cx="34" cy="14" r="3" fill="${this.colors(2)}"/></svg>`
+			}
+		}
+	}
+</script>
