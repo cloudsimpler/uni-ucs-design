@@ -1,26 +1,24 @@
 <template>
 	<view>
-		<!-- 显示：测试值 -->
-		{{ucsShare.getStore("test",'param1')}}
-		<button @click="onCLick">设置</button>
+		<!-- 使用内置色彩变量 -->
+		<!-- 浅色模式下获取值为：#604CFC -->
+		<!-- 深色模式下获取值为：#8772FD -->
+		{{getOsColor("primary")}}
 	</view>
 </template>
 
 <script setup>
-	import ucsShare from "@/uni_modules/ucs-share";
+	import { getOsColor } from "@/uni_modules/ucs-config"; // [!code ++]
 	/**
-	 * 示例设置共享状态键值
+	 * 使用内置色彩变量
+	 * 浅色模式下获取值为：#604CFC
+	 * 深色模式下获取值为：#8772FD
 	 */
-	const data = {
-		param1: "参数1"
-	};
+	console.log(getOsColor("primary")) // [!code ++]
 	
-	const data2 = {
-		param1: "参数12345"
-	};
-	// ucsShare.setStore("test", data);
-	
-	const onCLick = ()=>{
-		ucsShare.setStore("test", data2);
-	}
+	/**
+	 * 使用 hex 颜色值
+	 * 获取值为：#1890ff
+	 */
+	console.log(getOsColor("#1890ff")) // [!code ++]
 </script>

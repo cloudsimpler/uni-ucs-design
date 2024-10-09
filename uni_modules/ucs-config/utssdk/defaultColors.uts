@@ -14,12 +14,12 @@ const lightGrey = {
 	"grey-9": "#4e5969",
 	"grey-10": "#272e3b",
 	"grey-11": "#1d2129",
-	"grey-12": "#000000",
+	"grey-12": "#141414",
 	"grey": "#86909c"
 };
 // 暗色【中性灰】
 const darkGrey = {
-	"grey-1": "#000000",
+	"grey-1": "#141414",
 	"grey-2": "#17171a",
 	"grey-3": "#2e2e30",
 	"grey-4": "#484849",
@@ -115,7 +115,7 @@ const setDefaultColors = (config : UTSJSONObject) => {
  * 获取颜色值
  * @param str 颜色值，可以是primary、success、warning、danger配置定义颜色，也可以是hex值
  */
-const getBuiltInColor = (str : string) : string => {
+const getOsColor = (str : string) : string => {
 	return defaultColors.hasOwnProperty(str) ? defaultColors[str] as string : str;
 };
 
@@ -146,7 +146,7 @@ const setOsTheme = (osTheme : string) => {
 };
 
 export {
-	getBuiltInColor,
+	getOsColor,
 	setOsTheme,
 	setOsColorPrimary,
 	setDefaultColors
