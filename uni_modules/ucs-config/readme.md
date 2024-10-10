@@ -1,5 +1,5 @@
 <p align="center"><img alt="logo" src="https://ucs.cloudsimpler.com/logo/config.svg" width="123"></p>
-<h3 align="center">ucs-config 全局配置</h3>
+<h3 align="center">UCS Design 全局配置</h3>
 
 ## 简述
 全局配置插件是一种用于简化项目配置管理的工具，它允许开发者在项目目录下的配置文件中集中声明和管理所需的权限和其他全局设置。
@@ -16,7 +16,7 @@
 - 文档化：配置文件本身可以作为项目的文档，帮助团队成员理解项目的配置要求和依赖。
 
 ## 官方文档
-官网地址：[https://ucs.cloudsimpler.com/guide/design.html](https://ucs.cloudsimpler.com/guide/design.html)
+官网地址：[https://ucs.cloudsimpler.com/library/ucs-config](https://ucs.cloudsimpler.com/library/ucs-config)
 
 ## 源码
 [![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design)
