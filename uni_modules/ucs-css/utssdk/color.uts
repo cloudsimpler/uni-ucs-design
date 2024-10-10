@@ -1,10 +1,18 @@
 import { getOsColor } from "../../ucs-config";
-// 背景色
-export const getColor = (color : string) : UTSJSONObject => {
-	return { color: getOsColor(color) }
+/**
+ * 文本色
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const color = (color : string) : UTSJSONObject => {
+	return { color: getOsColor(color) };
 }
 
-// 背景色
-export const getBackground = (color : string) : UTSJSONObject => {
-	return { backgroundColor: getOsColor(color) }
+/**
+ * 背景色
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const backgroundColor = (color : string) : UTSJSONObject => {
+	return { backgroundColor: getOsColor(color) };
 }
