@@ -1,0 +1,42 @@
+/* 外边距 */
+.m-xs {margin: 4px;}
+.m-sm {margin: 8px;}
+.m-md {margin: 12px;}
+.m-lg {margin: 16px;}
+.m-xl {margin: 20px;}
+
+.mt-xs {margin-top: 4px;}
+.mt-sm {margin-top: 8px;}
+.mt-md {margin-top: 12px;}
+.mt-lg {margin-top: 16px;}
+.mt-xl {margin-top: 20px;}
+
+.mr-xs {margin-right: 4px;}
+.mr-sm {margin-right: 8px;}
+.mr-md {margin-right: 12px;}
+.mr-lg {margin-right: 16px;}
+.mr-xl {margin-right: 20px;}
+
+.mb-xs {margin-bottom: 4px;}
+.mb-sm {margin-bottom: 8px;}
+.mb-md {margin-bottom: 12px;}
+.mb-lg {margin-bottom: 16px;}
+.mb-xl {margin-bottom: 20px;}
+
+.ml-xs {margin-left: 4px;}
+.ml-sm {margin-left: 8px;}
+.ml-md {margin-left: 12px;}
+.ml-lg {margin-left: 16px;}
+.ml-xl {margin-left: 20px;}
+
+.mx-xs {margin-left: 4px;margin-right: 4px;}
+.mx-sm {margin-left: 8px;margin-right: 8px;}
+.mx-md {margin-left: 12px;margin-right: 12px;}
+.mx-lg {margin-left: 16px;margin-right: 16px;}
+.mx-xl {margin-left: 20px;margin-right: 20px;}
+
+.my-xs {margin-top: 4px;margin-bottom: 4px;}
+.my-sm {margin-top: 8px;margin-bottom: 8px;}
+.my-md {margin-top: 12px;margin-bottom: 12px;}
+.my-lg {margin-top: 16px;margin-bottom: 16px;}
+.my-xl {margin-top: 20px;margin-bottom: 20px;}
