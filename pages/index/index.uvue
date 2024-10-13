@@ -1,18 +1,13 @@
 <template>
-	<view class="box" :style="[lrtbDistance('left','50px')]">
+	<view>
 		
 	</view>
 </template>
 
 <script setup>
-	import { lrtbDistance } from "@/uni_modules/ucs-css";
+	
 </script>
 
 <style>
-	.box {
-		width: 88px;
-		height: 88px;
-		background-color: #BCA9FE;
-		position: fixed;
-	}
+	
 </style>
