@@ -1,16 +1,16 @@
 <template>
-	<view>
-		<text class="w-200  text-sm leading-10 lines-2" style="background-color: red;">
-			明月几时有？把酒问青天。不知天上宫阙，今夕是何年。我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间？
-		</text>
-		123
+	<view class="box" :style="[backgroundGradient('to right','primary','success')]">
+
 	</view>
 </template>
 
 <script setup>
-
+	import { backgroundGradient } from "@/uni_modules/ucs-css"; 
 </script>
 
 <style>
-
+	.box {
+		width: 100%;
+		height: 123px;
+	}
 </style>

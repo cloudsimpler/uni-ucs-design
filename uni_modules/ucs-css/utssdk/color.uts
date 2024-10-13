@@ -16,3 +16,12 @@ export const color = (color : string) : UTSJSONObject => {
 export const backgroundColor = (color : string) : UTSJSONObject => {
 	return { backgroundColor: getOsColor(color) };
 }
+
+/**
+ * 渐变色
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const backgroundGradient = (direction : string, colorStart : string, colorStop : string) : UTSJSONObject => {
+	return { backgroundImage: `linear-gradient(${direction},${getOsColor(colorStart)},${getOsColor(colorStop)})` };
+}
