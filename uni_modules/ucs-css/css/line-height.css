@@ -1,0 +1,63 @@
+.leading-1 {
+	line-height: 12px;
+}
+
+.leading-2 {
+	line-height: 16px;
+}
+
+.leading-3 {
+	line-height: 20px;
+}
+
+.leading-4 {
+	line-height: 24px;
+}
+
+.leading-5 {
+	line-height: 28px;
+}
+
+.leading-6 {
+	line-height: 32px;
+}
+
+.leading-7 {
+	line-height: 36px;
+}
+
+.leading-8 {
+	line-height: 40px;
+}
+
+.leading-9 {
+	line-height: 48px;
+}
+
+.leading-10 {
+	line-height: 56px;
+}
+
+.leading-none {
+	line-height: 1;
+}
+
+.leading-tight {
+	line-height: 1.25;
+}
+
+.leading-snug {
+	line-height: 1.375;
+}
+
+.leading-normal {
+	line-height: 1.5;
+}
+
+.leading-relaxed {
+	line-height: 1.625;
+}
+
+.leading-loose {
+	line-height: 2;
+}

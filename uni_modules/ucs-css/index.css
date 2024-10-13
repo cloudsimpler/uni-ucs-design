@@ -9,10 +9,15 @@
 @import url("css/flex-wrap.css");
 @import url("css/font-family.css");
 @import url("css/font-size.css");
-
+@import url("css/font-style.css");
+@import url("css/font-weight.css");
 @import url("css/height.css");
 @import url("css/justify-content.css");
-
+@import url("css/letter-spacing.css");
+@import url("css/line-height.css");
+@import url("css/lines.css");
 @import url("css/margin.css");
+@import url("css/opacity.css");
+
 @import url("css/paddimg.css");
 @import url("css/width.css");

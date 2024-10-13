@@ -1,0 +1,277 @@
+.line-clamp-1 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 1;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 1;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 1;
+	/* #endif */
+}
+
+.line-clamp-2 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 2;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	/* #endif */
+}
+
+.line-clamp-3 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 3;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	/* #endif */
+}
+
+.line-clamp-4 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 4;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 4;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 4;
+	/* #endif */
+}
+
+.line-clamp-5 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 5;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 5;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 5;
+	/* #endif */
+}
+
+.line-clamp-6 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 6;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 6;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 6;
+	/* #endif */
+}
+
+.line-clamp-7 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 7;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 7;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 7;
+	/* #endif */
+}
+
+.line-clamp-8 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 8;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 8;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 8;
+	/* #endif */
+}
+
+.line-clamp-9 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 9;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 9;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 9;
+	/* #endif */
+}
+
+.line-clamp-10 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 10;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 10;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 10;
+	/* #endif */
+}
+
+.line-clamp-11 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 11;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 11;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 11;
+	/* #endif */
+}
+
+.line-clamp-12 {
+	/* #ifdef UNI-APP-X */
+	/* #ifdef APP */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	lines: 12;
+	/* #endif */
+	/* #ifndef APP */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 12;
+	/* #endif */
+	/* #endif */
+	/* #ifndef UNI-APP-X */
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 12;
+	/* #endif */
+}
+/* #ifdef UNI-APP-X */
+.lines-1 {lines: 1;}
+.lines-2 {lines: 2;}
+.lines-3 {lines: 3;}
+.lines-4 {lines: 4;}
+.lines-5 {lines: 5;}
+.lines-6 {lines: 6;}
+.lines-7 {lines: 7;}
+.lines-8 {lines: 8;}
+.lines-9 {lines: 9;}
+.lines-10 {lines: 10;}
+.lines-11 {lines: 11;}
+.lines-12 {lines: 12;}
+/* #endif */
