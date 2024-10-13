@@ -19,9 +19,85 @@ export const backgroundColor = (color : string) : UTSJSONObject => {
 
 /**
  * 渐变色
- * @param color ucs色彩变量或者hex颜色值
+ * @param direction 渐变方向
+ * @param colorStart 渐变起始点颜色值
+ * @param colorStop 渐变终点颜色值
  * @returns UTSJSONObject
  */
 export const backgroundGradient = (direction : string, colorStart : string, colorStop : string) : UTSJSONObject => {
 	return { backgroundImage: `linear-gradient(${direction},${getOsColor(colorStart)},${getOsColor(colorStop)})` };
+}
+
+/**
+ * 边框色
+ * @param width 边框宽度
+ * @param style 边框样式
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const border = (width : string, style : string, color : string) : UTSJSONObject => {
+	return { border: `${width} ${style} ${getOsColor(color)}` };
+}
+
+/**
+ * 上边框色
+ * @param width 边框宽度
+ * @param style 边框样式
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const borderTop = (width : string, style : string, color : string) : UTSJSONObject => {
+	return { borderTop: `${width} ${style} ${getOsColor(color)}` };
+}
+
+/**
+ * 下边框色
+ * @param width 边框宽度
+ * @param style 边框样式
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const borderBottom = (width : string, style : string, color : string) : UTSJSONObject => {
+	return { borderBottom: `${width} ${style} ${getOsColor(color)}` };
+}
+
+/**
+ * 左边框色
+ * @param width 边框宽度
+ * @param style 边框样式
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const borderLeft = (width : string, style : string, color : string) : UTSJSONObject => {
+	return { borderLeft: `${width} ${style} ${getOsColor(color)}` };
+}
+
+/**
+ * 右边框色
+ * @param width 边框宽度
+ * @param style 边框样式
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const borderRight = (width : string, style : string, color : string) : UTSJSONObject => {
+	return { borderRight: `${width} ${style} ${getOsColor(color)}` };
+}
+
+/**
+ * 定位元素偏移量
+ * @param width 边框宽度
+ * @param style 边框样式
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const lrtbDistance = (direction : string, margin : string) : UTSJSONObject => {
+	if (direction == 'left') {
+		return { left: `${margin}` };
+	} else if (direction == "right") {
+		return { right: `${margin}` };
+	} else if (direction == "top") {
+		return { top: `${margin}` };
+	} else {
+		return { bottom: `${margin}` };
+	}
 }

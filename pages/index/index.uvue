@@ -1,16 +1,18 @@
 <template>
-	<view class="box" :style="[backgroundGradient('to right','primary','success')]">
-
+	<view class="box" :style="[lrtbDistance('left','50px')]">
+		
 	</view>
 </template>
 
 <script setup>
-	import { backgroundGradient } from "@/uni_modules/ucs-css"; 
+	import { lrtbDistance } from "@/uni_modules/ucs-css";
 </script>
 
 <style>
 	.box {
-		width: 100%;
-		height: 123px;
+		width: 88px;
+		height: 88px;
+		background-color: #BCA9FE;
+		position: fixed;
 	}
 </style>

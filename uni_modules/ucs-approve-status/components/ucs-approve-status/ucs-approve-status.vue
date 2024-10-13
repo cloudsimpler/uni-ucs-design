@@ -1,5 +1,5 @@
 <template>
-	<view class="_ucs-approveStatus">
+	<view class="_ucs-approve-status">
 		<ucs-svg :width="size" :height="size" :src="statusSvg" />
 		<text class="_desc" :style="descStyle">{{text}}</text>
 	</view>
@@ -7,7 +7,7 @@
 <script lang="uts" setup>
 	/**
 	 * @description 审批状态组件
-	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-approveStatus
+	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-approve-status
 	 * @property {String} text 文本
 	 * @property {Number} size 大小
 	 * @property {String} color 颜色
@@ -21,7 +21,7 @@
 		},
 		size: {
 			type: Number,
-			default: 100
+			default: 88
 		},
 		color: {
 			type: String,
@@ -42,7 +42,7 @@
 	});
 </script>
 <style lang="scss" scoped>
-	._ucs-approveStatus {
+	._ucs-approve-status {
 		position: relative;
 		display: flex;
 		justify-content: center;
