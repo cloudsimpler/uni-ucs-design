@@ -1,44 +1,30 @@
 import { reactive } from "vue";
 import { setDefaultColors } from "./defaultColors.uts";
-import { getDeepProperty } from "./deep.uts";
+import { getDeepProperty,deepMergeObject } from "../common/deep.uts";
+import zhHans from "../language/zh-Hans.uts";
+import zhHant from "../language/zh-Hant.uts";
+import en from "../language/en.uts";
 
 let defaultConfig = reactive({
 	osTheme: "light",
+	osLanguage: "zh-Hans",
 	osColor: {
 		primary: "#604CFC",			// 主色
 		success: "#07C160",			// 成功
 		warning: "#EDA20C",			// 警告
 		danger: "#D9514C"			// 危险
 	},
-	osI18n:{
-		"zh-Hans":"123"
+	osUcsLanguage: {
+		"zh-Hans": zhHans,
+		"zh-Hant": zhHant,
+		"en": en
+	},
+	osI18n: {
+		"zh-Hans": {},
+		"zh-Hant": {},
+		"en": {}
 	}
 });
-
-/**
- * 声明函数
- */
-let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSONObject) | null = null;
-/**
- * object深度合并
- * @param first 原始object数据
- * @param second 需要被合并的object数据
- * @returns object
- */
-deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
-	for (let f in first) {
-		if (second.hasOwnProperty(f)) {
-			if (typeof first[f] === 'object' && !Array.isArray(first[f]) && typeof second[f] === 'object' && !Array.isArray(second[f])) {
-				deepMergeObject?.(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
-			} else {
-				if (typeof first[f] === typeof second[f] && second[f] != null) {
-					first[f] = second[f];
-				};
-			}
-		};
-	};
-	return first as UTSJSONObject;
-};
 
 /**
  * 定义配置
@@ -50,11 +36,14 @@ const defineConfig = (config : UTSJSONObject) : UTSJSONObject | null => {
 	return deepMergeDefaultConfig;
 };
 
-
-const getConfigKey = (path : string) : any => {
-	return getDeepProperty(defaultConfig, path)
-}
+/**
+ * 获取UCS Design 框架语言
+ * @param path 参数路径
+ */
+const getUcsDesignLanguage = (path : string) : any => {
+	return getDeepProperty(defaultConfig['osUcsLanguage'] as any, `${defaultConfig['osLanguage']}.${path}`)
+};
 
 export {
-	defineConfig, defaultConfig, getConfigKey
+	defineConfig, defaultConfig, getUcsDesignLanguage
 }

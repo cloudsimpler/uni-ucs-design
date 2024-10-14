@@ -1,0 +1,8 @@
+/**
+ * 中文简体
+ */
+export default {
+	ucsEmpty: {
+		agenda: "暂无日程"
+	}
+}

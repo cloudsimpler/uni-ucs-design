@@ -124,6 +124,10 @@ const getOsColor = (str : string) : string => {
  */
 const setOsColorPrimary = (color : string) => {
 	const osTheme = defaultConfig['osTheme'] as string;
+	let osColor = defaultConfig['osColor'] as UTSJSONObject;
+	
+	osColor["primary"] = color;
+	
 	const colorJson = generateObject(color, "primary", osTheme);
 	for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
 };
@@ -133,6 +137,7 @@ const setOsColorPrimary = (color : string) => {
  * @param osTheme [light,dark] 模式主题
  */
 const setOsTheme = (osTheme : string) => {
+	defaultConfig['osTheme'] = osTheme;
 	const osColor = defaultConfig['osColor'] as UTSJSONObject;
 	for (let c in osColor) {
 		const colorJson = generateObject(osColor[c] as string, c, osTheme);
@@ -145,9 +150,18 @@ const setOsTheme = (osTheme : string) => {
 	};
 };
 
+/**
+ * 切换深色主题模式
+ * @param osTheme [light,dark] 模式主题
+ */
+const setOsLanguage = (language : string) => {
+	defaultConfig['osLanguage'] = language;
+};
+
 export {
 	getOsColor,
 	setOsTheme,
 	setOsColorPrimary,
-	setDefaultColors
+	setDefaultColors,
+	setOsLanguage
 }

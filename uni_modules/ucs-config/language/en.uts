@@ -1,0 +1,8 @@
+/**
+ * 英文
+ */
+export default {
+	ucsEmpty: {
+		agenda: "No schedule at the moment"
+	}
+}

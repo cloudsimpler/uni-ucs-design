@@ -88,4 +88,29 @@ export function getDeepProperty(data : any, path : string) : any {
 	});
 	// 返回值
 	return temp[temp.type] as any;
-}
+};
+
+/**
+ * 声明函数
+ */
+export let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSONObject) | null = null;
+/**
+ * object深度合并
+ * @param first 原始object数据
+ * @param second 需要被合并的object数据
+ * @returns object
+ */
+deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
+	for (let f in first) {
+		if (second.hasOwnProperty(f)) {
+			if (typeof first[f] === 'object' && !Array.isArray(first[f]) && typeof second[f] === 'object' && !Array.isArray(second[f])) {
+				deepMergeObject?.(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
+			} else {
+				if (typeof first[f] === typeof second[f] && second[f] != null) {
+					first[f] = second[f];
+				};
+			}
+		};
+	};
+	return first as UTSJSONObject;
+};

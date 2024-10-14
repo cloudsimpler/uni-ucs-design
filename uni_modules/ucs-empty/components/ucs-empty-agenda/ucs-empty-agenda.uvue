@@ -1,7 +1,7 @@
 <template>
 	<view class="_ucs-empty" :style="{paddingTop:`${props.offsetTop}rpx`,paddingBottom:`${props.offsetBottom}rpx`}">
 		<ucs-svg :width="234" :height="234" :src="earlySvg" />
-		<text class="_desc" :style="{color:getOsColor('grey')}">{{props.desc}}</text>
+		<text class="_desc" :style="{color:getOsColor('grey')}">{{getUcsDesignLanguage('ucsEmpty.agenda')}}</text>
 		<slot />
 	</view>
 </template>
@@ -15,8 +15,8 @@
 	 * @property {Number} offsetBottom 偏移向下距离
 	 */
 	import { computed } from "vue";
-	import { getOsColor } from "@/uni_modules/ucs-config";
-	
+	import { getOsColor, getUcsDesignLanguage } from "@/uni_modules/ucs-config";
+
 	const props = defineProps({
 		desc: {
 			type: String,
