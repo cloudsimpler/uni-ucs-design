@@ -1,7 +1,7 @@
 {
 	"id": "ucs-svg",
 	"displayName": "ucs-svg 矢量图形",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "SVG 矢量图形组件是用于渲染和操作 SVG 资源",
 	"keywords": [
         "svg,矢量图形"
