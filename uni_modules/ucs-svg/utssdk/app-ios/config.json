@@ -3,8 +3,17 @@
 	"validArchitectures": [
 		"arm64"
 	],
+	// 临时处理方案
 	"dependencies-pods": [{
 		"name": "SVGKit",
-		"version": "3.0.0"
+		"repo": {
+			"git": "https://gitee.com/snicesoft/SVGKit.git",
+			"branch": "3.x"
+		}
 	}]
+	// 原本方案，第三库SVGKit类名和unix框架内的类名冲突
+	// "dependencies-pods": [{
+	// 	"name": "SVGKit",
+	// 	"version": "3.0.0"
+	// }]
 }
