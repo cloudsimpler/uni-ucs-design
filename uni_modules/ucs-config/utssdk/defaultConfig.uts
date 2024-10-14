@@ -1,14 +1,19 @@
+import { reactive } from "vue";
 import { setDefaultColors } from "./defaultColors.uts";
+import { getDeepProperty } from "./deep.uts";
 
-let defaultConfig = {
+let defaultConfig = reactive({
 	osTheme: "light",
 	osColor: {
-		primary: "#604CFC",
-		success: "#07C160",
-		warning: "#EDA20C",
-		danger: "#D9514C"
+		primary: "#604CFC",			// 主色
+		success: "#07C160",			// 成功
+		warning: "#EDA20C",			// 警告
+		danger: "#D9514C"			// 危险
+	},
+	osI18n:{
+		"zh-Hans":"123"
 	}
-};
+});
 
 /**
  * 声明函数
@@ -45,6 +50,11 @@ const defineConfig = (config : UTSJSONObject) : UTSJSONObject | null => {
 	return deepMergeDefaultConfig;
 };
 
+
+const getConfigKey = (path : string) : any => {
+	return getDeepProperty(defaultConfig, path)
+}
+
 export {
-	defineConfig, defaultConfig
+	defineConfig, defaultConfig, getConfigKey
 }

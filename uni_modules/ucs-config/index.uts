@@ -1,2 +1,2 @@
-export { defineConfig } from "./utssdk/defaultConfig.uts";
+export { defineConfig, getConfigKey } from "./utssdk/defaultConfig.uts";
 export { getOsColor, setOsTheme, setOsColorPrimary } from "./utssdk/defaultColors.uts";
