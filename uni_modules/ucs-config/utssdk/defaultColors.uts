@@ -1,6 +1,4 @@
 import { reactive } from "vue";
-import { generateObject } from "../../../uni_modules/ucs-color";
-import { defaultConfig } from "./defaultConfig.uts";
 // 浅色【中性灰】
 const lightGrey = {
 	"grey-1": "#ffffff",
@@ -93,75 +91,7 @@ let defaultColors = reactive({
 	"grey-12": "#000000",
 	"grey": "#86909c"
 });
-/**
- * 设置全局颜色
- * @param config defaultConfig全局配置参数
- */
-const setDefaultColors = (config : UTSJSONObject) => {
-	const osColor = config['osColor'] as UTSJSONObject;
-	const osTheme = config['osTheme'] as string;
-	for (let c in osColor) {
-		const colorJson = generateObject(osColor[c] as string, c, osTheme);
-		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
-	};
-	if (osTheme !== "dark") {
-		for (let i in lightGrey) { defaultColors[i] = lightGrey[i]; };
-	} else {
-		for (let i in darkGrey) { defaultColors[i] = darkGrey[i]; };
-	};
-};
-
-/**
- * 获取颜色值
- * @param str 颜色值，可以是primary、success、warning、danger配置定义颜色，也可以是hex值
- */
-const getOsColor = (str : string) : string => {
-	return defaultColors.hasOwnProperty(str) ? defaultColors[str] as string : str;
-};
-
-/**
- * 动态设置主题颜色
- */
-const setOsColorPrimary = (color : string) => {
-	const osTheme = defaultConfig['osTheme'] as string;
-	let osColor = defaultConfig['osColor'] as UTSJSONObject;
-	
-	osColor["primary"] = color;
-	
-	const colorJson = generateObject(color, "primary", osTheme);
-	for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
-};
-
-/**
- * 切换深色主题模式
- * @param osTheme [light,dark] 模式主题
- */
-const setOsTheme = (osTheme : string) => {
-	defaultConfig['osTheme'] = osTheme;
-	const osColor = defaultConfig['osColor'] as UTSJSONObject;
-	for (let c in osColor) {
-		const colorJson = generateObject(osColor[c] as string, c, osTheme);
-		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
-	};
-	if (osTheme !== "dark") {
-		for (let i in lightGrey) { defaultColors[i] = lightGrey[i]; };
-	} else {
-		for (let i in darkGrey) { defaultColors[i] = darkGrey[i]; };
-	};
-};
-
-/**
- * 切换深色主题模式
- * @param osTheme [light,dark] 模式主题
- */
-const setOsLanguage = (language : string) => {
-	defaultConfig['osLanguage'] = language;
-};
 
 export {
-	getOsColor,
-	setOsTheme,
-	setOsColorPrimary,
-	setDefaultColors,
-	setOsLanguage
+	defaultColors, darkGrey, lightGrey
 }

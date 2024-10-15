@@ -1,6 +1,4 @@
 import { reactive } from "vue";
-import { setDefaultColors } from "./defaultColors.uts";
-import { getDeepProperty,deepMergeObject } from "../common/deep.uts";
 import zhHans from "../language/zh-Hans.uts";
 import zhHant from "../language/zh-Hant.uts";
 import en from "../language/en.uts";
@@ -26,24 +24,6 @@ let defaultConfig = reactive({
 	}
 });
 
-/**
- * 定义配置
- * @param config 配置object
- */
-const defineConfig = (config : UTSJSONObject) : UTSJSONObject | null => {
-	const deepMergeDefaultConfig = deepMergeObject?.(defaultConfig, config);
-	setDefaultColors(deepMergeDefaultConfig as UTSJSONObject);
-	return deepMergeDefaultConfig;
-};
-
-/**
- * 获取UCS Design 框架语言
- * @param path 参数路径
- */
-const getUcsDesignLanguage = (path : string) : any => {
-	return getDeepProperty(defaultConfig['osUcsLanguage'] as any, `${defaultConfig['osLanguage']}.${path}`)
-};
-
 export {
-	defineConfig, defaultConfig, getUcsDesignLanguage
+	defaultConfig
 }

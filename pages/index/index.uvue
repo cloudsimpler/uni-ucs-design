@@ -1,14 +1,18 @@
 <template>
-	<view>
-		<ucs-empty-agenda></ucs-empty-agenda>
+	<view :style="{backgroundColor: getOsColor('grey-1')}">
+		<ucs-empty-agenda :offsetTop="10" :offsetBottom="20"></ucs-empty-agenda>
 		<button @click="onClick1">设置简体中文</button>
 		<button @click="onClick2">设置繁体中文</button>
 		<button @click="onClick3">设置英语</button>
+		<button @click="onClick4">设置主色</button>
+		<button @click="onClick5">设置深色</button>
+		{{getOsColor('primary')}}
 	</view>
 </template>
 
 <script setup>
-	import { setOsLanguage } from "@/uni_modules/ucs-config";
+	import { setOsLanguage,setOsColorPrimary,getOsColor,setOsTheme } from "@/uni_modules/ucs-config";
+	
 
 	const onClick1 = () => {
 		setOsLanguage("zh-Hans")
@@ -18,6 +22,12 @@
 	}
 	const onClick3 = () => {
 		setOsLanguage("en")
+	}
+	const onClick4 = () => {
+		setOsColorPrimary("#1890ff")
+	}
+	const onClick5 = () => {
+		setOsTheme("dark")
 	}
 </script>
 

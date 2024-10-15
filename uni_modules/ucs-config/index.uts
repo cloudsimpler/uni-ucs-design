@@ -1,2 +1,1 @@
-export { defineConfig, getUcsDesignLanguage } from "./utssdk/defaultConfig.uts";
-export { getOsColor, setOsTheme, setOsColorPrimary, setOsLanguage } from "./utssdk/defaultColors.uts";
+export * from "./common/tools.uts"
