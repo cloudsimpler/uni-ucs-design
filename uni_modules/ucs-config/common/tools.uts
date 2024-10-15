@@ -91,3 +91,12 @@ export const getUcsDesignLanguage = (path : string, defaultValue : string) : any
 		return defaultValue
 	}
 };
+/**
+ * 根据浅色和深色模式下获取不同颜色
+ * @param lightColor 浅色模式颜色
+ * @param darkColor 深色模式颜色
+ * @returns string 颜色值
+ */
+export const getLightDarkColor = (lightColor : string, darkColor : string) : string => {
+	return defaultConfig['osTheme'] == "dark" ? darkColor : lightColor
+}
