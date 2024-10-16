@@ -2,5 +2,5 @@ import { defineConfig } from "@/uni_modules/ucs-config";
 
 defineConfig({
 	// 配置项
-	
+	osTheme: "dark",
 })

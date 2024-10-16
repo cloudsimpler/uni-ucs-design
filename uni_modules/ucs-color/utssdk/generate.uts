@@ -9,13 +9,16 @@ import { colorPaletteDark } from './palette-dark.uts';
  */
 export function generate(color : string = "#604cfc", mode : string = 'light') : string[] {
 	const list : string[] = [];
-	for (let i = 1; i <= 10; i++) {
-		if (mode == 'dark') {
+	if (mode == 'dark') {
+		for (let i = 1; i <= 10; i++) {
 			list.push(colorPaletteDark(color, i));
-		} else {
+		};
+	} else {
+		for (let i = 1; i <= 10; i++) {
 			list.push(colorPalette(color, i));
 		};
 	};
+
 	return list;
 };
 /**
@@ -40,4 +43,18 @@ export function generateObject(color : string = "#604cfc", name : string = "colo
 	};
 
 	return object;
+};
+
+/**
+ * 获取基础色对应的调色板，可以直接获取 0-9 10个色阶的调色板集合，也可以根据索引值单独获取调色板的某个颜色
+ * @param color  基础色
+ * @param mode = ['dark','light'] 暗黑模式，默认值：light
+ * @return Array
+ */
+export function generateIndex(color : string = "#604cfc", index : number = 6, mode : string = 'light') : string {
+	if (mode == 'dark') {
+		return colorPaletteDark(color, index);
+	} else {
+		return colorPalette(color, index);
+	};
 };

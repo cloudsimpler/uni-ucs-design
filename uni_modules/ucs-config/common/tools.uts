@@ -1,13 +1,14 @@
 import { defaultColors, darkGrey, lightGrey } from "../utssdk/defaultColors.uts";
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
 import { deepMergeObject, getDeepProperty } from "./deep.uts";
-import { generateObject } from "../../../uni_modules/ucs-color";
+import { generateObject, generateIndex } from "../../../uni_modules/ucs-color";
 
 /**
  * 设置全局颜色
  * @param config defaultConfig全局配置参数
  */
 export const setDefaultColors = (config : UTSJSONObject) => {
+	// @ts-ignore
 	const osColor = config['osColor'] as UTSJSONObject;
 	const osTheme = config['osTheme'] as string;
 	for (let c in osColor) {
@@ -36,6 +37,7 @@ export const getOsColor = (str : string) : string => {
  */
 export const setOsColorPrimary = (color : string) => {
 	const osTheme = defaultConfig['osTheme'] as string;
+	// @ts-ignore
 	let osColor = defaultConfig['osColor'] as UTSJSONObject;
 	osColor["primary"] = color;
 	const colorJson = generateObject(color, "primary", osTheme);
@@ -48,6 +50,7 @@ export const setOsColorPrimary = (color : string) => {
  */
 export const setOsTheme = (osTheme : string) => {
 	defaultConfig['osTheme'] = osTheme;
+	// @ts-ignore
 	const osColor = defaultConfig['osColor'] as UTSJSONObject;
 	for (let c in osColor) {
 		const colorJson = generateObject(osColor[c] as string, c, osTheme);
@@ -74,6 +77,7 @@ export const setOsLanguage = (language : string) => {
  * @returns UTSJSONObject
  */
 export const defineConfig = (config : UTSJSONObject) : UTSJSONObject | null => {
+	// @ts-ignore
 	const deepMergeDefaultConfig = deepMergeObject?.(defaultConfig, config);
 	setDefaultColors(deepMergeDefaultConfig as UTSJSONObject);
 	return deepMergeDefaultConfig;
@@ -99,4 +103,13 @@ export const getUcsDesignLanguage = (path : string, defaultValue : string) : any
  */
 export const getLightDarkColor = (lightColor : string, darkColor : string) : string => {
 	return defaultConfig['osTheme'] == "dark" ? darkColor : lightColor
+}
+/**
+ * 根据浅色和深色模式下获取不同颜色
+ * @param color hex颜色值
+ * @param index 生成颜色值的等级
+ * @returns string 颜色值
+ */
+export const getGenerateIndex = (color : string, index : number) : string => {
+	return generateIndex(color, index, defaultConfig['osTheme'] as string)
 }
