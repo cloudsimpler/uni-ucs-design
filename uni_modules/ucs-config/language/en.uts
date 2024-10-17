@@ -3,6 +3,25 @@
  */
 export default {
 	ucsEmpty: {
-		agenda: "No schedule at the moment"
+		agenda: "No schedule at the moment",
+		auth: "Temporarily without authority",
+		card: "No bank card",
+		collect: "No collection",
+		coupon: "No coupon",
+		data: "No data available",
+		dataNull: "Data null",
+		direction: "Temporary disorientation",
+		error: "404",
+		errorPage: "The page is gone",
+		fail: "Load failure",
+		file: "The folder is empty",
+		loading: "Loading",
+		message: "No news",
+		network: "No network",
+		networkPoor: "The Internet doesn't work",
+		record: "No record",
+		search: "No search results are available",
+		shopping: "Shopping carts are empty",
+		signal: "No signal"
 	}
 }

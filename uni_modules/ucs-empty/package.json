@@ -11,7 +11,7 @@
 		"HBuilderX": "^3.7.0"
 	},
 	"dcloudext": {
-		"type": "component-uts",
+		"type": "component-vue",
 		"sale": {
 			"regular": {
 				"price": "0.00"

@@ -1,0 +1,54 @@
+<template>
+	<view class="_ucs-empty" :style="{paddingTop:`${props.offsetTop}px`,paddingBottom:`${props.offsetBottom}px`}">
+		<ucs-svg :width="235" :height="235" :src="earlySvg" />
+		<text class="_desc" :style="{color:getOsColor('grey')}">{{getUcsDesignLanguage('ucsEmpty.record',props.desc)}}</text>
+		<slot />
+	</view>
+</template>
+
+<script lang="uts" setup>
+	/**
+	 * @description 《暂无记录》缺省组件
+	 * @tutorial https://ucs.cloudsimpler.com/library/ucs-empty
+	 * @property {String} desc 缺省页描述文字
+	 * @property {Number} offsetTop 偏移向上距离
+	 * @property {Number} offsetBottom 偏移向下距离
+	 */
+	import { computed } from "vue";
+	import { getOsColor, getUcsDesignLanguage, getGenerateIndex } from "@/uni_modules/ucs-config";
+
+	const props = defineProps({
+		desc: {
+			type: String,
+			default: ""
+		},
+		offsetTop: {
+			type: Number,
+			default: 0
+		},
+		offsetBottom: {
+			type: Number,
+			default: 0
+		}
+	});
+
+	const earlySvg = computed(() : string => {
+		return ``
+	});
+	
+</script>
+
+<style lang="scss" scoped>
+	._ucs-empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+
+		._desc {
+			font-size: 14px;
+			width: 235px;
+			margin-bottom: 24px;
+			text-align: center;
+		}
+	}
+</style>

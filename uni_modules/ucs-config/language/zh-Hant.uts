@@ -3,6 +3,25 @@
  */
 export default {
 	ucsEmpty: {
-		agenda: "暫無日程"
+		agenda: "暫無日程",
+		auth: "暫無權限",
+		card: "暂无银行卡",
+		collect: "暫無銀行卡",
+		coupon: "暫無優惠券",
+		data: "暫無數據",
+		dataNull: "數據爲空",
+		direction: "暫無方向",
+		error: "404",
+		errorPage: "頁面不見了",
+		fail: "加載失敗",
+		file: "文件夾空空如也",
+		loading: "加載中",
+		message: "暫無消息",
+		network: "暫無網絡",
+		networkPoor: "網絡不給力",
+		record: "暫無記錄",
+		search: "暫無搜索結果",
+		shopping: "購物車空空如也",
+		signal: "暫無信號"
 	}
 }
