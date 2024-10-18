@@ -31,7 +31,7 @@
 		"npmurl": ""
 	},
 	"uni_modules": {
-		"dependencies": ["ucs-color"],
+		"dependencies": [],
 		"encrypt": [],
 		"platforms": {
 			"cloud": {

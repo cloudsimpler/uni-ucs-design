@@ -18,7 +18,7 @@ export default {
 		loading: "Loading",
 		message: "No news",
 		network: "No network",
-		networkPoor: "The Internet doesn't work",
+		networkWeak: "The Internet doesn't work",
 		record: "No record",
 		search: "No search results are available",
 		shopping: "Shopping carts are empty",

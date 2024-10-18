@@ -18,7 +18,7 @@ export default {
 		loading: "加載中",
 		message: "暫無消息",
 		network: "暫無網絡",
-		networkPoor: "網絡不給力",
+		networkWeak: "網絡不給力",
 		record: "暫無記錄",
 		search: "暫無搜索結果",
 		shopping: "購物車空空如也",

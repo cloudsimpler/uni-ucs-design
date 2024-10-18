@@ -18,7 +18,7 @@ export default {
 		loading: "加载中",
 		message: "暂无消息",
 		network: "暂无网络",
-		networkPoor: "网络不给力",
+		networkWeak: "网络不给力",
 		record: "暂无记录",
 		search: "暂无搜索结果",
 		shopping: "购物车空空如也",

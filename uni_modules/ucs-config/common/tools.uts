@@ -1,7 +1,7 @@
 import { defaultColors, darkGrey, lightGrey } from "../utssdk/defaultColors.uts";
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
 import { deepMergeObject, getDeepProperty } from "./deep.uts";
-import { generateObject, generateIndex } from "../../../uni_modules/ucs-color";
+import { generateObject, generateIndex } from "../ucs-color/generate.uts";
 
 /**
  * 设置全局颜色
