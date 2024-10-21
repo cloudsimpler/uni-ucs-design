@@ -13,7 +13,9 @@ let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
 		primary: "#604CFC",
 		success: "#07C160",
 		warning: "#EDA20C",
-		danger: "#D9514C"
+		danger: "#D9514C",
+		// 缺省组件人物衣服色彩
+		emptyClothes: "#07C160"
 	},
 	osUcsLanguage: {
 		"zh-Hans": zhHans,

@@ -89,7 +89,18 @@ let defaultColors : UTSJSONObject = reactive<UTSJSONObject>({
 	"grey-10": "#272e3b",
 	"grey-11": "#1d2129",
 	"grey-12": "#000000",
-	"grey": "#86909c"
+	"grey": "#86909c",
+	"emptyClothes-1": "#E8FFEF",
+	"emptyClothes-2": "#B2F3C9",
+	"emptyClothes-3": "#81E6A8",
+	"emptyClothes-4": "#54DA8C",
+	"emptyClothes-5": "#2BCD74",
+	"emptyClothes-6": "#07C160",
+	"emptyClothes-7": "#04A457",
+	"emptyClothes-8": "#02874B",
+	"emptyClothes-9": "#016A3E",
+	"emptyClothes-10": "#004D2F",
+	"emptyClothes": "#07C160"
 });
 
 export {
