@@ -1,0 +1,20 @@
+type osColorType = {
+	primary : string;
+	success : string;
+	warning : string;
+	danger : string;
+}
+
+
+type defaultConfigType = {
+	osTheme : string;
+	osLanguage : string;
+	osColor : UTSJSONObject;
+	osUcsLanguage:UTSJSONObject;
+	osI18n:UTSJSONObject;
+}
+
+export {
+	osColorType,
+	defaultConfigType
+}

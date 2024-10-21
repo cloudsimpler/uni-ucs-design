@@ -1,26 +1,7 @@
 import { defaultColors, darkGrey, lightGrey } from "../utssdk/defaultColors.uts";
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
-import { deepMergeObject, getDeepProperty } from "./deep.uts";
+import { processMerging, getDeepProperty } from "./deep.uts";
 import { generateObject, generateIndex } from "../ucs-color/generate.uts";
-
-/**
- * 设置全局颜色
- * @param config defaultConfig全局配置参数
- */
-export const setDefaultColors = (config : UTSJSONObject) => {
-	// @ts-ignore
-	const osColor = config['osColor'] as UTSJSONObject;
-	const osTheme = config['osTheme'] as string;
-	for (let c in osColor) {
-		const colorJson = generateObject(osColor[c] as string, c, osTheme);
-		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
-	};
-	if (osTheme !== "dark") {
-		for (let i in lightGrey) { defaultColors[i] = lightGrey[i]; };
-	} else {
-		for (let i in darkGrey) { defaultColors[i] = darkGrey[i]; };
-	};
-};
 
 /**
  * 获取颜色值
@@ -36,11 +17,8 @@ export const getOsColor = (str : string) : string => {
  * @param color hex颜色值
  */
 export const setOsColorPrimary = (color : string) => {
-	const osTheme = defaultConfig['osTheme'] as string;
-	// @ts-ignore
-	let osColor = defaultConfig['osColor'] as UTSJSONObject;
-	osColor["primary"] = color;
-	const colorJson = generateObject(color, "primary", osTheme);
+	defaultConfig.osColor['primary'] = color;
+	const colorJson = generateObject(color, "primary", defaultConfig.osTheme);
 	for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
 };
 
@@ -49,9 +27,8 @@ export const setOsColorPrimary = (color : string) => {
  * @param osTheme [light,dark] 模式主题
  */
 export const setOsTheme = (osTheme : string) => {
-	defaultConfig['osTheme'] = osTheme;
-	// @ts-ignore
-	const osColor = defaultConfig['osColor'] as UTSJSONObject;
+	defaultConfig.osTheme = osTheme;
+	const osColor = defaultConfig.osColor;
 	for (let c in osColor) {
 		const colorJson = generateObject(osColor[c] as string, c, osTheme);
 		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
@@ -68,7 +45,7 @@ export const setOsTheme = (osTheme : string) => {
  * @param osLanguage [zh-Hans,zh-Hant,en] 语言
  */
 export const setOsLanguage = (language : string) => {
-	defaultConfig['osLanguage'] = language;
+	defaultConfig.osLanguage = language;
 };
 
 /**
@@ -76,11 +53,21 @@ export const setOsLanguage = (language : string) => {
  * @param config 配置object
  * @returns UTSJSONObject
  */
-export const defineConfig = (config : UTSJSONObject) : UTSJSONObject | null => {
-	// @ts-ignore
-	const deepMergeDefaultConfig = deepMergeObject?.(defaultConfig, config);
-	setDefaultColors(deepMergeDefaultConfig as UTSJSONObject);
-	return deepMergeDefaultConfig;
+export const defineConfig = (config : UTSJSONObject) => {
+	// 合并配置
+	processMerging(defaultConfig, config);
+	// 初始化配置色彩
+	const osColor = defaultConfig.osColor;
+	const osTheme = defaultConfig.osTheme;
+	for (let c in osColor) {
+		const colorJson = generateObject(osColor[c] as string, c, osTheme);
+		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
+	};
+	if (osTheme !== "dark") {
+		for (let i in lightGrey) { defaultColors[i] = lightGrey[i]; };
+	} else {
+		for (let i in darkGrey) { defaultColors[i] = darkGrey[i]; };
+	};
 };
 
 /**
@@ -90,7 +77,7 @@ export const defineConfig = (config : UTSJSONObject) : UTSJSONObject | null => {
  */
 export const getUcsDesignLanguage = (path : string, defaultValue : string) : any => {
 	if (defaultValue == "") {
-		return getDeepProperty(defaultConfig['osUcsLanguage'] as any, `${defaultConfig['osLanguage']}.${path}`)
+		return getDeepProperty(defaultConfig.osUcsLanguage as any, `${defaultConfig.osLanguage}.${path}`)
 	} else {
 		return defaultValue
 	}
@@ -102,7 +89,7 @@ export const getUcsDesignLanguage = (path : string, defaultValue : string) : any
  * @returns string 颜色值
  */
 export const getLightDarkColor = (lightColor : string, darkColor : string) : string => {
-	return defaultConfig['osTheme'] == "dark" ? darkColor : lightColor
+	return defaultConfig.osTheme == "dark" ? darkColor : lightColor
 }
 /**
  * 根据浅色和深色模式下获取不同颜色
@@ -111,5 +98,5 @@ export const getLightDarkColor = (lightColor : string, darkColor : string) : str
  * @returns string 颜色值
  */
 export const getGenerateIndex = (color : string, index : number) : string => {
-	return generateIndex(color, index, defaultConfig['osTheme'] as string)
+	return generateIndex(color, index, defaultConfig.osTheme)
 }

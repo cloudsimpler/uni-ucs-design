@@ -2,8 +2,9 @@ import { reactive } from "vue";
 import zhHans from "../language/zh-Hans.uts";
 import zhHant from "../language/zh-Hant.uts";
 import en from "../language/en.uts";
+import { defaultConfigType } from "../interface.uts";
 
-let defaultConfig = reactive({
+let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
 	osTheme: "light",
 	osLanguage: "zh-Hans",
 	osColor: {

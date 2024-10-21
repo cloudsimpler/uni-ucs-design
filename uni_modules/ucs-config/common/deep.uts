@@ -1,3 +1,5 @@
+import { defaultConfigType } from "../interface.uts";
+
 type tempType = {
 	type : string;
 	object : UTSJSONObject;
@@ -93,7 +95,7 @@ export function getDeepProperty(data : any, path : string) : any {
 /**
  * 声明函数
  */
-export let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSONObject) | null = null;
+let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSONObject) | null = null;
 /**
  * object深度合并
  * @param first 原始object数据
@@ -101,16 +103,40 @@ export let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) =>
  * @returns object
  */
 deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
-	for (let f in first) {
-		if (second.hasOwnProperty(f)) {
+	for (let f in second) {
+		if (first.hasOwnProperty(f)) {
 			if (typeof first[f] === 'object' && !Array.isArray(first[f]) && typeof second[f] === 'object' && !Array.isArray(second[f])) {
-				deepMergeObject?.(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
+				first[f] = deepMergeObject?.(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
 			} else {
 				if (typeof first[f] === typeof second[f] && second[f] != null) {
 					first[f] = second[f];
 				};
 			}
+		} else {
+			first[f] = second[f];
+		}
+	};
+	
+	return first as UTSJSONObject;
+};
+
+
+/**
+ * 数据合并
+ * @param rawData 原始object数据
+ * @param combinedData 需要被合并的object数据
+ * @returns object
+ */
+export const processMerging = (rawData : defaultConfigType, combinedData : UTSJSONObject) => {
+	for (let f in rawData) {
+		if (combinedData.hasOwnProperty(f)) {
+			if (typeof rawData[f] === 'object' && !Array.isArray(rawData[f]) && typeof combinedData[f] === 'object' && !Array.isArray(combinedData[f])) {
+				rawData[f] = deepMergeObject?.(rawData[f] as UTSJSONObject, combinedData[f] as UTSJSONObject);
+			} else {
+				if (typeof rawData[f] === typeof combinedData[f] && combinedData[f] != null) {
+					rawData[f] = combinedData[f];
+				};
+			}
 		};
 	};
-	return first as UTSJSONObject;
 };

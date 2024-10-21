@@ -2,25 +2,6 @@
 	<scroll-view style="flex: 1;">
 		<view :style="{backgroundColor: getOsColor('grey-1')}">
 			<ucs-empty-agenda></ucs-empty-agenda>
-			<ucs-empty-auth></ucs-empty-auth>
-			<ucs-empty-card></ucs-empty-card>
-			<ucs-empty-collect></ucs-empty-collect>
-			<ucs-empty-coupon></ucs-empty-coupon>
-			<ucs-empty-data></ucs-empty-data>
-			<ucs-empty-data-null></ucs-empty-data-null>
-			<ucs-empty-direction></ucs-empty-direction>
-			<ucs-empty-error></ucs-empty-error>
-			<ucs-empty-error-page></ucs-empty-error-page>
-			<ucs-empty-fail></ucs-empty-fail>
-			<ucs-empty-file></ucs-empty-file>
-			<ucs-empty-loading></ucs-empty-loading>
-			<ucs-empty-message></ucs-empty-message>
-			<ucs-empty-network></ucs-empty-network>
-			<ucs-empty-network-weak></ucs-empty-network-weak>
-			<ucs-empty-record></ucs-empty-record>
-			<ucs-empty-search></ucs-empty-search>
-			<ucs-empty-shopping></ucs-empty-shopping>
-			<ucs-empty-signal></ucs-empty-signal>
 			
 			<button @click="onClick1">设置简体中文</button>
 			<button @click="onClick2">设置繁体中文</button>
