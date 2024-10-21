@@ -1,17 +1,19 @@
 import { reactive } from "vue";
+import { defaultConfigType } from "../common/merge.uts";
+// 国际化
 import zhHans from "../language/zh-Hans.uts";
 import zhHant from "../language/zh-Hant.uts";
 import en from "../language/en.uts";
-import { defaultConfigType } from "../interface.uts";
+
 
 let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
 	osTheme: "light",
 	osLanguage: "zh-Hans",
 	osColor: {
-		primary: "#604CFC",			// 主色
-		success: "#07C160",			// 成功
-		warning: "#EDA20C",			// 警告
-		danger: "#D9514C"			// 危险
+		primary: "#604CFC",
+		success: "#07C160",
+		warning: "#EDA20C",
+		danger: "#D9514C"
 	},
 	osUcsLanguage: {
 		"zh-Hans": zhHans,

@@ -32,7 +32,7 @@ const darkGrey = {
 	"grey": "#929293"
 };
 
-let defaultColors = reactive({
+let defaultColors : UTSJSONObject = reactive<UTSJSONObject>({
 	"danger-1": "#FFEDE8",
 	"danger-2": "#F7CEC5",
 	"danger-3": "#F0AFA5",

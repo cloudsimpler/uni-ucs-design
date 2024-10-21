@@ -1,52 +1,8 @@
 import { defaultColors, darkGrey, lightGrey } from "../utssdk/defaultColors.uts";
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
-import { processMerging, getDeepProperty } from "./deep.uts";
+import { getDeepProperty } from "./deep.uts";
+import { processMerging } from "./merge.uts";
 import { generateObject, generateIndex } from "../ucs-color/generate.uts";
-
-/**
- * 获取颜色值
- * @param str 颜色值，可以是primary、success、warning、danger配置定义颜色，也可以是hex值
- * @returns string
- */
-export const getOsColor = (str : string) : string => {
-	return defaultColors.hasOwnProperty(str) ? defaultColors[str] as string : str;
-};
-
-/**
- * 动态设置主题颜色
- * @param color hex颜色值
- */
-export const setOsColorPrimary = (color : string) => {
-	defaultConfig.osColor['primary'] = color;
-	const colorJson = generateObject(color, "primary", defaultConfig.osTheme);
-	for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
-};
-
-/**
- * 切换深色主题模式
- * @param osTheme [light,dark] 模式主题
- */
-export const setOsTheme = (osTheme : string) => {
-	defaultConfig.osTheme = osTheme;
-	const osColor = defaultConfig.osColor;
-	for (let c in osColor) {
-		const colorJson = generateObject(osColor[c] as string, c, osTheme);
-		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
-	};
-	if (osTheme !== "dark") {
-		for (let i in lightGrey) { defaultColors[i] = lightGrey[i]; };
-	} else {
-		for (let i in darkGrey) { defaultColors[i] = darkGrey[i]; };
-	};
-};
-
-/**
- * 设置国际化语言
- * @param osLanguage [zh-Hans,zh-Hant,en] 语言
- */
-export const setOsLanguage = (language : string) => {
-	defaultConfig.osLanguage = language;
-};
 
 /**
  * 定义配置
@@ -71,6 +27,51 @@ export const defineConfig = (config : UTSJSONObject) => {
 };
 
 /**
+ * 切换深色主题模式
+ * @param osTheme [light,dark] 模式主题
+ */
+export const setOsTheme = (osTheme : string) => {
+	defaultConfig.osTheme = osTheme;
+	const osColor = defaultConfig.osColor;
+	for (let c in osColor) {
+		const colorJson = generateObject(osColor[c] as string, c, osTheme);
+		for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
+	};
+	if (osTheme !== "dark") {
+		for (let i in lightGrey) { defaultColors[i] = lightGrey[i]; };
+	} else {
+		for (let i in darkGrey) { defaultColors[i] = darkGrey[i]; };
+	};
+};
+
+/**
+ * 获取颜色值
+ * @param str 颜色值，可以是primary、success、warning、danger配置定义颜色，也可以是hex值
+ * @returns string
+ */
+export const getOsColor = (str : string) : string => {
+	return defaultColors.hasOwnProperty(str) ? defaultColors[str] as string : str;
+};
+
+/**
+ * 动态设置主题颜色
+ * @param color hex颜色值
+ */
+export const setOsColorPrimary = (color : string) => {
+	defaultConfig.osColor['primary'] = color;
+	const colorJson = generateObject(color, "primary", defaultConfig.osTheme);
+	for (let i in colorJson) { defaultColors[i] = colorJson[i]; };
+};
+
+/**
+ * 设置国际化语言
+ * @param osLanguage [zh-Hans,zh-Hant,en] 语言
+ */
+export const setOsLanguage = (language : string) => {
+	defaultConfig.osLanguage = language;
+};
+
+/**
  * 获取UCS Design 框架语言
  * @param path 参数路径
  * @returns any
@@ -82,6 +83,7 @@ export const getUcsDesignLanguage = (path : string, defaultValue : string) : any
 		return defaultValue
 	}
 };
+
 /**
  * 根据浅色和深色模式下获取不同颜色
  * @param lightColor 浅色模式颜色
@@ -90,7 +92,8 @@ export const getUcsDesignLanguage = (path : string, defaultValue : string) : any
  */
 export const getLightDarkColor = (lightColor : string, darkColor : string) : string => {
 	return defaultConfig.osTheme == "dark" ? darkColor : lightColor
-}
+};
+
 /**
  * 根据浅色和深色模式下获取不同颜色
  * @param color hex颜色值
@@ -99,4 +102,4 @@ export const getLightDarkColor = (lightColor : string, darkColor : string) : str
  */
 export const getGenerateIndex = (color : string, index : number) : string => {
 	return generateIndex(color, index, defaultConfig.osTheme)
-}
+};
