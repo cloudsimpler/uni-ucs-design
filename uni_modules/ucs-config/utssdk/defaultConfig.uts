@@ -22,7 +22,7 @@ let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
 		"zh-Hant": zhHant,
 		"en": en
 	},
-	osI18n: {
+	osI18nLanguage: {
 		"zh-Hans": {},
 		"zh-Hant": {},
 		"en": {}
