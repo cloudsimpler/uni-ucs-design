@@ -1,7 +1,7 @@
 {
 	"id": "ucs-config",
 	"displayName": "UCS Design 全局配置",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "用于 UCS Design 生态链的所有组件库和扩展插件的全局配置项目",
 	"keywords": [
         "ucs-config,全局配置"
