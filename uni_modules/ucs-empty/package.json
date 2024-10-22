@@ -1,14 +1,14 @@
 {
 	"id": "ucs-empty",
-	"displayName": "ucs-empty",
+	"displayName": "ucs-empty 缺省库",
 	"version": "1.0.0",
-	"description": "ucs-empty",
+	"description": "一套专为处理数据加载和空状态设计的UI组件，用于在应用中展示数据加载前的占位内容或无数据时的空状态。提供易于集成的占位符和空状态界面，以优化用户体验并保持应用界面的整洁与一致。",
 	"keywords": [
-		"ucs-empty"
-	],
+        "empty,缺省页,为空页"
+    ],
 	"repository": "",
 	"engines": {
-		"HBuilderX": "^3.7.0"
+		"HBuilderX": "^4.24"
 	},
 	"dcloudext": {
 		"type": "component-vue",
@@ -24,57 +24,55 @@
 			"qq": ""
 		},
 		"declaration": {
-			"ads": "",
-			"data": "",
-			"permissions": ""
+			"ads": "无",
+			"data": "插件不采集任何数据",
+			"permissions": "无"
 		},
 		"npmurl": ""
 	},
 	"uni_modules": {
-		"dependencies": ["ucs-svg"],
+		"dependencies": ["ucs-svg", "ucs-config"],
 		"encrypt": [],
 		"platforms": {
 			"cloud": {
-				"tcb": "u",
-				"aliyun": "u",
-				"alipay": "u"
+				"tcb": "y",
+				"aliyun": "y",
+				"alipay": "y"
 			},
 			"client": {
 				"Vue": {
-					"vue2": "u",
-					"vue3": "u"
+					"vue2": "n",
+					"vue3": "y"
 				},
-				"App": {
-					"app-android": "u",
-					"app-ios": "u"
+                "App": {
 				},
 				"H5-mobile": {
-					"Safari": "u",
-					"Android Browser": "u",
-					"微信浏览器(Android)": "u",
-					"QQ浏览器(Android)": "u"
+					"Safari": "y",
+					"Android Browser": "y",
+					"微信浏览器(Android)": "y",
+					"QQ浏览器(Android)": "y"
 				},
 				"H5-pc": {
-					"Chrome": "u",
-					"IE": "u",
-					"Edge": "u",
-					"Firefox": "u",
-					"Safari": "u"
+					"Chrome": "y",
+					"IE": "y",
+					"Edge": "y",
+					"Firefox": "y",
+					"Safari": "y"
 				},
 				"小程序": {
-					"微信": "u",
-					"阿里": "u",
-					"百度": "u",
-					"字节跳动": "u",
-					"QQ": "u",
-					"钉钉": "u",
-					"快手": "u",
-					"飞书": "u",
-					"京东": "u"
+					"微信": "y",
+					"阿里": "y",
+					"百度": "y",
+					"字节跳动": "y",
+					"QQ": "y",
+					"钉钉": "y",
+					"快手": "y",
+					"飞书": "y",
+					"京东": "y"
 				},
 				"快应用": {
-					"华为": "u",
-					"联盟": "u"
+					"华为": "y",
+					"联盟": "y"
 				}
 			}
 		}
