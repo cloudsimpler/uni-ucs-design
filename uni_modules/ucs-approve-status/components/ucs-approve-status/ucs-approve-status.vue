@@ -14,6 +14,7 @@
 	 */
 	import { computed } from "vue";
 	import { getOsColor } from "@/uni_modules/ucs-config";
+	
 	const props = defineProps({
 		text: {
 			type: String,

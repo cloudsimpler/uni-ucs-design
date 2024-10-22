@@ -1,4 +1,4 @@
-## 1.0.0（2024-09-29）
+## 1.0.0（2024-10-22）
 - 【官方文档】[ucs-approve-status 审批状态](https://ucs.cloudsimpler.com/library/ucs-approve-status)
 - 【版本兼容】 Vue3【uni-app / uni-app-x】
 - 【开发版本】HBuilderX - 4.24+
