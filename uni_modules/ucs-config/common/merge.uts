@@ -3,7 +3,7 @@ type defaultConfigType = {
 	osLanguage : string;
 	osColor : UTSJSONObject;
 	osUcsLanguage : UTSJSONObject;
-	osI18n : UTSJSONObject;
+	osI18nLanguage : UTSJSONObject;
 };
 
 /**
