@@ -1,7 +1,7 @@
 {
 	"id": "ucs-share",
 	"displayName": "ucs-share 状态共享",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "为应用提供状态共享模式，它通过集中存储和管理应用的所有组件的状态，实现组件间的通信和数据共享。",
 	"keywords": [
         "share,ucs,状态管理"
