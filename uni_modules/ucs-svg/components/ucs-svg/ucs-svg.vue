@@ -4,8 +4,10 @@
 	<ucs-uts-svg :style="{width:`${width}${unit}`,height:`${height}${unit}`}" :src="src" />
 	<!-- #endif -->
 	<!-- #ifndef APP -->
-	<image :src="`data:image/svg+xml;charset=utf-8,${encodeURIComponent(src)}`"
-		:style="{width:`${width}${unit}`,height:`${height}${unit}`}" />
+	<view class="__ucs-svg">
+		<image :src="`data:image/svg+xml;charset=utf-8,${encodeURIComponent(src)}`"
+			:style="{width:`${width}${unit}`,height:`${height}${unit}`}" />
+	</view>
 	<!-- #endif -->
 	<!-- #endif -->
 	<!-- #ifndef UNI-APP-X -->
@@ -13,8 +15,10 @@
 	<ucs-uts-svg :style="{width:`${width}${unit}`,height:`${height}${unit}`}" :src="src" />
 	<!-- #endif -->
 	<!-- #ifndef APP-PLUS-NVUE -->
-	<image :src="`data:image/svg+xml;charset=utf-8,${encodeURIComponent(src)}`"
-		:style="{width:`${width}${unit}`,height:`${height}${unit}`}" />
+	<view class="__ucs-svg">
+		<image :src="`data:image/svg+xml;charset=utf-8,${encodeURIComponent(src)}`"
+			:style="{width:`${width}${unit}`,height:`${height}${unit}`}" />
+	</view>
 	<!-- #endif -->
 	<!-- #endif -->
 </template>
@@ -52,5 +56,7 @@
 </script>
 
 <style scoped>
-
+	.__ucs-svg {
+		display: flex;
+	}
 </style>
