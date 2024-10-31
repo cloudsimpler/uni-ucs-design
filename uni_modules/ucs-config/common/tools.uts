@@ -1,0 +1,132 @@
+import { defaultConfigType, storageType } from "../utssdk/interface.uts";
+
+/**
+ * 深度获取参数
+ */
+// 数据存储转化
+let storage : storageType = {
+	type: "object",
+	object: {},
+	any: "",
+	array: []
+};
+// 获取数据类型
+const getDataType = (data : any) : string => {
+	if (typeof data === 'object') {
+		if (Array.isArray(data)) {
+			return 'array';
+		} else {
+			return 'object';
+		};
+	} else {
+		return 'any';
+	};
+};
+// 初始化赋值
+const initTempData = (data : any) => {
+	const type = getDataType(data);
+	if (type === 'object') {
+		storage.object = data as UTSJSONObject;
+		storage.type = "object";
+	} else if (type === 'array') {
+		storage.array = data as any[];
+		storage.type = "array";
+	} else {
+		storage.any = data as any;
+		storage.type = "any";
+	};
+};
+// 设置临时数据
+const setTempData = (data : any, key : string) => {
+	const type = getDataType(data);
+	if (type === 'object') {
+		const object = data as UTSJSONObject;
+		// 当给定的key不存在时，则返回整个Object数据
+		if (object.hasOwnProperty(key)) {
+			initTempData(object[key] as any);
+		} else {
+			initTempData(object);
+		};
+	} else if (type === 'array') {
+		// 当按规则书写时验证
+		if (key.indexOf("[") != -1 && key.indexOf("]") != -1) {
+			const num = parseFloat(key.replace("[", "").replace("]", ""));
+			const arrays = data as any[];
+			// 当给定的下标不正确时，则返回整个Array数组
+			if (num < arrays.length) {
+				initTempData(arrays[num]);
+			} else {
+				initTempData(arrays);
+			};
+		} else {
+			// 未按规则书写则返回整个数据
+			initTempData(data);
+		};
+	} else {
+		initTempData(data);
+	};
+};
+/**
+ * 深度获取对象值
+ * @param data 数据
+ * @param 对象路径
+ * @returns 数据中对象路径的值
+ */
+export function getDeepProperty(data : any, path : string) : any {
+	// 初始化
+	initTempData(data);
+	// 将路径字符串分割成数组
+	const keys = path.split('.');
+	// 循环keys
+	keys.forEach(element => {
+		setTempData(storage[storage.type] as any, element)
+	});
+	// 返回值
+	return storage[storage.type] as any;
+};
+
+
+
+// 声明函数
+let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSONObject) | null = null;
+/**
+ * object深度合并
+ * @param first 原始object数据
+ * @param second 需要被合并的object数据
+ * @returns object
+ */
+deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
+	for (let f in second) {
+		if (first.hasOwnProperty(f)) {
+			if (typeof first[f] === 'object' && !Array.isArray(first[f]) && typeof second[f] === 'object' && !Array.isArray(second[f])) {
+				first[f] = deepMergeObject?.(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
+			} else {
+				if (typeof first[f] === typeof second[f] && second[f] != null) {
+					first[f] = second[f];
+				};
+			}
+		} else {
+			first[f] = second[f];
+		};
+	};
+	return first as UTSJSONObject;
+};
+/**
+ * 数据合并
+ * @param rawData 原始object数据
+ * @param combinedData 需要被合并的object数据
+ * @returns object
+ */
+export const processMerging = (rawData : defaultConfigType, combinedData : UTSJSONObject) => {
+	for (let f in rawData) {
+		if (combinedData.hasOwnProperty(f)) {
+			if (typeof rawData[f] === 'object' && !Array.isArray(rawData[f]) && typeof combinedData[f] === 'object' && !Array.isArray(combinedData[f])) {
+				rawData[f] = deepMergeObject?.(rawData[f] as UTSJSONObject, combinedData[f] as UTSJSONObject);
+			} else {
+				if (typeof rawData[f] === typeof combinedData[f] && combinedData[f] != null) {
+					rawData[f] = combinedData[f];
+				};
+			}
+		};
+	};
+};

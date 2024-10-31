@@ -1,0 +1,14 @@
+export type defaultConfigType = {
+	osTheme : string;
+	osLanguage : string;
+	osColor : UTSJSONObject;
+	osUcsLanguage : UTSJSONObject;
+	osI18nLanguage : UTSJSONObject;
+};
+
+export type storageType = {
+	type : string;
+	object : UTSJSONObject;
+	any : any;
+	array : any[]
+};

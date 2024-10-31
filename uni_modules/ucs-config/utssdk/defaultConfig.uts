@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { defaultConfigType } from "../common/merge.uts";
+import { defaultConfigType } from "./interface.uts";
 // 国际化
 import zhHans from "../language/zh-Hans.uts";
 import zhHant from "../language/zh-Hant.uts";
