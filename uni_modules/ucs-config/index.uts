@@ -1,6 +1,6 @@
 import { defaultColors, darkGrey, lightGrey } from "./utssdk/defaultColors.uts";
 import { defaultConfig } from "./utssdk/defaultConfig.uts";
-import { generateObject, generateIndex } from "./ucs-color/generate.uts";
+import { generateObject, generateIndex } from "../ucs-color";
 import { getDeepProperty,processMerging } from "./common/tools.uts";
 
 /**
