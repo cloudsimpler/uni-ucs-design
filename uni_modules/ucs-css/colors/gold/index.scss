@@ -1,0 +1,115 @@
+@import "./var.scss";
+/**
+ * 背景色
+ */
+.bg-gold{background-color: $ucs-color-gold;}
+.bg-gold-1{background-color: $ucs-color-gold-1;}
+.bg-gold-2{background-color: $ucs-color-gold-2;}
+.bg-gold-3{background-color: $ucs-color-gold-3;}
+.bg-gold-4{background-color: $ucs-color-gold-4;}
+.bg-gold-5{background-color: $ucs-color-gold-5;}
+.bg-gold-6{background-color: $ucs-color-gold-6;}
+.bg-gold-7{background-color: $ucs-color-gold-7;}
+.bg-gold-8{background-color: $ucs-color-gold-8;}
+.bg-gold-9{background-color: $ucs-color-gold-9;}
+.bg-gold-10{background-color: $ucs-color-gold-10;}
+/**
+ * 文本色
+ */
+.color-gold{color: $ucs-color-gold;}
+.color-gold-1{color: $ucs-color-gold-1;}
+.color-gold-2{color: $ucs-color-gold-2;}
+.color-gold-3{color: $ucs-color-gold-3;}
+.color-gold-4{color: $ucs-color-gold-4;}
+.color-gold-5{color: $ucs-color-gold-5;}
+.color-gold-6{color: $ucs-color-gold-6;}
+.color-gold-7{color: $ucs-color-gold-7;}
+.color-gold-8{color: $ucs-color-gold-8;}
+.color-gold-9{color: $ucs-color-gold-9;}
+.color-gold-10{color: $ucs-color-gold-10;}
+/**
+ * 边框色
+ */
+.border-gold{border-color: $ucs-color-gold;}
+.border-gold-1{border-color: $ucs-color-gold-1;}
+.border-gold-2{border-color: $ucs-color-gold-2;}
+.border-gold-3{border-color: $ucs-color-gold-3;}
+.border-gold-4{border-color: $ucs-color-gold-4;}
+.border-gold-5{border-color: $ucs-color-gold-5;}
+.border-gold-6{border-color: $ucs-color-gold-6;}
+.border-gold-7{border-color: $ucs-color-gold-7;}
+.border-gold-8{border-color: $ucs-color-gold-8;}
+.border-gold-9{border-color: $ucs-color-gold-9;}
+.border-gold-10{border-color: $ucs-color-gold-10;}
+
+.border-t-gold{border-top-color: $ucs-color-gold;}
+.border-t-gold-1{border-top-color: $ucs-color-gold-1;}
+.border-t-gold-2{border-top-color: $ucs-color-gold-2;}
+.border-t-gold-3{border-top-color: $ucs-color-gold-3;}
+.border-t-gold-4{border-top-color: $ucs-color-gold-4;}
+.border-t-gold-5{border-top-color: $ucs-color-gold-5;}
+.border-t-gold-6{border-top-color: $ucs-color-gold-6;}
+.border-t-gold-7{border-top-color: $ucs-color-gold-7;}
+.border-t-gold-8{border-top-color: $ucs-color-gold-8;}
+.border-t-gold-9{border-top-color: $ucs-color-gold-9;}
+.border-t-gold-10{border-top-color: $ucs-color-gold-10;}
+
+.border-b-gold{border-bottom-color: $ucs-color-gold;}
+.border-b-gold-1{border-bottom-color: $ucs-color-gold-1;}
+.border-b-gold-2{border-bottom-color: $ucs-color-gold-2;}
+.border-b-gold-3{border-bottom-color: $ucs-color-gold-3;}
+.border-b-gold-4{border-bottom-color: $ucs-color-gold-4;}
+.border-b-gold-5{border-bottom-color: $ucs-color-gold-5;}
+.border-b-gold-6{border-bottom-color: $ucs-color-gold-6;}
+.border-b-gold-7{border-bottom-color: $ucs-color-gold-7;}
+.border-b-gold-8{border-bottom-color: $ucs-color-gold-8;}
+.border-b-gold-9{border-bottom-color: $ucs-color-gold-9;}
+.border-b-gold-10{border-bottom-color: $ucs-color-gold-10;}
+
+.border-l-gold{border-left-color: $ucs-color-gold;}
+.border-l-gold-1{border-left-color: $ucs-color-gold-1;}
+.border-l-gold-2{border-left-color: $ucs-color-gold-2;}
+.border-l-gold-3{border-left-color: $ucs-color-gold-3;}
+.border-l-gold-4{border-left-color: $ucs-color-gold-4;}
+.border-l-gold-5{border-left-color: $ucs-color-gold-5;}
+.border-l-gold-6{border-left-color: $ucs-color-gold-6;}
+.border-l-gold-7{border-left-color: $ucs-color-gold-7;}
+.border-l-gold-8{border-left-color: $ucs-color-gold-8;}
+.border-l-gold-9{border-left-color: $ucs-color-gold-9;}
+.border-l-gold-10{border-left-color: $ucs-color-gold-10;}
+
+.border-r-gold{border-right-color: $ucs-color-gold;}
+.border-r-gold-1{border-right-color: $ucs-color-gold-1;}
+.border-r-gold-2{border-right-color: $ucs-color-gold-2;}
+.border-r-gold-3{border-right-color: $ucs-color-gold-3;}
+.border-r-gold-4{border-right-color: $ucs-color-gold-4;}
+.border-r-gold-5{border-right-color: $ucs-color-gold-5;}
+.border-r-gold-6{border-right-color: $ucs-color-gold-6;}
+.border-r-gold-7{border-right-color: $ucs-color-gold-7;}
+.border-r-gold-8{border-right-color: $ucs-color-gold-8;}
+.border-r-gold-9{border-right-color: $ucs-color-gold-9;}
+.border-r-gold-10{border-right-color: $ucs-color-gold-10;}
+
+.border-x-gold{border-right-color: $ucs-color-gold;border-left-color: $ucs-color-gold;}
+.border-x-gold-1{border-right-color: $ucs-color-gold-1;border-left-color: $ucs-color-gold-1;}
+.border-x-gold-2{border-right-color: $ucs-color-gold-2;border-left-color: $ucs-color-gold-2;}
+.border-x-gold-3{border-right-color: $ucs-color-gold-3;border-left-color: $ucs-color-gold-3;}
+.border-x-gold-4{border-right-color: $ucs-color-gold-4;border-left-color: $ucs-color-gold-4;}
+.border-x-gold-5{border-right-color: $ucs-color-gold-5;border-left-color: $ucs-color-gold-5;}
+.border-x-gold-6{border-right-color: $ucs-color-gold-6;border-left-color: $ucs-color-gold-6;}
+.border-x-gold-7{border-right-color: $ucs-color-gold-7;border-left-color: $ucs-color-gold-7;}
+.border-x-gold-8{border-right-color: $ucs-color-gold-8;border-left-color: $ucs-color-gold-8;}
+.border-x-gold-9{border-right-color: $ucs-color-gold-9;border-left-color: $ucs-color-gold-9;}
+.border-x-gold-10{border-right-color: $ucs-color-gold-10;border-left-color: $ucs-color-gold-10;}
+
+.border-y-gold{border-top-color: $ucs-color-gold;border-bottom-color: $ucs-color-gold;}
+.border-y-gold-1{border-top-color: $ucs-color-gold-1;border-bottom-color: $ucs-color-gold-1;}
+.border-y-gold-2{border-top-color: $ucs-color-gold-2;border-bottom-color: $ucs-color-gold-2;}
+.border-y-gold-3{border-top-color: $ucs-color-gold-3;border-bottom-color: $ucs-color-gold-3;}
+.border-y-gold-4{border-top-color: $ucs-color-gold-4;border-bottom-color: $ucs-color-gold-4;}
+.border-y-gold-5{border-top-color: $ucs-color-gold-5;border-bottom-color: $ucs-color-gold-5;}
+.border-y-gold-6{border-top-color: $ucs-color-gold-6;border-bottom-color: $ucs-color-gold-6;}
+.border-y-gold-7{border-top-color: $ucs-color-gold-7;border-bottom-color: $ucs-color-gold-7;}
+.border-y-gold-8{border-top-color: $ucs-color-gold-8;border-bottom-color: $ucs-color-gold-8;}
+.border-y-gold-9{border-top-color: $ucs-color-gold-9;border-bottom-color: $ucs-color-gold-9;}
+.border-y-gold-10{border-top-color: $ucs-color-gold-10;border-bottom-color: $ucs-color-gold-10;}
