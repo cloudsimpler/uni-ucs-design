@@ -30,12 +30,18 @@ export function colorPaletteDark(originColor : string, i : number) : string {
 		}
 	};
 
-	const baseColor = {
+	type HSV = {
+		h : number;
+		s : number;
+		v : number;
+	};
+	
+	const baseColor : HSV = {
 		h: originBaseHue,
 		s: baseColorSaturation(),
 		v: rgbToHsv(originBaseColor.r, originBaseColor.g, originBaseColor.b).v * 100
 	};
-
+	
 	const baseSaturation = baseColor.s;
 
 	const step = Math.ceil((baseSaturation - 9) / 4);
