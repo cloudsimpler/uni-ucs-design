@@ -9,3 +9,23 @@
 .relative {
 	position: relative;
 }
+/* #ifdef UNI-APP-X */
+/* #ifndef APP */
+.sticky{
+	position: sticky;
+}
+
+.static{
+	position: static;
+}
+/* #endif */
+/* #endif */
+/* #ifndef UNI-APP-X */
+.sticky{
+	position: sticky;
+}
+
+.static{
+	position: static;
+}
+/* #endif */
