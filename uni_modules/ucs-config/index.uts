@@ -1,7 +1,7 @@
 import { defaultColors, darkGrey, lightGrey } from "./utssdk/defaultColors.uts";
 import { defaultConfig } from "./utssdk/defaultConfig.uts";
 import { generateObject, generateIndex } from "../ucs-color";
-import { getDeepProperty,processMerging } from "./common/tools.uts";
+import { getDeepProperty, processMerging } from "./common/tools.uts";
 
 /**
  * 定义配置
@@ -50,6 +50,57 @@ export const setOsTheme = (osTheme : string) => {
  */
 export const getOsColor = (str : string) : string => {
 	return defaultColors.hasOwnProperty(str) ? defaultColors[str] as string : str;
+};
+
+/**
+ * 获取文本色
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const getTextColor = (color : string) : UTSJSONObject => {
+	return { color: getOsColor(color) };
+};
+
+/**
+ * 获取背景色
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const getBGColor = (color : string) : UTSJSONObject => {
+	return { backgroundColor: getOsColor(color) };
+};
+
+/**
+ * 获取渐变色
+ * @param direction 渐变方向
+ * @param colorStart 渐变起始点颜色值
+ * @param colorStop 渐变终点颜色值
+ * @returns UTSJSONObject
+ */
+export const getBgGradient = (direction : string, colorStart : string, colorStop : string) : UTSJSONObject => {
+	return { backgroundImage: `linear-gradient(${direction},${getOsColor(colorStart)},${getOsColor(colorStop)})` };
+};
+
+/**
+ * 获取边框色
+ * @param direction 方向，all、top、bottom、left、right
+ * @param width 边框宽度
+ * @param style 边框样式
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const getBorderColor = (direction : string, width : string, style : string, color : string) : UTSJSONObject => {
+	if (direction == 'top') {
+		return { borderTop: `${width} ${style} ${getOsColor(color)}` };
+	} else if (direction == 'bottom') {
+		return { borderBottom: `${width} ${style} ${getOsColor(color)}` };
+	} else if (direction == 'left') {
+		return { borderLeft: `${width} ${style} ${getOsColor(color)}` };
+	} else if (direction == 'right') {
+		return { borderRight: `${width} ${style} ${getOsColor(color)}` };
+	} else {
+		return { border: `${width} ${style} ${getOsColor(color)}` };
+	}
 };
 
 /**
