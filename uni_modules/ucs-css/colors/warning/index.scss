@@ -1,0 +1,115 @@
+@import "./var.scss";
+/**
+ * 背景色
+ */
+.bg-warning{background-color: $ucs-color-warning;}
+.bg-warning-1{background-color: $ucs-color-warning-1;}
+.bg-warning-2{background-color: $ucs-color-warning-2;}
+.bg-warning-3{background-color: $ucs-color-warning-3;}
+.bg-warning-4{background-color: $ucs-color-warning-4;}
+.bg-warning-5{background-color: $ucs-color-warning-5;}
+.bg-warning-6{background-color: $ucs-color-warning-6;}
+.bg-warning-7{background-color: $ucs-color-warning-7;}
+.bg-warning-8{background-color: $ucs-color-warning-8;}
+.bg-warning-9{background-color: $ucs-color-warning-9;}
+.bg-warning-10{background-color: $ucs-color-warning-10;}
+/**
+ * 文本色
+ */
+.color-warning{color: $ucs-color-warning;}
+.color-warning-1{color: $ucs-color-warning-1;}
+.color-warning-2{color: $ucs-color-warning-2;}
+.color-warning-3{color: $ucs-color-warning-3;}
+.color-warning-4{color: $ucs-color-warning-4;}
+.color-warning-5{color: $ucs-color-warning-5;}
+.color-warning-6{color: $ucs-color-warning-6;}
+.color-warning-7{color: $ucs-color-warning-7;}
+.color-warning-8{color: $ucs-color-warning-8;}
+.color-warning-9{color: $ucs-color-warning-9;}
+.color-warning-10{color: $ucs-color-warning-10;}
+/**
+ * 边框色
+ */
+.border-warning{border-color: $ucs-color-warning;}
+.border-warning-1{border-color: $ucs-color-warning-1;}
+.border-warning-2{border-color: $ucs-color-warning-2;}
+.border-warning-3{border-color: $ucs-color-warning-3;}
+.border-warning-4{border-color: $ucs-color-warning-4;}
+.border-warning-5{border-color: $ucs-color-warning-5;}
+.border-warning-6{border-color: $ucs-color-warning-6;}
+.border-warning-7{border-color: $ucs-color-warning-7;}
+.border-warning-8{border-color: $ucs-color-warning-8;}
+.border-warning-9{border-color: $ucs-color-warning-9;}
+.border-warning-10{border-color: $ucs-color-warning-10;}
+
+.border-t-warning{border-top-color: $ucs-color-warning;}
+.border-t-warning-1{border-top-color: $ucs-color-warning-1;}
+.border-t-warning-2{border-top-color: $ucs-color-warning-2;}
+.border-t-warning-3{border-top-color: $ucs-color-warning-3;}
+.border-t-warning-4{border-top-color: $ucs-color-warning-4;}
+.border-t-warning-5{border-top-color: $ucs-color-warning-5;}
+.border-t-warning-6{border-top-color: $ucs-color-warning-6;}
+.border-t-warning-7{border-top-color: $ucs-color-warning-7;}
+.border-t-warning-8{border-top-color: $ucs-color-warning-8;}
+.border-t-warning-9{border-top-color: $ucs-color-warning-9;}
+.border-t-warning-10{border-top-color: $ucs-color-warning-10;}
+
+.border-b-warning{border-bottom-color: $ucs-color-warning;}
+.border-b-warning-1{border-bottom-color: $ucs-color-warning-1;}
+.border-b-warning-2{border-bottom-color: $ucs-color-warning-2;}
+.border-b-warning-3{border-bottom-color: $ucs-color-warning-3;}
+.border-b-warning-4{border-bottom-color: $ucs-color-warning-4;}
+.border-b-warning-5{border-bottom-color: $ucs-color-warning-5;}
+.border-b-warning-6{border-bottom-color: $ucs-color-warning-6;}
+.border-b-warning-7{border-bottom-color: $ucs-color-warning-7;}
+.border-b-warning-8{border-bottom-color: $ucs-color-warning-8;}
+.border-b-warning-9{border-bottom-color: $ucs-color-warning-9;}
+.border-b-warning-10{border-bottom-color: $ucs-color-warning-10;}
+
+.border-l-warning{border-left-color: $ucs-color-warning;}
+.border-l-warning-1{border-left-color: $ucs-color-warning-1;}
+.border-l-warning-2{border-left-color: $ucs-color-warning-2;}
+.border-l-warning-3{border-left-color: $ucs-color-warning-3;}
+.border-l-warning-4{border-left-color: $ucs-color-warning-4;}
+.border-l-warning-5{border-left-color: $ucs-color-warning-5;}
+.border-l-warning-6{border-left-color: $ucs-color-warning-6;}
+.border-l-warning-7{border-left-color: $ucs-color-warning-7;}
+.border-l-warning-8{border-left-color: $ucs-color-warning-8;}
+.border-l-warning-9{border-left-color: $ucs-color-warning-9;}
+.border-l-warning-10{border-left-color: $ucs-color-warning-10;}
+
+.border-r-warning{border-right-color: $ucs-color-warning;}
+.border-r-warning-1{border-right-color: $ucs-color-warning-1;}
+.border-r-warning-2{border-right-color: $ucs-color-warning-2;}
+.border-r-warning-3{border-right-color: $ucs-color-warning-3;}
+.border-r-warning-4{border-right-color: $ucs-color-warning-4;}
+.border-r-warning-5{border-right-color: $ucs-color-warning-5;}
+.border-r-warning-6{border-right-color: $ucs-color-warning-6;}
+.border-r-warning-7{border-right-color: $ucs-color-warning-7;}
+.border-r-warning-8{border-right-color: $ucs-color-warning-8;}
+.border-r-warning-9{border-right-color: $ucs-color-warning-9;}
+.border-r-warning-10{border-right-color: $ucs-color-warning-10;}
+
+.border-x-warning{border-right-color: $ucs-color-warning;border-left-color: $ucs-color-warning;}
+.border-x-warning-1{border-right-color: $ucs-color-warning-1;border-left-color: $ucs-color-warning-1;}
+.border-x-warning-2{border-right-color: $ucs-color-warning-2;border-left-color: $ucs-color-warning-2;}
+.border-x-warning-3{border-right-color: $ucs-color-warning-3;border-left-color: $ucs-color-warning-3;}
+.border-x-warning-4{border-right-color: $ucs-color-warning-4;border-left-color: $ucs-color-warning-4;}
+.border-x-warning-5{border-right-color: $ucs-color-warning-5;border-left-color: $ucs-color-warning-5;}
+.border-x-warning-6{border-right-color: $ucs-color-warning-6;border-left-color: $ucs-color-warning-6;}
+.border-x-warning-7{border-right-color: $ucs-color-warning-7;border-left-color: $ucs-color-warning-7;}
+.border-x-warning-8{border-right-color: $ucs-color-warning-8;border-left-color: $ucs-color-warning-8;}
+.border-x-warning-9{border-right-color: $ucs-color-warning-9;border-left-color: $ucs-color-warning-9;}
+.border-x-warning-10{border-right-color: $ucs-color-warning-10;border-left-color: $ucs-color-warning-10;}
+
+.border-y-warning{border-top-color: $ucs-color-warning;border-bottom-color: $ucs-color-warning;}
+.border-y-warning-1{border-top-color: $ucs-color-warning-1;border-bottom-color: $ucs-color-warning-1;}
+.border-y-warning-2{border-top-color: $ucs-color-warning-2;border-bottom-color: $ucs-color-warning-2;}
+.border-y-warning-3{border-top-color: $ucs-color-warning-3;border-bottom-color: $ucs-color-warning-3;}
+.border-y-warning-4{border-top-color: $ucs-color-warning-4;border-bottom-color: $ucs-color-warning-4;}
+.border-y-warning-5{border-top-color: $ucs-color-warning-5;border-bottom-color: $ucs-color-warning-5;}
+.border-y-warning-6{border-top-color: $ucs-color-warning-6;border-bottom-color: $ucs-color-warning-6;}
+.border-y-warning-7{border-top-color: $ucs-color-warning-7;border-bottom-color: $ucs-color-warning-7;}
+.border-y-warning-8{border-top-color: $ucs-color-warning-8;border-bottom-color: $ucs-color-warning-8;}
+.border-y-warning-9{border-top-color: $ucs-color-warning-9;border-bottom-color: $ucs-color-warning-9;}
+.border-y-warning-10{border-top-color: $ucs-color-warning-10;border-bottom-color: $ucs-color-warning-10;}

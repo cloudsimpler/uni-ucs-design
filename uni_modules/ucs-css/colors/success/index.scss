@@ -1,0 +1,115 @@
+@import "./var.scss";
+/**
+ * 背景色
+ */
+.bg-success{background-color: $ucs-color-success;}
+.bg-success-1{background-color: $ucs-color-success-1;}
+.bg-success-2{background-color: $ucs-color-success-2;}
+.bg-success-3{background-color: $ucs-color-success-3;}
+.bg-success-4{background-color: $ucs-color-success-4;}
+.bg-success-5{background-color: $ucs-color-success-5;}
+.bg-success-6{background-color: $ucs-color-success-6;}
+.bg-success-7{background-color: $ucs-color-success-7;}
+.bg-success-8{background-color: $ucs-color-success-8;}
+.bg-success-9{background-color: $ucs-color-success-9;}
+.bg-success-10{background-color: $ucs-color-success-10;}
+/**
+ * 文本色
+ */
+.color-success{color: $ucs-color-success;}
+.color-success-1{color: $ucs-color-success-1;}
+.color-success-2{color: $ucs-color-success-2;}
+.color-success-3{color: $ucs-color-success-3;}
+.color-success-4{color: $ucs-color-success-4;}
+.color-success-5{color: $ucs-color-success-5;}
+.color-success-6{color: $ucs-color-success-6;}
+.color-success-7{color: $ucs-color-success-7;}
+.color-success-8{color: $ucs-color-success-8;}
+.color-success-9{color: $ucs-color-success-9;}
+.color-success-10{color: $ucs-color-success-10;}
+/**
+ * 边框色
+ */
+.border-success{border-color: $ucs-color-success;}
+.border-success-1{border-color: $ucs-color-success-1;}
+.border-success-2{border-color: $ucs-color-success-2;}
+.border-success-3{border-color: $ucs-color-success-3;}
+.border-success-4{border-color: $ucs-color-success-4;}
+.border-success-5{border-color: $ucs-color-success-5;}
+.border-success-6{border-color: $ucs-color-success-6;}
+.border-success-7{border-color: $ucs-color-success-7;}
+.border-success-8{border-color: $ucs-color-success-8;}
+.border-success-9{border-color: $ucs-color-success-9;}
+.border-success-10{border-color: $ucs-color-success-10;}
+
+.border-t-success{border-top-color: $ucs-color-success;}
+.border-t-success-1{border-top-color: $ucs-color-success-1;}
+.border-t-success-2{border-top-color: $ucs-color-success-2;}
+.border-t-success-3{border-top-color: $ucs-color-success-3;}
+.border-t-success-4{border-top-color: $ucs-color-success-4;}
+.border-t-success-5{border-top-color: $ucs-color-success-5;}
+.border-t-success-6{border-top-color: $ucs-color-success-6;}
+.border-t-success-7{border-top-color: $ucs-color-success-7;}
+.border-t-success-8{border-top-color: $ucs-color-success-8;}
+.border-t-success-9{border-top-color: $ucs-color-success-9;}
+.border-t-success-10{border-top-color: $ucs-color-success-10;}
+
+.border-b-success{border-bottom-color: $ucs-color-success;}
+.border-b-success-1{border-bottom-color: $ucs-color-success-1;}
+.border-b-success-2{border-bottom-color: $ucs-color-success-2;}
+.border-b-success-3{border-bottom-color: $ucs-color-success-3;}
+.border-b-success-4{border-bottom-color: $ucs-color-success-4;}
+.border-b-success-5{border-bottom-color: $ucs-color-success-5;}
+.border-b-success-6{border-bottom-color: $ucs-color-success-6;}
+.border-b-success-7{border-bottom-color: $ucs-color-success-7;}
+.border-b-success-8{border-bottom-color: $ucs-color-success-8;}
+.border-b-success-9{border-bottom-color: $ucs-color-success-9;}
+.border-b-success-10{border-bottom-color: $ucs-color-success-10;}
+
+.border-l-success{border-left-color: $ucs-color-success;}
+.border-l-success-1{border-left-color: $ucs-color-success-1;}
+.border-l-success-2{border-left-color: $ucs-color-success-2;}
+.border-l-success-3{border-left-color: $ucs-color-success-3;}
+.border-l-success-4{border-left-color: $ucs-color-success-4;}
+.border-l-success-5{border-left-color: $ucs-color-success-5;}
+.border-l-success-6{border-left-color: $ucs-color-success-6;}
+.border-l-success-7{border-left-color: $ucs-color-success-7;}
+.border-l-success-8{border-left-color: $ucs-color-success-8;}
+.border-l-success-9{border-left-color: $ucs-color-success-9;}
+.border-l-success-10{border-left-color: $ucs-color-success-10;}
+
+.border-r-success{border-right-color: $ucs-color-success;}
+.border-r-success-1{border-right-color: $ucs-color-success-1;}
+.border-r-success-2{border-right-color: $ucs-color-success-2;}
+.border-r-success-3{border-right-color: $ucs-color-success-3;}
+.border-r-success-4{border-right-color: $ucs-color-success-4;}
+.border-r-success-5{border-right-color: $ucs-color-success-5;}
+.border-r-success-6{border-right-color: $ucs-color-success-6;}
+.border-r-success-7{border-right-color: $ucs-color-success-7;}
+.border-r-success-8{border-right-color: $ucs-color-success-8;}
+.border-r-success-9{border-right-color: $ucs-color-success-9;}
+.border-r-success-10{border-right-color: $ucs-color-success-10;}
+
+.border-x-success{border-right-color: $ucs-color-success;border-left-color: $ucs-color-success;}
+.border-x-success-1{border-right-color: $ucs-color-success-1;border-left-color: $ucs-color-success-1;}
+.border-x-success-2{border-right-color: $ucs-color-success-2;border-left-color: $ucs-color-success-2;}
+.border-x-success-3{border-right-color: $ucs-color-success-3;border-left-color: $ucs-color-success-3;}
+.border-x-success-4{border-right-color: $ucs-color-success-4;border-left-color: $ucs-color-success-4;}
+.border-x-success-5{border-right-color: $ucs-color-success-5;border-left-color: $ucs-color-success-5;}
+.border-x-success-6{border-right-color: $ucs-color-success-6;border-left-color: $ucs-color-success-6;}
+.border-x-success-7{border-right-color: $ucs-color-success-7;border-left-color: $ucs-color-success-7;}
+.border-x-success-8{border-right-color: $ucs-color-success-8;border-left-color: $ucs-color-success-8;}
+.border-x-success-9{border-right-color: $ucs-color-success-9;border-left-color: $ucs-color-success-9;}
+.border-x-success-10{border-right-color: $ucs-color-success-10;border-left-color: $ucs-color-success-10;}
+
+.border-y-success{border-top-color: $ucs-color-success;border-bottom-color: $ucs-color-success;}
+.border-y-success-1{border-top-color: $ucs-color-success-1;border-bottom-color: $ucs-color-success-1;}
+.border-y-success-2{border-top-color: $ucs-color-success-2;border-bottom-color: $ucs-color-success-2;}
+.border-y-success-3{border-top-color: $ucs-color-success-3;border-bottom-color: $ucs-color-success-3;}
+.border-y-success-4{border-top-color: $ucs-color-success-4;border-bottom-color: $ucs-color-success-4;}
+.border-y-success-5{border-top-color: $ucs-color-success-5;border-bottom-color: $ucs-color-success-5;}
+.border-y-success-6{border-top-color: $ucs-color-success-6;border-bottom-color: $ucs-color-success-6;}
+.border-y-success-7{border-top-color: $ucs-color-success-7;border-bottom-color: $ucs-color-success-7;}
+.border-y-success-8{border-top-color: $ucs-color-success-8;border-bottom-color: $ucs-color-success-8;}
+.border-y-success-9{border-top-color: $ucs-color-success-9;border-bottom-color: $ucs-color-success-9;}
+.border-y-success-10{border-top-color: $ucs-color-success-10;border-bottom-color: $ucs-color-success-10;}
