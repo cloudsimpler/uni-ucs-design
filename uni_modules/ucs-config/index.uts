@@ -57,7 +57,7 @@ export const getOsColor = (str : string) : string => {
  * @param color ucs色彩变量或者hex颜色值
  * @returns UTSJSONObject
  */
-export const getTextColor = (color : string) : UTSJSONObject => {
+export const getOsTextColor = (color : string) : UTSJSONObject => {
 	return { color: getOsColor(color) };
 };
 
@@ -66,7 +66,7 @@ export const getTextColor = (color : string) : UTSJSONObject => {
  * @param color ucs色彩变量或者hex颜色值
  * @returns UTSJSONObject
  */
-export const getBGColor = (color : string) : UTSJSONObject => {
+export const getOsBackground = (color : string) : UTSJSONObject => {
 	return { backgroundColor: getOsColor(color) };
 };
 
@@ -77,7 +77,7 @@ export const getBGColor = (color : string) : UTSJSONObject => {
  * @param colorStop 渐变终点颜色值
  * @returns UTSJSONObject
  */
-export const getBgGradient = (direction : string, colorStart : string, colorStop : string) : UTSJSONObject => {
+export const getOsGradient = (direction : string, colorStart : string, colorStop : string) : UTSJSONObject => {
 	return { backgroundImage: `linear-gradient(${direction},${getOsColor(colorStart)},${getOsColor(colorStop)})` };
 };
 
@@ -89,7 +89,7 @@ export const getBgGradient = (direction : string, colorStart : string, colorStop
  * @param color ucs色彩变量或者hex颜色值
  * @returns UTSJSONObject
  */
-export const getBorderColor = (direction : string, width : string, style : string, color : string) : UTSJSONObject => {
+export const getOsBorder = (direction : string, width : string, style : string, color : string) : UTSJSONObject => {
 	if (direction == 'top') {
 		return { borderTop: `${width} ${style} ${getOsColor(color)}` };
 	} else if (direction == 'bottom') {
