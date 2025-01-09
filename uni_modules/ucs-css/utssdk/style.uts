@@ -1,0 +1,50 @@
+/**
+ * 获取文本色
+ * @param color hex颜色值
+ * @returns UTSJSONObject
+ */
+export const getColor = (color : string) : UTSJSONObject => {
+	return { color: color };
+};
+
+/**
+ * 获取背景色
+ * @param color hex颜色值
+ * @returns UTSJSONObject
+ */
+export const getBackground = (color : string) : UTSJSONObject => {
+	return { backgroundColor: color };
+};
+
+/**
+ * 获取渐变色
+ * @param direction 渐变方向
+ * @param colorStart 渐变起始点颜色值
+ * @param colorStop 渐变终点颜色值
+ * @returns UTSJSONObject
+ */
+export const getGradient = (direction : string, colorStart : string, colorStop : string) : UTSJSONObject => {
+	return { backgroundImage: `linear-gradient(${direction},${colorStart},${colorStop})` };
+};
+
+/**
+ * 获取边框色
+ * @param direction 方向，all、top、bottom、left、right
+ * @param width 边框宽度
+ * @param style 边框样式
+ * @param color hex颜色值
+ * @returns UTSJSONObject
+ */
+export const getBorder = (direction : string, width : string, style : string, color : string) : UTSJSONObject => {
+	if (direction == 'top') {
+		return { borderTop: `${width} ${style} ${color}` };
+	} else if (direction == 'bottom') {
+		return { borderBottom: `${width} ${style} ${color}` };
+	} else if (direction == 'left') {
+		return { borderLeft: `${width} ${style} ${color}` };
+	} else if (direction == 'right') {
+		return { borderRight: `${width} ${style} ${color}` };
+	} else {
+		return { border: `${width} ${style} ${color}` };
+	}
+};

@@ -1,7 +1,7 @@
 {
 	"id": "ucs-css",
 	"displayName": "ucs-css 原子化样式",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "CSS原子化是一种将CSS样式分解为最小可复用单元的方法，每个类只包含单一的作用，例如只设置颜色、字体大小或边距。这种方式提高了样式的可维护性、可复用性和可读性，使得开发更加模块化和高效",
 	"keywords": [
         "css,原子化样式"
@@ -41,13 +41,14 @@
 			},
 			"client": {
 				"Vue": {
-					"vue2": "n",
+					"vue2": "y",
 					"vue3": "y"
 				},
 				"App": {
-					"app-android": "y",
-                    "app-ios": "y"
-				},
+                    "app-android": "y",
+                    "app-ios": "y",
+                    "app-harmony": "y"
+                },
 				"H5-mobile": {
 					"Safari": "y",
 					"Android Browser": "y",
