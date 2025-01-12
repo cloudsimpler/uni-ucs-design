@@ -4,6 +4,7 @@ export type defaultConfigType = {
 	osColor : UTSJSONObject;
 	osUcsLanguage : UTSJSONObject;
 	osI18nLanguage : UTSJSONObject;
+	osRequest : UTSJSONObject;
 };
 
 export type storageType = {

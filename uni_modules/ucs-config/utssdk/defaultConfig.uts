@@ -40,6 +40,12 @@ let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
 		"zh-Hans": {},
 		"zh-Hant": {},
 		"en": {}
+	},
+	osRequest: {
+		// 测试环境
+		development: "测试",
+		// 正式环境
+		production: "正式"
 	}
 });
 

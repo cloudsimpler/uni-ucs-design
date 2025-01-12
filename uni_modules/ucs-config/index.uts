@@ -153,3 +153,37 @@ export const getLightDarkColor = (lightColor : string, darkColor : string) : str
 export const getGenerateIndex = (color : string, index : number) : string => {
 	return generateIndex(color, index, defaultConfig.osTheme)
 };
+
+/**
+ * 获取当前环境下的请求前缀
+ * @returns string 请求前缀
+ */
+export const getRequestPrefix = () : string => {
+	// #ifdef APP || WEB
+	/**
+	 * 正式环境：production
+	 * 测试环境：development
+	 */
+	if (process.env.NODE_ENV == "production") {
+		return defaultConfig.osRequest.production as string;
+	} else {
+		return defaultConfig.osRequest.development as string;
+	};
+	// #endif
+	// #ifdef MP-WEIXIN || MP-ALIPAY || MP-QQ || MP-JD
+	/**
+	 * 正式版：release
+	 * 开发版：develop
+	 * 体验版：trial
+	 */
+	const accountInfo = uni.getAccountInfoSync();
+	if (accountInfo.miniProgram.envVersion == "release") {
+		return defaultConfig.osRequest.production as string;
+	} else {
+		return defaultConfig.osRequest.development as string;
+	};
+	// #endif
+
+	// 未适配平台则返回正式环境
+	return defaultConfig.osRequest.production as string;
+};
