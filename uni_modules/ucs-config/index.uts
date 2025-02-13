@@ -187,3 +187,8 @@ export const getRequestPrefix = () : string => {
 	// 未适配平台则返回正式环境
 	return defaultConfig.osRequest.production as string;
 };
+/**
+ * 获取admin配置信息
+ * @returns UTSJSONObject 配置信息
+ */
+export const osAdminConfig = defaultConfig.osAdmin;

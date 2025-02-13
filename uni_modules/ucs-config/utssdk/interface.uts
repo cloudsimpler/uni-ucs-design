@@ -5,9 +5,10 @@ export type defaultConfigType = {
 	osUcsLanguage : UTSJSONObject;
 	osI18nLanguage : UTSJSONObject;
 	osRequest : UTSJSONObject;
+	osAdmin : UTSJSONObject;
 };
 
-export type storageType = {
+export type defaultStorageType = {
 	type : string;
 	object : UTSJSONObject;
 	any : any;

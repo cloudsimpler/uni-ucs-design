@@ -46,6 +46,9 @@ let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
 		development: "测试",
 		// 正式环境
 		production: "正式"
+	},
+	osAdmin: {
+		
 	}
 });
 

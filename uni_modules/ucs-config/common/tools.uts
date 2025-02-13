@@ -1,15 +1,10 @@
-import { defaultConfigType, storageType } from "../utssdk/interface.uts";
+import { defaultConfigType, defaultStorageType } from "../utssdk/interface.uts";
 
 /**
  * 深度获取参数
  */
 // 数据存储转化
-let storage : storageType = {
-	type: "object",
-	object: {},
-	any: "",
-	array: []
-};
+let defaultStorage : defaultStorageType = { type: "object", object: {}, any: "", array: [] };
 // 获取数据类型
 const getDataType = (data : any) : string => {
 	if (typeof data === 'object') {
@@ -26,14 +21,14 @@ const getDataType = (data : any) : string => {
 const initTempData = (data : any) => {
 	const type = getDataType(data);
 	if (type === 'object') {
-		storage.object = data as UTSJSONObject;
-		storage.type = "object";
+		defaultStorage.object = data as UTSJSONObject;
+		defaultStorage.type = "object";
 	} else if (type === 'array') {
-		storage.array = data as any[];
-		storage.type = "array";
+		defaultStorage.array = data as any[];
+		defaultStorage.type = "array";
 	} else {
-		storage.any = data as any;
-		storage.type = "any";
+		defaultStorage.any = data as any;
+		defaultStorage.type = "any";
 	};
 };
 // 设置临时数据
@@ -79,10 +74,10 @@ export function getDeepProperty(data : any, path : string) : any {
 	const keys = path.split('.');
 	// 循环keys
 	keys.forEach(element => {
-		setTempData(storage[storage.type] as any, element)
+		setTempData(defaultStorage[defaultStorage.type] as any, element)
 	});
 	// 返回值
-	return storage[storage.type] as any;
+	return defaultStorage[defaultStorage.type] as any;
 };
 
 
