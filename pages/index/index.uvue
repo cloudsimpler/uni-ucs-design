@@ -1,76 +1,13 @@
 <template>
 	<scroll-view style="flex: 1;">
-		<view :style="{backgroundColor: getOsColor('grey-1')}">
-			<ucs-empty-agenda></ucs-empty-agenda>
-			
-			<button @click="onClick1">设置简体中文</button>
-			<button @click="onClick2">设置繁体中文</button>
-			<button @click="onClick3">设置英语</button>
-			
-			<button @click="onClick5">设置深色</button>
-			<button @click="onClick6">设置浅色</button>
-			
-			<button @click="onClick4">设置主题色</button>
-		</view>
+		<ucs-text width="2_1">
+			测试内容
+		</ucs-text>
 	</scroll-view>
-	
 </template>
 
 <script setup>
-	import { setOsLanguage, setOsColorPrimary, getOsColor, setOsTheme, getLightDarkColor,getGenerateIndex } from "@/uni_modules/ucs-config";
 
-
-	const onClick1 = () => {
-		setOsLanguage("zh-Hans")
-	}
-	const onClick2 = () => {
-		setOsLanguage("zh-Hant")
-	}
-	const onClick3 = () => {
-		setOsLanguage("en")
-	}
-	
-	const onClick5 = () => {
-		setOsTheme("dark")
-	}
-	const onClick6 = () => {
-		setOsTheme("light")
-	}
-	
-	const onClick4 = () => {
-		setOsColorPrimary("#F4B538")
-	}
-
-	// const onTest = (svg : string)=> {
-	// 	const encoded = svg
-	// 		.replace(/#333333/g, "${getGenerateIndex('#333333',6)}")
-	// 		.replace(/#000000/g, "${getGenerateIndex('#000000',6)}")
-	// 		.replace(/#f9ab21/g, "${getOsColor('primary-6')}")
-	// 		.replace(/#f4b538/g, "${getOsColor('primary-5')}")
-	// 		.replace(/#f1bc01/g, "${getOsColor('primary-5')}")
-	// 		.replace(/#fcbf11/g, "${getOsColor('primary-4')}")
-	// 		.replace(/#ffdc4d/g, "${getOsColor('primary-4')}")
-	// 		.replace(/#fee127/g, "${getOsColor('primary-3')}")
-	// 		.replace(/#fee3b1/g, "${getOsColor('primary-2')}")
-	// 		.replace(/#fff29d/g, "${getOsColor('primary-1')}")
-	// 		.replace(/#1d181c/g, "${getGenerateIndex('#333333',6)}")
-	// 		.replace(/#2c2422/g, "${getGenerateIndex('#333333',6)}")
-	// 		.replace(/#42352c/g, "${getGenerateIndex('#333333',6)}")
-	// 		.replace(/#57352c/g, "${getGenerateIndex('#333333',6)}")
-	// 		.replace(/#923629/g, "${getGenerateIndex('#333333',6)}")
-	// 		.replace(/#41b093/g, "${getOsColor('success-6')}")
-	// 		.replace(/#184657/g, "${getOsColor('success-10')}")
-	// 		.replace(/#825852/g, "${getGenerateIndex('#825852',6)}")
-	// 		.replace(/#483029/g, "${getGenerateIndex('#483029',6)}")
-	// 		.replace(/#ffcda5/g, "${getGenerateIndex('#ffcda5',6)}")
-	// 		.replace(/#ffe8d1/g, "${getGenerateIndex('#ffe8d1',6)}")
-	// 		.replace(/#fff2df/g, "${getGenerateIndex('#fff2df',6)}")
-	// 		.replace(/#fee0bc/g, "${getGenerateIndex('#fee0bc',6)}")
-
-	// 	console.log(encoded)
-	// };
-
-	// onTest(``)
 </script>
 
 <style>

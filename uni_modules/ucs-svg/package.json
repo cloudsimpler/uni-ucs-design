@@ -1,7 +1,7 @@
 {
 	"id": "ucs-svg",
 	"displayName": "ucs-svg 矢量图形",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "SVG 矢量图形组件是用于渲染和操作 SVG 资源",
 	"keywords": [
         "svg,矢量图形"
@@ -45,13 +45,14 @@
 					"vue3": "y"
 				},
 				"App": {
-					"app-android": {
+                    "app-android": {
                         "minVersion": "21"
                     },
-					"app-ios": {
+                    "app-ios": {
                         "minVersion": "11"
-                    }
-				},
+                    },
+                    "app-harmony": "u"
+                },
 				"H5-mobile": {
 					"Safari": "y",
 					"Android Browser": "y",
