@@ -7,10 +7,3 @@ export type defaultConfigType = {
 	osRequest : UTSJSONObject;
 	osAdmin : UTSJSONObject;
 };
-
-export type defaultStorageType = {
-	type : string;
-	object : UTSJSONObject;
-	any : any;
-	array : any[]
-};

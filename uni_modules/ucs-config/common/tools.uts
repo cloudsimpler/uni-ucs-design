@@ -1,83 +1,35 @@
-import { defaultConfigType, defaultStorageType } from "../utssdk/interface.uts";
+import { defaultConfigType } from "../utssdk/interface.uts";
 
 /**
- * 深度获取参数
- */
-// 数据存储转化
-let defaultStorage : defaultStorageType = { type: "object", object: {}, any: "", array: [] };
-// 获取数据类型
-const getDataType = (data : any) : string => {
-	if (typeof data === 'object') {
-		if (Array.isArray(data)) {
-			return 'array';
-		} else {
-			return 'object';
-		};
-	} else {
-		return 'any';
-	};
-};
-// 初始化赋值
-const initTempData = (data : any) => {
-	const type = getDataType(data);
-	if (type === 'object') {
-		defaultStorage.object = data as UTSJSONObject;
-		defaultStorage.type = "object";
-	} else if (type === 'array') {
-		defaultStorage.array = data as any[];
-		defaultStorage.type = "array";
-	} else {
-		defaultStorage.any = data as any;
-		defaultStorage.type = "any";
-	};
-};
-// 设置临时数据
-const setTempData = (data : any, key : string) => {
-	const type = getDataType(data);
-	if (type === 'object') {
-		const object = data as UTSJSONObject;
-		// 当给定的key不存在时，则返回整个Object数据
-		if (object.hasOwnProperty(key)) {
-			initTempData(object[key] as any);
-		} else {
-			initTempData(object);
-		};
-	} else if (type === 'array') {
-		// 当按规则书写时验证
-		if (key.indexOf("[") != -1 && key.indexOf("]") != -1) {
-			const num = parseFloat(key.replace("[", "").replace("]", ""));
-			const arrays = data as any[];
-			// 当给定的下标不正确时，则返回整个Array数组
-			if (num < arrays.length) {
-				initTempData(arrays[num]);
-			} else {
-				initTempData(arrays);
-			};
-		} else {
-			// 未按规则书写则返回整个数据
-			initTempData(data);
-		};
-	} else {
-		initTempData(data);
-	};
-};
-/**
  * 深度获取对象值
- * @param data 数据
- * @param 对象路径
- * @returns 数据中对象路径的值
+ * @param data 数据源
+ * @param path 属性路径（支持标准对象/数组语法，如：'a.b[0].c'）
+ * @returns 路径对应的值或空字符串（优先保持原始数据类型）
  */
 export function getDeepProperty(data : any, path : string) : any {
-	// 初始化
-	initTempData(data);
-	// 将路径字符串分割成数组
-	const keys = path.split('.');
-	// 循环keys
-	keys.forEach(element => {
-		setTempData(defaultStorage[defaultStorage.type] as any, element)
-	});
-	// 返回值
-	return defaultStorage[defaultStorage.type] as any;
+	if (typeof data !== 'object') return "";
+	let current : any = data;
+	const segments = path.split('.');
+	for (const segment in segments) {
+		if (segment.endsWith(']') && segment.includes('[')) {
+			const bracketIndex = segment.indexOf('[')
+			const key = segment.substring(0, bracketIndex)
+			const indexStr = segment.substring(bracketIndex + 1, segment.length - 1)
+
+			current = (current as UTSJSONObject)[key] as any;
+			if (!Array.isArray(current)) return ""
+
+			const index = parseInt(indexStr)
+			if (isNaN(index) || index < 0 || index >= current.length) return ""
+
+			current = current[index]
+		} else {
+			if (typeof current !== 'object' || Array.isArray(current)) return ""
+			current = (current as UTSJSONObject)[segment] as any
+		}
+	};
+
+	return current;
 };
 
 
