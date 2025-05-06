@@ -1,0 +1,35 @@
+import { BuilderNode } from "@kit.ArkUI"
+import { buildSVG } from "./builder.ets"
+
+interface UcsSvgOptions {
+	src : string,
+	width : number,
+	height : number
+}
+
+export class UcsSvg {
+
+	$element : UniNativeViewElement
+	private builder : BuilderNode<[UcsSvgOptions]> | null = null
+	private params : UcsSvgOptions = {
+		src: '',
+		width: 24 * 2,
+		height: 24 * 2
+	}
+
+	constructor(element : UniNativeViewElement) {
+		this.builder = element.bindHarmonyWrappedBuilder(wrapBuilder<[UcsSvgOptions]>(buildSVG), this.params)
+		this.$element = element
+		this.$element.bindHarmonyController(this)
+	}
+
+	setSource(src : string, width : number, height : number) {
+		this.params.src = src
+		// 插件内暂不支持devicePX2px 先*2
+		// UTSHarmony.devicePX2px(width)
+		this.params.width = width * 2
+		// UTSHarmony.devicePX2px(height)
+		this.params.height = height * 2
+		this.builder?.update(this.params)
+	}
+}

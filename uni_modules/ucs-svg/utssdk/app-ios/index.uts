@@ -1,0 +1,27 @@
+
+import "SVGKit"
+import { UIImageView } from "UIKit"
+import { Data } from 'Foundation'
+
+export class UcsSvg {
+
+	$element : UniNativeViewElement
+	svgImageView : UIImageView
+
+	constructor(element : UniNativeViewElement) {
+		this.$element = element
+		this.svgImageView = new UIImageView()
+		this.$element.bindIOSView(this.svgImageView);
+	}
+
+	setSource(src : string) {
+		if (src.hasPrefix('<')) {
+			try {
+				let fileData : Data = src.data(using = String.Encoding.utf8)!
+				this.svgImageView.image = new SVGKImage(data = fileData).uiImage
+			} catch (err) {
+				console.log(err)
+			}
+		};
+	}
+}

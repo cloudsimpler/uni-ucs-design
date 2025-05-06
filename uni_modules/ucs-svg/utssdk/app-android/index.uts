@@ -1,0 +1,22 @@
+
+import SVGImageView from 'com.caverock.androidsvg.SVGImageView';
+import SVG from 'com.caverock.androidsvg.SVG';
+import Context from 'android.content.Context'
+
+export class UcsSvg {
+
+	$element : UniNativeViewElement
+	svgImageView : SVGImageView
+
+	constructor(element : UniNativeViewElement) {
+		this.$element = element
+		this.svgImageView = new SVGImageView(this.$element.getAndroidActivity()! as Context)
+		this.$element.bindAndroidView(this.svgImageView);
+	}
+
+	setSource(src : string) {
+		if (src.startsWith('<')) {
+			this.svgImageView.setSVG(SVG.getFromString(src))
+		}
+	}
+}
