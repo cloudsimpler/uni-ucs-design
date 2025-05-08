@@ -11,7 +11,7 @@ export function getDeepProperty(data : any, path : string) : any {
 	let current : any = data;
 	const segments = path.split('.');
 
-	segments.forEach(segment => {
+	for (let segment of segments) {
 		if (segment.endsWith(']') && segment.includes('[')) {
 			const bracketIndex = segment.indexOf('[')
 			const key = segment.substring(0, bracketIndex)
@@ -28,7 +28,7 @@ export function getDeepProperty(data : any, path : string) : any {
 			if (typeof current !== 'object' || Array.isArray(current)) return ""
 			current = (current as UTSJSONObject)[segment] as any
 		}
-	});
+	}
 
 	return current;
 };
