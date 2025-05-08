@@ -30,27 +30,8 @@ export function getDeepProperty(data : any, path : string) : any {
 		}
 	});
 
-
 	return current;
 };
-
-// 示例数据
-const data = {
-	user: {
-		info: {
-			name: "张三",
-			hobbies: ["编程", "篮球"]
-		},
-		friends: [
-			{ name: "李四" },
-			{ name: "王五" }
-		]
-	}
-};
-
-// 调用示例
-console.log(getDeepProperty(data, "user"));
-
 
 // 声明函数
 let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSONObject) | null = null;
