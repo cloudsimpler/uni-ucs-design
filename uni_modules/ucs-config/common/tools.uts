@@ -10,7 +10,8 @@ export function getDeepProperty(data : any, path : string) : any {
 	if (typeof data !== 'object') return "";
 	let current : any = data;
 	const segments = path.split('.');
-	for (const segment in segments) {
+
+	segments.forEach(segment => {
 		if (segment.endsWith(']') && segment.includes('[')) {
 			const bracketIndex = segment.indexOf('[')
 			const key = segment.substring(0, bracketIndex)
@@ -27,11 +28,28 @@ export function getDeepProperty(data : any, path : string) : any {
 			if (typeof current !== 'object' || Array.isArray(current)) return ""
 			current = (current as UTSJSONObject)[segment] as any
 		}
-	};
+	});
+
 
 	return current;
 };
 
+// 示例数据
+const data = {
+	user: {
+		info: {
+			name: "张三",
+			hobbies: ["编程", "篮球"]
+		},
+		friends: [
+			{ name: "李四" },
+			{ name: "王五" }
+		]
+	}
+};
+
+// 调用示例
+console.log(getDeepProperty(data, "user"));
 
 
 // 声明函数
