@@ -1,35 +1,58 @@
 import { BuilderNode } from "@kit.ArkUI"
-import { buildSVG } from "./builder.ets"
+import { fileIo } from '@kit.CoreFileKit'
+import { getEnv } from '@dcloudio/uni-runtime'
+import { buildImage } from "./builder.ets"
+import { getRealPath } from '@dcloudio/uni-runtime'
 
 interface UcsSvgOptions {
-	src : string,
-	width : number,
-	height : number
-}
+	src : string
+	onError : (message : string) => void
+	onComplete : (event : ESObject) => void
+};
 
 export class UcsSvg {
-
-	$element : UniNativeViewElement
+	private $element : UniNativeViewElement;
 	private builder : BuilderNode<[UcsSvgOptions]> | null = null
+	private svgMap : Map<string, string> = new Map<string, string>()
+	
 	private params : UcsSvgOptions = {
 		src: '',
-		width: 24 * 2,
-		height: 24 * 2
-	}
+		onError: (message) => {
+			this.$element.dispatchEvent(new UniNativeViewEvent("error", { message }))
+		},
+		onComplete: (event : ESObject) => {
+			this.$element.dispatchEvent(new UniNativeViewEvent("load", {
+				width: event.width,
+				height: event.height
+			}))
+		}
+	};
 
 	constructor(element : UniNativeViewElement) {
-		this.builder = element.bindHarmonyWrappedBuilder(wrapBuilder<[UcsSvgOptions]>(buildSVG), this.params)
+		this.builder = element.bindHarmonyWrappedBuilder(wrapBuilder<[UcsSvgOptions]>(buildImage), this.params)
 		this.$element = element
 		this.$element.bindHarmonyController(this)
-	}
+	};
 
-	setSource(src : string, width : number, height : number) {
-		this.params.src = src
-		// 插件内暂不支持devicePX2px 先*2
-		// UTSHarmony.devicePX2px(width)
-		this.params.width = width * 2
-		// UTSHarmony.devicePX2px(height)
-		this.params.height = height * 2
+	setSource(src : string) {
+		if (src.startsWith('<svg') || src.startsWith('<?xml')) {
+			const tempFileName = `${Date.now()}.svg`
+			const tempDirPath = `${getEnv().TEMP_PATH}/svg`
+			const tempFilePath : string = `${tempDirPath}/${tempFileName}`
+
+			if (!fileIo.accessSync(tempDirPath)) {
+				fileIo.mkdirSync(tempDirPath, true)
+			}
+
+			const file = fileIo.openSync(tempFilePath, fileIo.OpenMode.CREATE | fileIo.OpenMode.READ_WRITE);
+
+			fileIo.writeSync(file.fd, src);
+
+			const path = getRealPath(tempFilePath)
+			this.svgMap.set(src, path)
+			this.params.src = path
+		};
+
 		this.builder?.update(this.params)
 	}
 }

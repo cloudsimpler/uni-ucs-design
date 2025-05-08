@@ -35,11 +35,11 @@
 		},
 		width: {
 			type: Number,
-			default: 60
+			default: 24
 		},
 		height: {
 			type: Number,
-			default: 60
+			default: 24
 		},
 		unit: {
 			type: String,
@@ -54,21 +54,11 @@
 
 	function onInit(e : UniNativeViewInitEvent) {
 		svg.value = new UcsSvg(e.detail.element)
-		// #ifdef APP-HARMONY
 		svg.value?.setSource(props.src)
-		// #endif
-		// #ifndef APP-HARMONY
-		svg.value?.setSource(props.src)
-		// #endif
 	}
 
 	watch(() : string => props.src, () => {
-		// #ifdef APP-HARMONY
 		svg.value?.setSource(props.src)
-		// #endif
-		// #ifndef APP-HARMONY
-		svg.value?.setSource(props.src)
-		// #endif
 	}, { immediate: true })
 	// #endif
 	// #endif
