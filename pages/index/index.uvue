@@ -3,6 +3,7 @@
 		<ucs-text width="2_1">
 			测试内容
 		</ucs-text>
+		<ucs-empty-agenda></ucs-empty-agenda>
 	</scroll-view>
 </template>
 
