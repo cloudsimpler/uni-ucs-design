@@ -3,7 +3,24 @@
 		<ucs-text width="2_1">
 			测试内容
 		</ucs-text>
+		<ucs-empty-search></ucs-empty-search>
+		<ucs-empty-record></ucs-empty-record>
+		<ucs-empty-network-weak></ucs-empty-network-weak>
+		<ucs-empty-network></ucs-empty-network>
+		<ucs-empty-message></ucs-empty-message>
+		<ucs-empty-loading></ucs-empty-loading>
+		<ucs-empty-file></ucs-empty-file>
+		<ucs-empty-fail></ucs-empty-fail>
+		<ucs-empty-error-page></ucs-empty-error-page>
+		<ucs-empty-error></ucs-empty-error>
+		<ucs-empty-direction></ucs-empty-direction>
+		<ucs-empty-data-null></ucs-empty-data-null>
+		<ucs-empty-data></ucs-empty-data>
+		<ucs-empty-coupon></ucs-empty-coupon>
+		<ucs-empty-collect></ucs-empty-collect>
+		<ucs-empty-card></ucs-empty-card>
 		<ucs-empty-agenda></ucs-empty-agenda>
+		<ucs-empty-auth></ucs-empty-auth>
 	</scroll-view>
 </template>
 
