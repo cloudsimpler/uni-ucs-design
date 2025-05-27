@@ -30,16 +30,13 @@ export function generate(color : string = "#604cfc", mode : string = 'light') : 
  */
 export function generateObject(color : string = "#604cfc", name : string = "color", mode : string = 'light') : UTSJSONObject {
 	const object : UTSJSONObject = {};
-	if (mode == 'dark') {
-		for (let i = 1; i <= 10; i++) {
+	object[`${name}`] = color;
+	for (let i = 1; i <= 10; i++) {
+		if (mode == 'dark') {
 			object[`${name}-${i}`] = colorPaletteDark(color, i)
-		};
-		object[`${name}`] = colorPaletteDark(color, 6)
-	} else {
-		for (let i = 1; i <= 10; i++) {
+		} else {
 			object[`${name}-${i}`] = colorPalette(color, i)
 		};
-		object[`${name}`] = colorPalette(color, 6)
 	};
 
 	return object;
