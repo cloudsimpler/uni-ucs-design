@@ -153,7 +153,11 @@ export const getLightDarkColor = (lightColor : string, darkColor : string) : str
 export const getGenerateIndex = (color : string, index : number) : string => {
 	return generateIndex(color, index, defaultConfig.osTheme)
 };
-
+/**
+ * 获取请求配置信息
+ * @returns UTSJSONObject 配置信息
+ */
+export const osRequestConfig = defaultConfig.osRequest;
 /**
  * 获取当前环境下的请求前缀
  * @returns string 请求前缀
@@ -170,7 +174,7 @@ export const getRequestPrefix = () : string => {
 		return defaultConfig.osRequest.development as string;
 	};
 	// #endif
-	// #ifdef MP-WEIXIN || MP-ALIPAY || MP-QQ || MP-JD
+	// #ifdef MP-WEIXIN || MP-ALIPAY || MP-QQ || MP-KUAISHOU
 	/**
 	 * 正式版：release
 	 * 开发版：develop
@@ -183,9 +187,10 @@ export const getRequestPrefix = () : string => {
 		return defaultConfig.osRequest.development as string;
 	};
 	// #endif
-
 	// 未适配平台则返回正式环境
+	// #ifndef APP || WEB || MP-WEIXIN || MP-ALIPAY || MP-QQ || MP-KUAISHOU
 	return defaultConfig.osRequest.production as string;
+	// #endif
 };
 /**
  * 获取admin配置信息

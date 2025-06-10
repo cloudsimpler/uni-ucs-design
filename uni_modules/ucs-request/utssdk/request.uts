@@ -1,2 +1,70 @@
-import { getRequestPrefix } from "../../ucs-config";
+import { getRequestPrefix, osRequestConfig } from "../../ucs-config/index.uts";
+import { UcsRequestOptions } from "./interface";
 
+const optionsRetrieval = (options : UcsRequestOptions) => {
+	let params = {};
+	for (let i in options) {
+		if (options[i] !== null && !['success', 'fail', 'complete'].includes(i)) {
+			params[i] = options[i]
+		};
+	};
+
+	if (params.hasOwnProperty('header')) {
+		params.header = UTSJSONObject.assign(osRequestConfig.header as UTSJSONObject, params.header as UTSJSONObject)
+	};
+	
+	if(params.getString('url')?.startsWith('http') as Boolean){
+		// 完整地址，直接复用
+	}else{
+		// 拼接地址
+		params.url = `${getRequestPrefix()}/${params.url}`;
+	};
+	
+	return UTSJSONObject.assign(osRequestConfig, params);
+}
+
+export class http {
+	static post(options : UcsRequestOptions) {
+		const params = optionsRetrieval(options);
+		uni.request({
+			method: "POST",
+			url: params.url as string,
+			data: params.data as UTSJSONObject,
+			header: params.header as UTSJSONObject,
+			timeout: params.timeout as number,
+			withCredentials: params.withCredentials as boolean,
+			firstIpv4: params.firstIpv4 as boolean,
+			// enableChunked: params.enableChunked as boolean, // ‌error: Cannot find a parameter with this name: enableChunked‌
+			success: (res) => {
+				options.success?.(res);
+				options.complete?.(res);
+			},
+			fail: (err) => {
+				options.fail?.(err);
+				options.complete?.(err);
+			}
+		})
+	};
+	
+	static get(options : UcsRequestOptions) {
+		const params = optionsRetrieval(options);
+		uni.request({
+			method: "GET",
+			url: params.url as string,
+			data: params.data as UTSJSONObject,
+			header: params.header as UTSJSONObject,
+			timeout: params.timeout as number,
+			withCredentials: params.withCredentials as boolean,
+			firstIpv4: params.firstIpv4 as boolean,
+			// enableChunked: params.enableChunked as boolean, // ‌error: Cannot find a parameter with this name: enableChunked‌
+			success: (res) => {
+				options.success?.(res);
+				options.complete?.(res);
+			},
+			fail: (err) => {
+				options.fail?.(err);
+				options.complete?.(err);
+			}
+		})
+	};
+}

@@ -6,9 +6,15 @@
 /**
  * myApi 异步函数的参数，在type里定义函数需要的参数以及api成功、失败的相关回调函数。
  */
-export type MyApiOptions = {
-  paramA : boolean
-  success ?: (res : MyApiResult) => void
-  fail ?: (res : MyApiFail) => void
-  complete ?: (res : any) => void
+export type UcsRequestOptions = {
+	url : string;
+	data ?: any;
+	header ?: UTSJSONObject;
+	timeout ?: number;
+	withCredentials ?: boolean;
+	firstIpv4 ?: boolean;
+	enableChunked ?: boolean;
+	success ?: (res : any) => void;
+	fail ?: (res : any) => void;
+	complete ?: (res : any) => void;
 }
