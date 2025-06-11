@@ -41,9 +41,10 @@ let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
 	},
 	osRequest: {
 		// 测试环境
-		development: "http://znjp.kluntech.com",
+		development: "",
 		// 正式环境
-		production: "http://znjp.kluntech.com",
+		production: "",
+		log: false,
 		data: {},
 		header: {},
 		timeout: 60000,

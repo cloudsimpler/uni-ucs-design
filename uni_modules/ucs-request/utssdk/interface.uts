@@ -14,7 +14,7 @@ export type UcsRequestOptions = {
 	withCredentials ?: boolean;
 	firstIpv4 ?: boolean;
 	enableChunked ?: boolean;
-	success ?: (res : any) => void;
-	fail ?: (res : any) => void;
+	success ?: (res : RequestSuccess<any>) => void;
+	fail ?: (res : RequestFail) => void;
 	complete ?: (res : any) => void;
 }
