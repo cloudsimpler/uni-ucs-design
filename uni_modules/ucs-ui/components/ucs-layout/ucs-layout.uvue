@@ -1,0 +1,41 @@
+<template>
+	<scroll-view class="ucs-scroll-view">
+		<view class="ucs_rect_header">
+			<slot name="header" />
+		</view>
+		<view :style="{marginTop:`${headerHeight}px`,minHeight:`${windowHeight-headerHeight-footerHeight}px`}">
+			<slot name="default" />
+		</view>
+		<view class="ucs_rect_footer">
+			<slot name="footer" />
+		</view>
+	</scroll-view>
+</template>
+
+<script setup>
+	import { ref } from "vue";
+	const windowHeight = ref<number>(0);
+	const footerHeight = ref<number>(0);
+	const headerHeight = ref<number>(0);
+	// header
+	uni.createSelectorQuery().select('.ucs_rect_header').boundingClientRect().exec((ret) => {
+		headerHeight.value = (ret[0] as NodeInfo).height as number;
+		windowHeight.value = uni.getWindowInfo().windowHeight;
+	});
+	// footer
+	uni.createSelectorQuery().select('.ucs_rect_footer').boundingClientRect().exec((ret) => {
+		footerHeight.value = (ret[0] as NodeInfo).height as number
+	});
+</script>
+
+<style lang="scss" scoped>
+	.ucs-scroll-view {
+		flex: 1;
+	}
+
+	.ucs_rect_header {
+		position: fixed;
+		top: 0px;
+		width: 100%;
+	}
+</style>
