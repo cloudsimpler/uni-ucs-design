@@ -1,41 +1,97 @@
 <template>
-	<scroll-view class="ucs-scroll-view">
-		<view class="ucs_rect_header">
-			<slot name="header" />
+	<!-- #ifdef UNI-APP-X -->
+	<!-- #ifdef APP -->
+	<scroll-view class="_ucs-scroll-view" :style="{backgroundColor:props.backgroundColor}">
+	<!-- #endif -->
+		<!-- #ifndef APP -->
+		<view class="_ucs-scroll-view">
+		<!-- #endif -->
+			<view class="_ucs-rect-header">
+				<slot name="header" />
+			</view>
+			<view :style="{paddingTop:`${headerHeight}px`,paddingBottom:`${footerHeight}px`}">
+				<view :style="{minHeight:`${windowHeight- headerHeight - sginHeight- footerHeight}px`}">
+					<slot name="default" />
+				</view>
+				<view class="_ucs-rect-sgin">
+					<slot name="sign" />
+				</view>
+			</view>
+			<view class="_ucs-rect-footer">
+				<slot name="footer" />
+			</view>
+		<!-- #ifndef APP -->
 		</view>
-		<view :style="{marginTop:`${headerHeight}px`,minHeight:`${windowHeight-headerHeight-footerHeight}px`}">
-			<slot name="default" />
-		</view>
-		<view class="ucs_rect_footer">
-			<slot name="footer" />
-		</view>
+		<!-- #endif -->
+	<!-- #ifdef APP -->
 	</scroll-view>
+	<!-- #endif -->
+	<!-- #endif -->
 </template>
 
 <script setup>
-	import { ref } from "vue";
+	import { ref, getCurrentInstance, nextTick } from "vue";
+	
+	const props = defineProps({
+		backgroundColor: {
+			type: String,
+			default: "transparent"
+		},
+		isSafeArea: {
+			type: Boolean,
+			default: true
+		}
+	});
+
+
+	const instance = getCurrentInstance();
 	const windowHeight = ref<number>(0);
-	const footerHeight = ref<number>(0);
 	const headerHeight = ref<number>(0);
-	// header
-	uni.createSelectorQuery().select('.ucs_rect_header').boundingClientRect().exec((ret) => {
-		headerHeight.value = (ret[0] as NodeInfo).height as number;
-		windowHeight.value = uni.getWindowInfo().windowHeight;
-	});
-	// footer
-	uni.createSelectorQuery().select('.ucs_rect_footer').boundingClientRect().exec((ret) => {
-		footerHeight.value = (ret[0] as NodeInfo).height as number
-	});
+	const sginHeight = ref<number>(0);
+	const footerHeight = ref<number>(0);
+
+	nextTick(() => {
+		// window
+		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-scroll-view').boundingClientRect().exec((ret) => {
+			windowHeight.value = (ret[0] as NodeInfo).height as number;
+			console.log(windowHeight.value)
+		});
+		// header
+		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-header').boundingClientRect().exec((ret) => {
+			headerHeight.value = (ret[0] as NodeInfo).height as number;
+		});
+		// sgin
+		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-sgin').boundingClientRect().exec((ret) => {
+			sginHeight.value = (ret[0] as NodeInfo).height as number
+		});
+		// footer
+		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-footer').boundingClientRect().exec((ret) => {
+			footerHeight.value = (ret[0] as NodeInfo).height as number
+		});
+	})
 </script>
 
 <style lang="scss" scoped>
-	.ucs-scroll-view {
+	._ucs-scroll-view {
+		// #ifdef APP
 		flex: 1;
+		// #endif
+		// #ifndef APP
+		min-height: 100%;
+		// #endif
 	}
 
-	.ucs_rect_header {
+	._ucs-rect-header {
 		position: fixed;
-		top: 0px;
+		top: var(--uni-safe-area-inset-top);
 		width: 100%;
+		z-index: 996;
+	}
+
+	._ucs-rect-footer {
+		position: fixed;
+		bottom: 0px;
+		width: 100%;
+		z-index: 996;
 	}
 </style>
