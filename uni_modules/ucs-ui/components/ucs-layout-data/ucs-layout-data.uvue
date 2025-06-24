@@ -1,0 +1,178 @@
+<template>
+	<ucs-layout>
+		<template v-slot:header>
+			<slot name="header" />
+		</template>
+
+		<!-- 缺省页状态 -->
+		<view v-if="!dataWorkers.isReady">页面加载中</view>
+		<view v-else-if="!dataWorkers.isData && dataWorkers.isReady">
+			<view v-if="props.status== 200">
+				查询成功，暂无数据
+			</view>
+			<view v-if="props.status== 403">
+				403
+			</view>
+			<view v-else-if="props.status== 404">
+				404
+			</view>
+			<view v-else-if="props.status== 500">
+				500
+			</view>
+			<view v-else>
+				未知错误类型
+			</view>
+		</view>
+		<!-- 正常数据渲染 -->
+		<view v-else>
+			<slot />
+			<view>{{dataWorkers.loadMoreStatus}}</view>
+		</view>
+
+		<template v-slot:sign>
+			<slot name="sign" />
+		</template>
+
+		<template v-slot:footer>
+			<slot name="footer" />
+		</template>
+	</ucs-layout>
+</template>
+
+<script setup>
+	import { useSlots, reactive, watch } from "vue";
+	import { onPullDownRefresh, onLoad, onShow, onHide, onReachBottom } from "@dcloudio/uni-app";
+
+	const emits = defineEmits(['change']);
+
+	const props = defineProps({
+		period: {
+			type: String,
+			default: "onReady"
+		},
+		status: {
+			type: Number,
+			default: 200
+		},
+		data: {
+			type: Array,
+			default: () => {
+				return []
+			}
+		}
+	});
+
+	// 监听函数状态
+	watch(() : number => props.status, () => {
+		uni.stopPullDownRefresh();
+	});
+
+	type DataWorkersType = {
+		isReady : boolean;
+		isData : boolean;
+		loadMoreStatus : string;
+		loadmorePage : number;
+		isRefresh : boolean;
+		isReachBottom : boolean;
+		onLoadValue : UTSJSONObject;
+	}
+	// 数据状态
+	let dataWorkers = reactive<DataWorkersType>({
+		isReady: false,
+		isData: false,
+		loadMoreStatus: "none",
+		loadmorePage: 1,
+		isRefresh: false,
+		isReachBottom: true,
+		onLoadValue: {}
+	});
+
+	watch(() : Array => props.data, (newVal : Array, oldVal : Array) => {
+		// 是否已加载
+		dataWorkers.isReady = true;
+		// true ：存在数据，false：无数据
+		dataWorkers.isData = newVal.length > 0 ? true : false;
+		// 上拉加载更多
+		if (dataWorkers.loadMoreStatus != "none") {
+			if (newVal.length >= oldVal.length) {
+				dataWorkers.loadMoreStatus = "nomore"
+			} else {
+				dataWorkers.loadMoreStatus = "loadmore"
+			};
+		};
+		// 上拉加载页数
+		if (newVal.length > oldVal.length && !dataWorkers.isRefresh) {
+			dataWorkers.loadmorePage += 1;
+		};
+		// 拉下刷新重置页数
+		if (dataWorkers.isRefresh) {
+			dataWorkers.loadmorePage += 1;
+			dataWorkers.isRefresh = false;
+			uni.pageScrollTo({
+				scrollTop: 0,
+				duration: 300
+			});
+		};
+		// 解锁上拉加载
+		dataWorkers.isReachBottom = true;
+		// 关闭下拉刷新
+		uni.stopPullDownRefresh();
+	}, {
+		deep: true
+	});
+
+	const refresh = () => {
+		dataWorkers.isRefresh = true;
+		dataWorkers.loadmorePage = 1;
+		emits("change", {
+			"onPullDownRefresh": true,
+			"onReachBottom": false,
+			"loadmorePage": dataWorkers.loadmorePage,
+			"onLoadValue": dataWorkers.onLoadValue
+		});
+	};
+
+	// 触发上拉加载
+	onReachBottom(() => {
+		dataWorkers.loadMoreStatus = "loading";
+		if (dataWorkers.isReachBottom) {
+			emits("change", {
+				"onPullDownRefresh": false,
+				"onReachBottom": true,
+				"loadmorePage": dataWorkers.loadmorePage,
+				"onLoadValue": dataWorkers.onLoadValue
+			});
+		};
+		// 锁定上拉加载
+		dataWorkers.isReachBottom = false;
+	});
+
+	// 下拉刷新
+	onPullDownRefresh(() => {
+		refresh();
+	});
+	// 页面加载调用
+	if (props.period == "onReady") {
+		refresh();
+	};
+	// 页面显示即调用
+	onShow(() => {
+		if (props.period == "onShow") {
+			refresh();
+		};
+	});
+	onLoad(e => {
+		dataWorkers.onLoadValue = e;
+		if (props.period == "onLoad") {
+			refresh();
+		};
+	});
+	// 暴露方法
+	defineExpose({
+		refresh
+	})
+</script>
+
+<style>
+
+</style>

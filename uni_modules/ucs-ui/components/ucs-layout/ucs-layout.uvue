@@ -19,6 +19,8 @@
 			</view>
 			<view class="_ucs-rect-footer">
 				<slot name="footer" />
+				<view v-if="props.isSafeArea" class="_ucs-rect-SafeArea" />
+				<ucs-safe-area :backgroundColor="safeAreaColor" v-if="props.isSafeArea" />
 			</view>
 		<!-- #ifndef APP -->
 		</view>
@@ -27,11 +29,28 @@
 	</scroll-view>
 	<!-- #endif -->
 	<!-- #endif -->
+	<!-- #ifndef UNI-APP-X -->
+	<view class="_ucs-scroll-view" :style="{backgroundColor:props.backgroundColor}">
+		<view class="_ucs-rect-header">
+			<slot name="header" />
+		</view>
+		<view class="_ucs-rect-main">
+			<slot name="default" />
+		</view>
+		<view class="_ucs-rect-sgin">
+			<slot name="sign" />
+		</view>
+		<view class="_ucs-rect-footer">
+			<slot name="footer" />
+			<ucs-safe-area :backgroundColor="safeAreaColor" v-if="props.isSafeArea" />
+		</view>
+	</view>
+	<!-- #endif -->
 </template>
 
 <script setup>
 	import { ref, getCurrentInstance, nextTick } from "vue";
-	
+
 	const props = defineProps({
 		backgroundColor: {
 			type: String,
@@ -40,6 +59,10 @@
 		isSafeArea: {
 			type: Boolean,
 			default: true
+		},
+		safeAreaColor: {
+			type: String,
+			default: "transparent"
 		}
 	});
 
@@ -54,7 +77,6 @@
 		// window
 		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-scroll-view').boundingClientRect().exec((ret) => {
 			windowHeight.value = (ret[0] as NodeInfo).height as number;
-			console.log(windowHeight.value)
 		});
 		// header
 		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-header').boundingClientRect().exec((ret) => {
@@ -72,6 +94,7 @@
 </script>
 
 <style lang="scss" scoped>
+	// #ifdef UNI-APP-X
 	._ucs-scroll-view {
 		// #ifdef APP
 		flex: 1;
@@ -94,4 +117,32 @@
 		width: 100%;
 		z-index: 996;
 	}
+
+	// #endif
+	// #ifndef UNI-APP-X
+	._ucs-scroll-view {
+		min-height: 100%;
+		display: flex;
+		flex-direction: column;
+		position: relative;
+	}
+
+	._ucs-rect-header {
+		position: sticky;
+		z-index: 2;
+		top: var(--window-top);
+	}
+
+	._ucs-rect-main {
+		flex: 1;
+		z-index: 1;
+		position: relative;
+	}
+
+	._ucs-rect-footer {
+		position: sticky;
+		bottom: 0;
+		z-index: 2;
+	}
+	// #endif
 </style>
