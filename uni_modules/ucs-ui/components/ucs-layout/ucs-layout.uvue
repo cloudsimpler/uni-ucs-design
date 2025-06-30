@@ -106,7 +106,7 @@
 
 	._ucs-rect-header {
 		position: fixed;
-		top: var(--uni-safe-area-inset-top);
+		top: var(--window-top);
 		width: 100%;
 		z-index: 996;
 	}

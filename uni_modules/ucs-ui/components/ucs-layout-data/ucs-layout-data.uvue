@@ -70,8 +70,11 @@
 	type DataWorkersType = {
 		isReady : boolean;
 		isData : boolean;
+		onePageDataNumber : number;
+		totalDataNumber : number;
+		isAchieve : boolean;
+		isDeleteAfter : boolean;
 		loadMoreStatus : string;
-		loadmorePage : number;
 		isRefresh : boolean;
 		isReachBottom : boolean;
 		onLoadValue : UTSJSONObject;
@@ -80,18 +83,39 @@
 	let dataWorkers = reactive<DataWorkersType>({
 		isReady: false,
 		isData: false,
+		onePageDataNumber: 0,
+		totalDataNumber: 0,
+		isAchieve: false,
+		isDeleteAfter: false,
 		loadMoreStatus: "none",
-		loadmorePage: 1,
 		isRefresh: false,
 		isReachBottom: true,
 		onLoadValue: {}
 	});
 
 	watch(() : Array => props.data, (newVal : Array, oldVal : Array) => {
+		// 初始化一页数据条数
+		const newOldGap = newVal.length - oldVal.length;
+		// 每页数量
+		dataWorkers.onePageDataNumber = newOldGap > dataWorkers.onePageDataNumber ? newOldGap : dataWorkers.onePageDataNumber;
+		// 是否删除过数据
+		if (newOldGap == 0 && dataWorkers.totalDataNumber > newVal.length) {
+			dataWorkers.isDeleteAfter = true;
+		} else {
+			dataWorkers.isDeleteAfter = false;
+		};
+		// 是否数据全部加载完成
+		if (newOldGap < dataWorkers.onePageDataNumber || newVal.length == 0) {
+			dataWorkers.isAchieve = true;
+		} else {
+			dataWorkers.isAchieve = false;
+		};
 		// 是否已加载
 		dataWorkers.isReady = true;
 		// true ：存在数据，false：无数据
 		dataWorkers.isData = newVal.length > 0 ? true : false;
+		// 记录总数居数量
+		dataWorkers.totalDataNumber = newVal.length;
 		// 上拉加载更多
 		if (dataWorkers.loadMoreStatus != "none") {
 			if (newVal.length >= oldVal.length) {
@@ -100,34 +124,24 @@
 				dataWorkers.loadMoreStatus = "loadmore"
 			};
 		};
-		// 上拉加载页数
-		if (newVal.length > oldVal.length && !dataWorkers.isRefresh) {
-			dataWorkers.loadmorePage += 1;
-		};
-		// 拉下刷新重置页数
+		// 关闭下拉刷新
 		if (dataWorkers.isRefresh) {
-			dataWorkers.loadmorePage += 1;
+			uni.stopPullDownRefresh();
 			dataWorkers.isRefresh = false;
-			uni.pageScrollTo({
-				scrollTop: 0,
-				duration: 300
-			});
 		};
 		// 解锁上拉加载
 		dataWorkers.isReachBottom = true;
-		// 关闭下拉刷新
-		uni.stopPullDownRefresh();
 	}, {
 		deep: true
 	});
 
 	const refresh = () => {
 		dataWorkers.isRefresh = true;
-		dataWorkers.loadmorePage = 1;
+		dataWorkers.isAchieve = false;
 		emits("change", {
 			"onPullDownRefresh": true,
 			"onReachBottom": false,
-			"loadmorePage": dataWorkers.loadmorePage,
+			"loadmorePage": 1,
 			"onLoadValue": dataWorkers.onLoadValue
 		});
 	};
@@ -135,11 +149,16 @@
 	// 触发上拉加载
 	onReachBottom(() => {
 		dataWorkers.loadMoreStatus = "loading";
+		// 向上取整
+		const mathCeil = Math.ceil(dataWorkers.totalDataNumber / dataWorkers.onePageDataNumber) + 1;
+		// 向下取整
+		const mathFloor = Math.floor(dataWorkers.totalDataNumber / dataWorkers.onePageDataNumber) + 1;
+
 		if (dataWorkers.isReachBottom) {
 			emits("change", {
 				"onPullDownRefresh": false,
 				"onReachBottom": true,
-				"loadmorePage": dataWorkers.loadmorePage,
+				"loadmorePage": dataWorkers.isAchieve && !dataWorkers.isDeleteAfter ? mathCeil : mathFloor,
 				"onLoadValue": dataWorkers.onLoadValue
 			});
 		};

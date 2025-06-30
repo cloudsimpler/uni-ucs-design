@@ -1,35 +1,12 @@
 import { getRequestPrefix, osRequestConfig } from "../ucs-config";
 import { UcsRequestOptions } from "./utssdk/interface";
 
-export const getDeepProperty = (data : any, path : string) => {
-	if (typeof data !== 'object') return "";
-	let current : any = data;
-	const segments = path.split('.');
-
-	for (let segment of segments) {
-		if (segment.endsWith(']') && segment.includes('[')) {
-			const bracketIndex = segment.indexOf('[')
-			const key = segment.substring(0, bracketIndex)
-			const indexStr = segment.substring(bracketIndex + 1, segment.length - 1)
-
-			current = (current as UTSJSONObject)[key] as any;
-			if (!Array.isArray(current)) return ""
-
-			const index = parseInt(indexStr)
-			if (isNaN(index) || index < 0 || index >= current.length) return ""
-
-			current = current[index]
-		} else {
-			if (typeof current !== 'object' || Array.isArray(current)) return ""
-			try {
-				current = (current as UTSJSONObject)[segment] as any
-			} catch (err) {
-				return ""
-			}
-		}
-	}
-
-	return current;
+export const concatRepeat = (array1 : UTSJSONObject[], array2 : UTSJSONObject[]) => {
+	const mergedArray = array1.concat(array2);
+	const stringifiedArray = mergedArray.map(obj => JSON.stringify(obj));
+	const uniqueStringSet = new Set(stringifiedArray);
+	const uniqueArray = Array.from(uniqueStringSet).map(str => JSON.parse(str as string) as any);
+	return uniqueArray as UTSJSONObject[];
 }
 
 const optionsRetrieval = (options : UcsRequestOptions) => {
@@ -55,6 +32,13 @@ const optionsRetrieval = (options : UcsRequestOptions) => {
 }
 
 export class http {
+	static concatRepeat(array1 : UTSJSONObject[], array2 : UTSJSONObject[]){
+		const mergedArray = array1.concat(array2);
+		const stringifiedArray = mergedArray.map(obj => JSON.stringify(obj));
+		const uniqueStringSet = new Set(stringifiedArray);
+		const uniqueArray = Array.from(uniqueStringSet).map(str => JSON.parse(str as string) as any);
+		return uniqueArray as UTSJSONObject[];
+	};
 	static post(options : UcsRequestOptions) {
 		const params = optionsRetrieval(options);
 		uni.request({
