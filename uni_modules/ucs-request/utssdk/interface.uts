@@ -1,11 +1,3 @@
-/**
- * interface.uts
- * uts插件接口定义文件，按规范定义接口文件可以在HBuilderX中更好的做到语法提示
- */
-
-/**
- * myApi 异步函数的参数，在type里定义函数需要的参数以及api成功、失败的相关回调函数。
- */
 export type UcsRequestOptions = {
 	url : string;
 	data ?: any;

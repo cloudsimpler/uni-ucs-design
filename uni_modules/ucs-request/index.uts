@@ -1,8 +1,8 @@
 import { getRequestPrefix, osRequestConfig } from "../ucs-config";
 import { UcsRequestOptions } from "./utssdk/interface";
 
-export const concatRepeat = (array1 : UTSJSONObject[], array2 : UTSJSONObject[]) => {
-	const mergedArray = array1.concat(array2);
+export const concatRepeat = (a : UTSJSONObject[], b : UTSJSONObject[]) => {
+	const mergedArray = a.concat(b);
 	const stringifiedArray = mergedArray.map(obj => JSON.stringify(obj));
 	const uniqueStringSet = new Set(stringifiedArray);
 	const uniqueArray = Array.from(uniqueStringSet).map(str => JSON.parse(str as string) as any);
@@ -32,8 +32,8 @@ const optionsRetrieval = (options : UcsRequestOptions) => {
 }
 
 export class http {
-	static concatRepeat(array1 : UTSJSONObject[], array2 : UTSJSONObject[]){
-		const mergedArray = array1.concat(array2);
+	static concatRepeat(a : UTSJSONObject[], b : UTSJSONObject[]){
+		const mergedArray = a.concat(b);
 		const stringifiedArray = mergedArray.map(obj => JSON.stringify(obj));
 		const uniqueStringSet = new Set(stringifiedArray);
 		const uniqueArray = Array.from(uniqueStringSet).map(str => JSON.parse(str as string) as any);
@@ -49,7 +49,7 @@ export class http {
 			timeout: params.timeout as number,
 			withCredentials: params.withCredentials as boolean,
 			firstIpv4: params.firstIpv4 as boolean,
-			// enableChunked: params.enableChunked as boolean, // ‌error: Cannot find a parameter with this name: enableChunked‌
+			enableChunked: params.enableChunked as boolean,
 			success: (res) => {
 				options.success?.(res);
 				options.complete?.(res);
@@ -76,7 +76,7 @@ export class http {
 			timeout: params.timeout as number,
 			withCredentials: params.withCredentials as boolean,
 			firstIpv4: params.firstIpv4 as boolean,
-			// enableChunked: params.enableChunked as boolean, // ‌error: Cannot find a parameter with this name: enableChunked‌
+			enableChunked: params.enableChunked as boolean,
 			success: (res) => {
 				options.success?.(res);
 				options.complete?.(res);
