@@ -1,4 +1,29 @@
+import { SVGImageView } from '@ohos/svg'
+
+@Component
+struct MySvg {
+	private src: string = '';
+	private svgWidth: number = 0;
+	private svgHeight: number = 0;
+	
+	build() {
+		SVGImageView({model: this.getModel()})
+			.width(this.svgWidth)
+			.height(this.svgHeight)
+	}
+	
+	getModel() {
+		let model: SVGImageView.SVGImageViewModel = new SVGImageView.SVGImageViewModel()
+		model.setFromString(this.src)
+		return model
+	}
+}
+
 @Builder
-export function buildImage(params: ESObject) {
-	Image(params.src).width('100%').height('100%').objectFit(ImageFit.Contain).onComplete((event)=>{params.onComplete(event)}).onError((error) =>{params.onError(error.message)})
+export function buildSVG(params: ESObject) {
+	if (params.src != '') {
+		MySvg({src: params.src, svgWidth: params.width, svgHeight: params.height})
+	} else {
+		Column()
+	}
 }

@@ -1,3 +1,8 @@
+## 1.0.5（2025-07-01）
+- 【官方文档】[ucs-svg 矢量图形](https://ucs.cloudsimpler.com/library/ucs-svg)
+- 【版本兼容】uni-app / uni-app-x
+- 【开发版本】HBuilderX - 4.24+
+- 【更新内容】支持鸿蒙端
 ## 1.0.4（2025-04-18）
 - 【官方文档】[ucs-svg 矢量图形](https://ucs.cloudsimpler.com/library/ucs-svg)
 - 【版本兼容】uni-app / uni-app-x
