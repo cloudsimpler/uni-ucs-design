@@ -9,8 +9,8 @@
   "repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-svg",
   "engines": {
     "HBuilderX": "^4.24",
-    "uni-app": "^4.56",
-    "uni-app-x": "^4.56"
+    "uni-app": "^4.66",
+    "uni-app-x": "^4.66"
   },
   "dcloudext": {
     "type": "uts-vue-component",
