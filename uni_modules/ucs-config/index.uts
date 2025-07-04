@@ -192,6 +192,34 @@ export const getRequestPrefix = () : string => {
 	return defaultConfig.osRequest.production as string;
 	// #endif
 };
+
+export type UcsInterceptorOptions = {
+	invoke ?: (res : any) => void;
+	success ?: (res : RequestSuccess<any>) => void;
+	fail ?: (res : RequestFail) => void;
+	complete ?: (res : any) => void;
+};
+
+export const osRequestInterception = (options : UcsInterceptorOptions) => {
+	uni.$on("ucsRequestInterception", (e : UTSJSONObject) => {
+		switch (e['type']) {
+			case 'invoke':
+				options.invoke?.(e['content'] as any);
+				break;
+			case 'success':
+				options.success?.(e['content'] as RequestSuccess<any>);
+				break;
+			case 'fail':
+				options.fail?.(e['content'] as RequestFail);
+				break;
+			case 'complete':
+				options.complete?.(e['content'] as any);
+				break;
+			default:
+				break;
+		};
+	});
+};
 /**
  * 获取admin配置信息
  * @returns UTSJSONObject 配置信息
