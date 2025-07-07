@@ -62,11 +62,6 @@
 		}
 	});
 
-	// 监听函数状态
-	watch(() : number => props.status, () => {
-		uni.stopPullDownRefresh();
-	});
-
 	type DataWorkersType = {
 		isReady : boolean;
 		isData : boolean;
@@ -91,6 +86,12 @@
 		isRefresh: false,
 		isReachBottom: true,
 		onLoadValue: {}
+	});
+	
+	// 监听函数状态
+	watch(() : number => props.status, () => {
+		dataWorkers.isReady = true;
+		uni.stopPullDownRefresh();
 	});
 
 	watch(() : Array => props.data, (newVal : Array, oldVal : Array) => {
