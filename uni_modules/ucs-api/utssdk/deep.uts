@@ -1,0 +1,77 @@
+/**
+ * 深度属性
+ * @param {object} data 数据
+ * @param {string} path 路径
+ * @returns 数据路径下的属性
+ */
+export const getDeepProperty = (data : any, path : string) : any => {
+	if (typeof data !== 'object') return "";
+	let current : any = data;
+	const segments = path.split('.');
+	for (let segment of segments) {
+		if (segment.endsWith(']') && segment.includes('[')) {
+			const bracketIndex = segment.indexOf('[')
+			const key = segment.substring(0, bracketIndex)
+			const indexStr = segment.substring(bracketIndex + 1, segment.length - 1)
+
+			current = (current as UTSJSONObject)[key] as any;
+			if (!Array.isArray(current)) return ""
+
+			const index = parseInt(indexStr)
+			if (isNaN(index) || index < 0 || index >= current.length) return ""
+
+			current = current[index]
+		} else {
+			if (typeof current !== 'object' || Array.isArray(current)) return ""
+			current = (current as UTSJSONObject)[segment] as any
+		}
+	};
+	return current;
+};
+/**
+ * 深度拷贝
+ * @param {UTSJSONObject} obj 需要拷贝数据
+ * @return {UTSJSONObject} 深度拷贝数据
+ */
+export const getDeepCopy = (obj : UTSJSONObject) : UTSJSONObject => {
+	return JSON.parse(JSON.stringify(obj)) as UTSJSONObject
+};
+
+
+/**
+ * 深度合并
+ * @param {UTSJSONObject} obj1 原数据
+ * @param {UTSJSONObject} obj2 合并数据
+ * @returns obj1和obj2合并后的数据
+ */
+export let getDeepMerge : ((obj1 : UTSJSONObject, obj2 : UTSJSONObject) => UTSJSONObject) | null = null;
+
+getDeepMerge = (obj1 : UTSJSONObject, obj2 : UTSJSONObject) : UTSJSONObject => {
+	// 深度拷贝
+	const first = getDeepCopy(obj1);
+	const second = getDeepCopy(obj2);
+	
+	for (let f in second) {
+		const secondVal = second[f];
+		const firstVal = first[f];
+
+		// 1. 优先处理 null 值
+		if (secondVal === null) {
+			first[f] = null;
+			continue;
+		}
+
+		// 2. 处理对象合并（排除数组）
+		const isSecondObject = typeof secondVal === 'object' && !Array.isArray(secondVal);
+		const isFirstObject = typeof firstVal === 'object' && !Array.isArray(firstVal);
+
+		if (isSecondObject && isFirstObject) {
+			// 递归合并对象（无需重新赋值）
+			getDeepMerge?.(firstVal as UTSJSONObject, secondVal as UTSJSONObject);
+		} else {
+			// 3. 其他情况直接覆盖（包括基础类型/数组/undefined/类型不匹配的对象）
+			first[f] = secondVal;
+		}
+	}
+	return first;
+};
