@@ -4,8 +4,8 @@
  * @param {string} path 路径
  * @returns 数据路径下的属性
  */
-export const getDeepProperty = (data : any, path : string) : any => {
-	if (typeof data !== 'object') return "";
+export const getDeepProperty = (data : any, path : string) : any | null => {
+	if (typeof data !== 'object') return null;
 	let current : any = data;
 	const segments = path.split('.');
 	for (let segment of segments) {
@@ -15,14 +15,14 @@ export const getDeepProperty = (data : any, path : string) : any => {
 			const indexStr = segment.substring(bracketIndex + 1, segment.length - 1)
 
 			current = (current as UTSJSONObject)[key] as any;
-			if (!Array.isArray(current)) return ""
+			if (!Array.isArray(current)) return null
 
 			const index = parseInt(indexStr)
-			if (isNaN(index) || index < 0 || index >= current.length) return ""
+			if (isNaN(index) || index < 0 || index >= current.length) return null
 
 			current = current[index]
 		} else {
-			if (typeof current !== 'object' || Array.isArray(current)) return ""
+			if (typeof current !== 'object' || Array.isArray(current)) return null
 			current = (current as UTSJSONObject)[segment] as any
 		}
 	};
@@ -50,28 +50,20 @@ getDeepMerge = (obj1 : UTSJSONObject, obj2 : UTSJSONObject) : UTSJSONObject => {
 	// 深度拷贝
 	const first = getDeepCopy(obj1);
 	const second = getDeepCopy(obj2);
-	
+
 	for (let f in second) {
-		const secondVal = second[f];
-		const firstVal = first[f];
-
-		// 1. 优先处理 null 值
-		if (secondVal === null) {
-			first[f] = null;
-			continue;
-		}
-
-		// 2. 处理对象合并（排除数组）
-		const isSecondObject = typeof secondVal === 'object' && !Array.isArray(secondVal);
-		const isFirstObject = typeof firstVal === 'object' && !Array.isArray(firstVal);
-
-		if (isSecondObject && isFirstObject) {
-			// 递归合并对象（无需重新赋值）
-			getDeepMerge?.(firstVal as UTSJSONObject, secondVal as UTSJSONObject);
+		if (first.hasOwnProperty(f)) {
+			if (typeof first[f] === 'object' && !Array.isArray(first[f]) && typeof second[f] === 'object' && !Array.isArray(second[f])) {
+				first[f] = getDeepMerge?.(first[f] as UTSJSONObject, second[f] as UTSJSONObject);
+			} else {
+				if (typeof first[f] === typeof second[f] && second[f] != null) {
+					first[f] = second[f];
+				};
+			}
 		} else {
-			// 3. 其他情况直接覆盖（包括基础类型/数组/undefined/类型不匹配的对象）
-			first[f] = secondVal;
-		}
-	}
-	return first;
+			first[f] = second[f];
+		};
+	};
+	
+	return first as UTSJSONObject;
 };
