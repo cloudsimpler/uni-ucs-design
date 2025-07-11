@@ -37,7 +37,6 @@ export const getDeepCopy = (obj : UTSJSONObject) : UTSJSONObject => {
 	return JSON.parse(JSON.stringify(obj)) as UTSJSONObject
 };
 
-
 /**
  * 深度合并
  * @param {UTSJSONObject} obj1 原数据
@@ -48,8 +47,8 @@ export let getDeepMerge : ((obj1 : UTSJSONObject, obj2 : UTSJSONObject) => UTSJS
 
 getDeepMerge = (obj1 : UTSJSONObject, obj2 : UTSJSONObject) : UTSJSONObject => {
 	// 深度拷贝
-	const first = getDeepCopy(obj1);
-	const second = getDeepCopy(obj2);
+	let first = getDeepCopy(obj1);
+	let second = getDeepCopy(obj2);
 
 	for (let f in second) {
 		if (first.hasOwnProperty(f)) {
