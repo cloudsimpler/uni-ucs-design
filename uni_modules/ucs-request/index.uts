@@ -9,6 +9,15 @@ export const concatRepeat = (a : UTSJSONObject[], b : UTSJSONObject[]) => {
 	return uniqueArray as UTSJSONObject[];
 }
 
+const getJsonMerge = (p1 : UTSJSONObject, p2 : UTSJSONObject) : UTSJSONObject => {
+	// #ifdef UNI-APP-X
+	return UTSJSONObject.assign(p1, p2);
+	// #endif
+	// #ifndef UNI-APP-X
+	return Object.assign(p1, p2);
+	// #endif
+};
+
 const optionsRetrieval = (options : UcsRequestOptions) => {
 	let params = {};
 	for (let i in options) {
@@ -18,17 +27,18 @@ const optionsRetrieval = (options : UcsRequestOptions) => {
 	};
 
 	if (params.hasOwnProperty('header')) {
-		params.header = UTSJSONObject.assign(osRequestConfig.header as UTSJSONObject, params.header as UTSJSONObject)
+		params.header = getJsonMerge(osRequestConfig.header,params.header)
 	};
 
-	if (params.getString('url')?.startsWith('http') as Boolean) {
+	const url = params['url'] as string | null;
+	if (url != null && typeof url == 'string' && url.startsWith('http')) {
 		// 完整地址，直接复用
 	} else {
 		// 拼接地址
 		params.url = `${getRequestPrefix()}/${params.url}`;
-	};
+	}
 
-	return UTSJSONObject.assign(osRequestConfig, params);
+	return getJsonMerge(osRequestConfig, params);
 };
 
 const requestPreposition = (method : string, options : UcsRequestOptions) => {
@@ -56,7 +66,7 @@ const requestPreposition = (method : string, options : UcsRequestOptions) => {
 		complete: (log) => {
 			uni.$emit("ucsRequestInterception", {type: "complete",content: log});
 			if (params.log as boolean) {
-				console.log(UTSJSONObject.assign(log as IUTSObject, { "requestDetails": params }));
+				console.log(getJsonMerge(log as IUTSObject, { "requestDetails": params }));
 			};
 		}
 	})
