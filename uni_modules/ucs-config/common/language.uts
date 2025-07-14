@@ -1,0 +1,51 @@
+import { defaultConfig } from "../utssdk/defaultConfig.uts";
+/**
+ * 深度属性
+ * @param {object} data 数据
+ * @param {string} path 路径
+ * @returns 数据路径下的属性
+ */
+const getDeepProperty = (data : any, path : string) : any | null => {
+	if (typeof data !== 'object') return null;
+	let current : any = data;
+	const segments = path.split('.');
+	for (let segment of segments) {
+		if (segment.endsWith(']') && segment.includes('[')) {
+			const bracketIndex = segment.indexOf('[')
+			const key = segment.substring(0, bracketIndex)
+			const indexStr = segment.substring(bracketIndex + 1, segment.length - 1)
+
+			current = (current as UTSJSONObject)[key] as any;
+			if (!Array.isArray(current)) return null
+
+			const index = parseInt(indexStr)
+			if (isNaN(index) || index < 0 || index >= current.length) return null
+
+			current = current[index]
+		} else {
+			if (typeof current !== 'object' || Array.isArray(current)) return null
+			current = (current as UTSJSONObject)[segment] as any
+		}
+	};
+	return current;
+};
+/**
+ * 设置国际化语言
+ * @param osLanguage [zh-Hans,zh-Hant,en] 语言
+ */
+export const setOsLanguage = (language : string) => {
+	defaultConfig.osLanguage = language;
+};
+
+/**
+ * 获取UCS Design 框架语言
+ * @param path 参数路径
+ * @returns any
+ */
+export const getUcsDesignLanguage = (path : string, defaultValue : string) : any => {
+	if (defaultValue == "") {
+		return getDeepProperty(defaultConfig.osUcsLanguage as any, `${defaultConfig.osLanguage}.${path}`)
+	} else {
+		return defaultValue
+	}
+};

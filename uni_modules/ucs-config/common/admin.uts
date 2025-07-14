@@ -1,0 +1,6 @@
+import { defaultConfig } from "../utssdk/defaultConfig.uts";
+/**
+ * 获取admin配置信息
+ * @returns UTSJSONObject 配置信息
+ */
+export const osAdminConfig = defaultConfig.osAdmin;
