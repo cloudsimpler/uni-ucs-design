@@ -1,13 +1,13 @@
 import { getRequestPrefix, osRequestConfig } from "../ucs-config";
 import { UcsRequestOptions } from "./utssdk/interface";
 
-export const concatRepeat = (a : UTSJSONObject[], b : UTSJSONObject[]) => {
-	const mergedArray = a.concat(b);
+export const getArrayMerge = (p1 : UTSJSONObject[], p2 : UTSJSONObject[]) : UTSJSONObject[] => {
+	const mergedArray = p1.concat(p2);
 	const stringifiedArray = mergedArray.map(obj => JSON.stringify(obj));
 	const uniqueStringSet = new Set(stringifiedArray);
 	const uniqueArray = Array.from(uniqueStringSet).map(str => JSON.parse(str as string) as any);
 	return uniqueArray as UTSJSONObject[];
-}
+};
 
 const getJsonMerge = (p1 : UTSJSONObject, p2 : UTSJSONObject) : UTSJSONObject => {
 	// #ifdef UNI-APP-X
@@ -27,7 +27,7 @@ const optionsRetrieval = (options : UcsRequestOptions) => {
 	};
 
 	if (params.hasOwnProperty('header')) {
-		params.header = getJsonMerge(osRequestConfig.header,params.header)
+		params.header = getJsonMerge(osRequestConfig.header, params.header)
 	};
 
 	const url = params['url'] as string | null;
@@ -42,7 +42,7 @@ const optionsRetrieval = (options : UcsRequestOptions) => {
 };
 
 const requestPreposition = (method : string, options : UcsRequestOptions) => {
-	uni.$emit("ucsRequestInterception", {type: "invoke",content: options});
+	uni.$emit("ucsRequestInterception", { type: "invoke", content: options });
 	const params = optionsRetrieval(options);
 	uni.request({
 		method: method,
@@ -56,15 +56,15 @@ const requestPreposition = (method : string, options : UcsRequestOptions) => {
 		success: (res) => {
 			options.success?.(res);
 			options.complete?.(res);
-			uni.$emit("ucsRequestInterception", {type: "success",content: res});
+			uni.$emit("ucsRequestInterception", { type: "success", content: res });
 		},
 		fail: (err) => {
 			options.fail?.(err);
 			options.complete?.(err);
-			uni.$emit("ucsRequestInterception", {type: "fail",content: err});
+			uni.$emit("ucsRequestInterception", { type: "fail", content: err });
 		},
 		complete: (log) => {
-			uni.$emit("ucsRequestInterception", {type: "complete",content: log});
+			uni.$emit("ucsRequestInterception", { type: "complete", content: log });
 			if (params.log as boolean) {
 				console.log(getJsonMerge(log as IUTSObject, { "requestDetails": params }));
 			};
@@ -74,12 +74,8 @@ const requestPreposition = (method : string, options : UcsRequestOptions) => {
 
 export class http {
 	// 合并去重
-	static concatRepeat(a : UTSJSONObject[], b : UTSJSONObject[]) {
-		const mergedArray = a.concat(b);
-		const stringifiedArray = mergedArray.map(obj => JSON.stringify(obj));
-		const uniqueStringSet = new Set(stringifiedArray);
-		const uniqueArray = Array.from(uniqueStringSet).map(str => JSON.parse(str as string) as any);
-		return uniqueArray as UTSJSONObject[];
+	static getArrayMerge(p1 : UTSJSONObject[], p2 : UTSJSONObject[]) : UTSJSONObject[] {
+		return getArrayMerge(p1, p2);
 	};
 
 	static get(options : UcsRequestOptions) {
