@@ -1,0 +1,54 @@
+/**
+* 获取当前颜色
+*/
+const currentColor = (fill : string[], index : number, defaultColor : string) : string => {
+	const isExistence : boolean = fill.length >= (index + 1) ? true : false;
+	return isExistence ? fill[index] : defaultColor;
+};
+/**
+ * 多色
+ */
+const multiColor = (fill : string[]) : string[] => {
+	return [currentColor(fill, 0, "#000000"), currentColor(fill, 1, "#604cfc"), currentColor(fill, 2, "#FFFFFF"), currentColor(fill, 3, "#B9AAFF")];
+};
+/**
+ * 双色
+ */
+const twoTone = (fill : string[]) : string[] => {
+	return [currentColor(fill, 0, "#000000"), currentColor(fill, 1, "#604cfc"), currentColor(fill, 0, "#000000"), currentColor(fill, 1, "#604cfc")];
+};
+/**
+ * 填充
+ */
+const filled = (fill : string[]) : string[] => {
+	return [currentColor(fill, 0, "#000000"), currentColor(fill, 0, "#000000"), "#FFFFFF", "#FFFFFF"];
+};
+/**
+ * 线性
+ */
+const outline = (fill : string[]) : string[] => {
+	return [currentColor(fill, 0, "#000000"), "none", currentColor(fill, 0, "#000000"), "none"];
+};
+/**
+ * 根据主题取色彩
+ */
+export const colors = (theme : string, fill : string[], index : number) : string => {
+	if (theme == "filled") {
+		return filled(fill)[index];
+	} else if (theme == "two-tone") {
+		return twoTone(fill)[index];
+	} else if (theme == "multi-color") {
+		return multiColor(fill)[index];
+	} else {
+		return outline(fill)[index];
+	};
+};
+
+export interface IiconParkProps {
+	size : number;
+	strokeWidth : number;
+	theme : string;
+	fill : string[];
+	strokeLinecap : string;
+	strokeLinejoin : string;
+};
