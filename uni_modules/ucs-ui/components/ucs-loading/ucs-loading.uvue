@@ -1,0 +1,58 @@
+<template>
+	<!-- #ifdef UNI-APP-X -->
+	<!-- #ifdef APP -->
+	<view v-show="show" class="_ucs-loading" ref="loadingRef" />
+	<!-- #endif -->
+	<!-- #ifndef APP -->
+	<view class="l-loading__spinner">
+		<view class="l-loading__dot" v-for="item in 12" :key="item"></view>
+	</view>
+	<!-- #endif -->
+	<!-- #endif -->
+</template>
+
+<script setup>
+	import { getOsColor } from "@/uni_modules/ucs-config";
+	const props = defineProps({
+		show: {
+			type: Boolean,
+			default: false
+		},
+		size: {
+			type: Number,
+			default: 16
+		},
+		color: {
+			type: String,
+			default: "primary"
+		}
+	});
+	// #ifdef UNI-APP-X
+	// #ifdef APP
+	import { useLoading } from './loading.uts';
+
+	const loadingRef = ref<UniElement | null>(null);
+	const loading = useLoading(loadingRef);
+	console.log(loading)
+
+	watchEffect(() => {
+		if (loadingRef.value == null) return;
+		loadingRef.value!.style.setProperty('width', `${props.size}px`);
+		loadingRef.value!.style.setProperty('height', `${props.size}px`);
+		loading.color = getOsColor(props.color);
+
+		if (props.show == true) {
+			loading.play()
+		} else {
+			loading.destroy()
+		}
+	});
+	// #endif
+	// #endif
+</script>
+
+<style lang="scss">
+	// #ifndef APP
+	
+	// #endif
+</style>
