@@ -10,7 +10,7 @@
 			<view v-if="props.status== 200">
 				查询成功，暂无数据
 			</view>
-			<view v-if="props.status== 403">
+			<view v-else-if="props.status== 403">
 				403
 			</view>
 			<view v-else-if="props.status== 404">
@@ -87,7 +87,7 @@
 		isReachBottom: true,
 		onLoadValue: {}
 	});
-	
+
 	// 监听函数状态
 	watch(() : number => props.status, () => {
 		dataWorkers.isReady = true;
@@ -147,6 +147,18 @@
 		});
 	};
 
+	const refreshLoading = () => {
+		dataWorkers.isReady = false;
+		dataWorkers.isRefresh = true;
+		dataWorkers.isAchieve = false;
+		emits("change", {
+			"onPullDownRefresh": true,
+			"onReachBottom": false,
+			"loadmorePage": 1,
+			"onLoadValue": dataWorkers.onLoadValue
+		});
+	};
+
 	// 触发上拉加载
 	onReachBottom(() => {
 		dataWorkers.loadMoreStatus = "loading";
@@ -189,7 +201,7 @@
 	});
 	// 暴露方法
 	defineExpose({
-		refresh
+		refresh,refreshLoading
 	})
 </script>
 
