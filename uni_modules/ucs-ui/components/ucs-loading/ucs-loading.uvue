@@ -1,17 +1,17 @@
 <template>
-	<view style="display: flex;justify-content: center;align-items: center;">
-		<view ref="ucsSvgLoading">
-			<ucs-svg class="__ucs-svg__icon" :src="iconSvg" />
-		</view>
+	<view class="__ucs-loading">
+		<ucs-svg :style="{'transform':`rotate(${rotation}deg)`}" :width="props.size" :height="props.size"
+			:src="iconSvg" />
 	</view>
 </template>
 
 <script setup>
+	import { generateColorGradient } from "./utils.uts";
 	import { getOsColor } from "@/uni_modules/ucs-config";
-	import { computed, watch } from "vue";
+	import { ref, computed, watch, onUnmounted } from "vue";
 
 	const props = defineProps({
-		show: {
+		loading: {
 			type: Boolean,
 			default: false
 		},
@@ -22,34 +22,38 @@
 		color: {
 			type: String,
 			default: "primary"
+		},
+		speed: {
+			type: Number,
+			default: 6
 		}
 	});
 
 	const iconSvg = computed(() : string => {
-		return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" t="1753085936545" class="icon" viewBox="0 0 1024 1024" version="1.1" p-id="3627" width="50" height="50"><path d="M512 61.44a40.96 40.96 0 0 1 40.96 40.96v122.88a40.96 40.96 0 1 1-81.92 0V102.4A40.96 40.96 0 0 1 512 61.44z" fill="#666666" p-id="3628"/><path d="M737.28 121.792a40.96 40.96 0 0 1 14.976 55.936l-61.44 106.432a40.96 40.96 0 1 1-70.912-40.96l61.44-106.432a40.96 40.96 0 0 1 55.936-14.976z" fill="#7A7A7A" p-id="3629"/><path d="M902.208 286.72a40.96 40.96 0 0 1-14.976 55.936l-106.432 61.44a40.96 40.96 0 0 1-40.96-70.912l106.432-61.44a40.96 40.96 0 0 1 55.936 14.976z" fill="#808080" p-id="3630"/><path d="M962.56 512a40.96 40.96 0 0 1-40.96 40.96h-122.88a40.96 40.96 0 0 1 0-81.92h122.88a40.96 40.96 0 0 1 40.96 40.96z" fill="#959595" p-id="3631"/><path d="M902.208 737.28a40.96 40.96 0 0 1-55.936 14.976l-106.432-61.44a40.96 40.96 0 1 1 40.96-70.912l106.432 61.44a40.96 40.96 0 0 1 14.976 55.936z" fill="#9A9A9A" p-id="3632"/><path d="M737.28 902.208a40.96 40.96 0 0 1-55.936-14.976l-61.44-106.432a40.96 40.96 0 0 1 70.912-40.96l61.44 106.432a40.96 40.96 0 0 1-14.976 55.936z" fill="#AEAEAE" p-id="3633"/><path d="M512 962.56a40.96 40.96 0 0 1-40.96-40.96v-122.88a40.96 40.96 0 0 1 81.92 0v122.88a40.96 40.96 0 0 1-40.96 40.96z" fill="#C2C2C2" p-id="3634"/><path d="M286.72 902.208a40.96 40.96 0 0 1-14.976-55.936l61.44-106.432a40.96 40.96 0 1 1 70.912 40.96l-61.44 106.432a40.96 40.96 0 0 1-55.936 14.976z" fill="#D7D7D7" p-id="3635"/><path d="M121.792 737.28a40.96 40.96 0 0 1 14.976-55.936l106.432-61.44a40.96 40.96 0 0 1 40.96 70.912l-106.432 61.44a40.96 40.96 0 0 1-55.936-14.976z" fill="#E0E0E0" p-id="3636"/><path d="M61.44 512a40.96 40.96 0 0 1 40.96-40.96h122.88a40.96 40.96 0 1 1 0 81.92H102.4A40.96 40.96 0 0 1 61.44 512z" fill="#E9E9E9" p-id="3637"/><path d="M121.792 286.72a40.96 40.96 0 0 1 55.936-14.976l106.432 61.44a40.96 40.96 0 1 1-40.96 70.912l-106.432-61.44a40.96 40.96 0 0 1-14.976-55.936z" fill="#F4F4F4" p-id="3638"/><path d="M286.72 121.792a40.96 40.96 0 0 1 55.936 14.976l61.44 106.432a40.96 40.96 0 0 1-70.912 40.96l-61.44-106.432a40.96 40.96 0 0 1 14.976-55.936z" fill="#F9F9F9" p-id="3639"/></svg>`
+		const colorArray = generateColorGradient(getOsColor(props.color));
+		return `<?xml version="1.0" standalone="no"?> <svg t="1753085936545" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3627" xmlns:xlink="http://www.w3.org/1999/xlink" width="${props.size}" height="${props.size}"> <path d="M512 61.44a40.96 40.96 0 0 1 40.96 40.96v122.88a40.96 40.96 0 1 1-81.92 0V102.4A40.96 40.96 0 0 1 512 61.44z" fill="${colorArray[11]}" p-id="3628"></path> <path d="M737.28 121.792a40.96 40.96 0 0 1 14.976 55.936l-61.44 106.432a40.96 40.96 0 1 1-70.912-40.96l61.44-106.432a40.96 40.96 0 0 1 55.936-14.976z" fill="${colorArray[10]}" p-id="3629"></path> <path d="M902.208 286.72a40.96 40.96 0 0 1-14.976 55.936l-106.432 61.44a40.96 40.96 0 0 1-40.96-70.912l106.432-61.44a40.96 40.96 0 0 1 55.936 14.976z" fill="${colorArray[9]}" p-id="3630"></path> <path d="M962.56 512a40.96 40.96 0 0 1-40.96 40.96h-122.88a40.96 40.96 0 0 1 0-81.92h122.88a40.96 40.96 0 0 1 40.96 40.96z" fill="${colorArray[8]}" p-id="3631"></path> <path d="M902.208 737.28a40.96 40.96 0 0 1-55.936 14.976l-106.432-61.44a40.96 40.96 0 1 1 40.96-70.912l106.432 61.44a40.96 40.96 0 0 1 14.976 55.936z" fill="${colorArray[7]}" p-id="3632"></path> <path d="M737.28 902.208a40.96 40.96 0 0 1-55.936-14.976l-61.44-106.432a40.96 40.96 0 0 1 70.912-40.96l61.44 106.432a40.96 40.96 0 0 1-14.976 55.936z" fill="${colorArray[6]}" p-id="3633"></path> <path d="M512 962.56a40.96 40.96 0 0 1-40.96-40.96v-122.88a40.96 40.96 0 0 1 81.92 0v122.88a40.96 40.96 0 0 1-40.96 40.96z" fill="${colorArray[5]}" p-id="3634"></path> <path d="M286.72 902.208a40.96 40.96 0 0 1-14.976-55.936l61.44-106.432a40.96 40.96 0 1 1 70.912 40.96l-61.44 106.432a40.96 40.96 0 0 1-55.936 14.976z" fill="${colorArray[4]}" p-id="3635"></path> <path d="M121.792 737.28a40.96 40.96 0 0 1 14.976-55.936l106.432-61.44a40.96 40.96 0 0 1 40.96 70.912l-106.432 61.44a40.96 40.96 0 0 1-55.936-14.976z" fill="${colorArray[3]}" p-id="3636"></path> <path d="M61.44 512a40.96 40.96 0 0 1 40.96-40.96h122.88a40.96 40.96 0 1 1 0 81.92H102.4A40.96 40.96 0 0 1 61.44 512z" fill="${colorArray[2]}" p-id="3637"></path> <path d="M121.792 286.72a40.96 40.96 0 0 1 55.936-14.976l106.432 61.44a40.96 40.96 0 1 1-40.96 70.912l-106.432-61.44a40.96 40.96 0 0 1-14.976-55.936z" fill="${colorArray[1]}" p-id="3638"></path> <path d="M286.72 121.792a40.96 40.96 0 0 1 55.936 14.976l61.44 106.432a40.96 40.96 0 0 1-70.912 40.96l-61.44-106.432a40.96 40.96 0 0 1 14.976-55.936z" fill="${colorArray[0]}" p-id="3639"></path> </svg>`
 	});
 
-	// #ifdef UNI-APP-X && APP
-	import { ref } from 'vue'
-	const ucsSvgLoading = ref<UniElement | null>(null);
-	let rotation = 0;
+	let rotation = ref(0);
 	let animationId : number | null = null;
 
 	// 旋转动画函数
 	let startRequestAnimationFrame : (() => void) | null = null;
 	startRequestAnimationFrame = () => {
 		animationId = requestAnimationFrame(() => {
-			rotation = rotation + 5;
-			if (ucsSvgLoading.value != null) {
-				ucsSvgLoading.value?.style.setProperty("transform": `rotate(${rotation}deg)`)
-			};
+			rotation.value = rotation.value + props.speed;
 			startRequestAnimationFrame?.()
 		})
 	};
 
-	watch(() : boolean => props.show, (newVal : boolean) => {
+	watch(() : boolean => props.loading, (newVal : boolean) => {
 		if (newVal == true) {
+			// #ifdef UNI-APP-X && APP
 			startRequestAnimationFrame()
+			// #endif
+			// #ifndef UNI-APP-X && APP
+			startRequestAnimationFrame?.()
+			// #endif
 		} else {
 			if (animationId != null) {
 				cancelAnimationFrame(animationId as number)
@@ -57,21 +61,19 @@
 		}
 	}, {
 		immediate: true
+	});
+
+	onUnmounted(() => {
+		if (animationId != null) {
+			cancelAnimationFrame(animationId as number)
+		}
 	})
-	// #endif
 </script>
 
 <style lang="scss">
-	// #ifndef UNI-APP-X && APP
-	.__ucs-svg__icon {
-		animation: spin 1.2s linear infinite;
+	.__ucs-loading {
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	// #endif
 </style>

@@ -1,0 +1,41 @@
+type RGB = {
+	r : number;
+	g : number;
+	b : number;
+};
+
+const hexToRgb = (hex : string) : RGB => {
+	// 检查输入的十六进制颜色值是否有效
+	const hexRegex = /^#?([a-fA-F0-9]{6})$/;
+	if (!hexRegex.test(hex)) {
+		throw new Error('【color:hexToRgb】hex颜色值格式错误');
+	}
+
+	// 去除 '#' 字符
+	const cleanHex = hex.replace('#', '');
+
+	// 将十六进制颜色值转换为十进制
+	const r = parseInt(cleanHex.slice(0, 2), 16);
+	const g = parseInt(cleanHex.slice(2, 4), 16);
+	const b = parseInt(cleanHex.slice(4, 6), 16);
+
+	const rgb : RGB = {
+		r: r,
+		g: g,
+		b: b
+	};
+
+	return rgb;
+};
+
+export const generateColorGradient = (hex : string) : string[] => {
+	const colors : string[] = []
+
+	const _color = hexToRgb(hex)
+
+	for (let i = 1; i <= 12; i++) {
+		colors.push(`rgba(${_color.r},${_color.g},${_color.b},${(i / 12).toFixed(2)})`);
+	}
+
+	return colors
+}
