@@ -10,7 +10,7 @@
 		</view>
 		<view v-else-if="!dataWorkers.isData && dataWorkers.isReady">
 			<view v-if="props.status== 200">
-				<ucs-empty-data-null />
+				<ucs-empty-data />
 			</view>
 			<view v-else-if="props.status== 403">
 				<ucs-empty-auth />
@@ -120,6 +120,10 @@
 		dataWorkers.isData = newVal.length > 0 ? true : false;
 		// 记录总数居数量
 		dataWorkers.totalDataNumber = newVal.length;
+		// 处理当刷新后加载状态判定
+		if(dataWorkers.totalDataNumber < dataWorkers.onePageDataNumber){
+			dataWorkers.loadMoreStatus = "none";
+		};
 		// 上拉加载更多
 		if (dataWorkers.loadMoreStatus != "none") {
 			if (newVal.length >= oldVal.length) {
