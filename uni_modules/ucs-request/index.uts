@@ -27,7 +27,7 @@ const optionsRetrieval = (options : UcsRequestOptions) => {
 	};
 
 	if (params.hasOwnProperty('header')) {
-		params.header = getJsonMerge(osRequestConfig.header, params.header)
+		params.header = getJsonMerge(osRequestConfig.header as UTSJSONObject, params.header as UTSJSONObject)
 	};
 
 	const url = params['url'] as string | null;
@@ -66,7 +66,12 @@ const requestPreposition = (method : string, options : UcsRequestOptions) => {
 		complete: (log) => {
 			uni.$emit("ucsRequestInterception", { type: "complete", content: log });
 			if (params.log as boolean) {
-				console.log(getJsonMerge(log as IUTSObject, { "requestDetails": params }));
+				// #ifdef UNI-APP-X
+				console.log(UTSJSONObject.assign(log as IUTSObject, { "requestDetails": params }))
+				// #endif
+				// #ifndef UNI-APP-X
+				console.log(Object.assign(log as IUTSObject, { "requestDetails": params }))
+				// #endif
 			};
 		}
 	})
