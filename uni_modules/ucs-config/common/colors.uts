@@ -19,6 +19,15 @@ export const getOsTextColor = (color : string) : UTSJSONObject => {
 };
 
 /**
+ * 获取文本大小
+ * @param color ucs色彩变量或者hex颜色值
+ * @returns UTSJSONObject
+ */
+export const getOsFontSize = (size : number) : UTSJSONObject => {
+	return { fontSize: `${size}px` };
+};
+
+/**
  * 获取背景色
  * @param color ucs色彩变量或者hex颜色值
  * @returns UTSJSONObject

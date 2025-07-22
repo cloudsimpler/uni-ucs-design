@@ -5,8 +5,8 @@ import { defaultConfig } from "../utssdk/defaultConfig.uts";
  * @param {string} path 路径
  * @returns 数据路径下的属性
  */
-const getDeepProperty = (data : any, path : string) : any | null => {
-	if (typeof data !== 'object') return null;
+const getDeepProperty = (data : any, path : string) : any => {
+	if (typeof data !== 'object') return "";
 	let current : any = data;
 	const segments = path.split('.');
 	for (let segment of segments) {
@@ -16,14 +16,14 @@ const getDeepProperty = (data : any, path : string) : any | null => {
 			const indexStr = segment.substring(bracketIndex + 1, segment.length - 1)
 
 			current = (current as UTSJSONObject)[key] as any;
-			if (!Array.isArray(current)) return null
+			if (!Array.isArray(current)) return ""
 
 			const index = parseInt(indexStr)
-			if (isNaN(index) || index < 0 || index >= current.length) return null
+			if (isNaN(index) || index < 0 || index >= current.length) return ""
 
 			current = current[index]
 		} else {
-			if (typeof current !== 'object' || Array.isArray(current)) return null
+			if (typeof current !== 'object' || Array.isArray(current)) return ""
 			current = (current as UTSJSONObject)[segment] as any
 		}
 	};
