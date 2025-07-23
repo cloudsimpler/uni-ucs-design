@@ -121,7 +121,7 @@
 		// 记录总数居数量
 		dataWorkers.totalDataNumber = newVal.length;
 		// 处理当刷新后加载状态判定
-		if(dataWorkers.totalDataNumber < dataWorkers.onePageDataNumber){
+		if (dataWorkers.totalDataNumber < dataWorkers.onePageDataNumber) {
 			dataWorkers.loadMoreStatus = "none";
 		};
 		// 上拉加载更多
@@ -200,15 +200,15 @@
 			refresh();
 		};
 	});
-	onLoad(e => {
-		dataWorkers.onLoadValue = e;
+	onLoad((e : UTSJSONObject) => {
 		if (props.period == "onLoad") {
+			dataWorkers.onLoadValue = e;
 			refresh();
 		};
 	});
 	// 暴露方法
 	defineExpose({
-		refresh,refreshLoading
+		refresh, refreshLoading
 	})
 </script>
 
