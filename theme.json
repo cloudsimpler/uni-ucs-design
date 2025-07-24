@@ -1,0 +1,18 @@
+{
+	"light": {
+		"tabBarColor": "#303030",
+		"tabBarSelectedColor": "#604CFC",
+		"tabBarBackgroundColor": "#FFFFFF",
+		"indexIconPath": "static/tabbar/index.png",
+		"demoIconPath": "static/tabbar/demo.png",
+		"configIconPath": "static/tabbar/config.png"
+	},
+	"dark": {
+		"tabBarColor": "#FFFFFF",
+		"tabBarSelectedColor": "#604CFC",
+		"tabBarBackgroundColor": "#303030",
+		"indexIconPath": "static/tabbar/indexw.png",
+		"demoIconPath": "static/tabbar/demow.png",
+		"configIconPath": "static/tabbar/configw.png"
+	}
+}

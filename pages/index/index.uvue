@@ -1,13 +1,18 @@
 <template>
-	<scroll-view style="flex: 1;">
-		<ucs-text width="2_1">
-			测试内容
-		</ucs-text>
-	</scroll-view>
+	<ucs-layout>
+		
+	</ucs-layout>
 </template>
 
 <script setup>
+	import { ref } from "vue";
 
+
+	// const layout = ref<UcsLayoutDataComponentPublicInstance | null>(null)
+
+	// onReady(() => {
+	// 	layout.value?.refresh?.()
+	// })
 </script>
 
 <style>
