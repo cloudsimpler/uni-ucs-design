@@ -6,23 +6,23 @@
 
 		<!-- 缺省页状态 -->
 		<view v-if="!dataWorkers.isReady">
-			<ucs-empty-loading />
+			<ucs-empty-loading :offset-top="32" :offset-bottom="32" />
 		</view>
 		<view v-else-if="!dataWorkers.isData && dataWorkers.isReady">
 			<view v-if="props.status== 200">
-				<ucs-empty-data />
+				<ucs-empty-data :offset-top="32" :offset-bottom="32" />
 			</view>
 			<view v-else-if="props.status== 403">
-				<ucs-empty-auth />
+				<ucs-empty-auth :offset-top="32" :offset-bottom="32" />
 			</view>
 			<view v-else-if="props.status== 404">
-				<ucs-empty-error-page />
+				<ucs-empty-error-page :offset-top="32" :offset-bottom="32" />
 			</view>
 			<view v-else-if="props.status== 500">
-				<ucs-empty-fail />
+				<ucs-empty-fail :offset-top="32" :offset-bottom="32" />
 			</view>
 			<view v-else>
-				<ucs-empty-network desc="未知错误，请稍后重试" />
+				<ucs-empty-network :offset-top="32" :offset-bottom="32" desc="未知错误，请稍后重试" />
 			</view>
 		</view>
 		<!-- 正常数据渲染 -->

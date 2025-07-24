@@ -35,7 +35,8 @@
 
 <style lang="scss" scoped>
 	.__ucs-load-more {
-		height: 96rpx;
+		padding-top: 16px;
+		padding-bottom: 16px;
 		display: flex;
 		flex-direction: row;
 		justify-content: center;
