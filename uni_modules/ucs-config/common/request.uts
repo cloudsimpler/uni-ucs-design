@@ -5,6 +5,17 @@ import { defaultConfig } from "../utssdk/defaultConfig.uts";
  */
 export const osRequestConfig = defaultConfig.osRequest;
 /**
+ * 设置请求头的Token
+ */
+export const setOsRequestHeader = (header : UTSJSONObject) : void => {
+	// #ifdef UNI-APP-X
+	osRequestConfig.header = UTSJSONObject.assign(osRequestConfig.header as UTSJSONObject, header);
+	// #endif
+	// #ifndef UNI-APP-X
+	osRequestConfig.header = Object.assign(osRequestConfig.header, header);
+	// #endif
+};
+/**
  * 获取当前环境下的请求前缀
  * @returns string 请求前缀
  */
