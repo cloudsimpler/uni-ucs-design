@@ -5,7 +5,7 @@
 	</view>
 </template>
 
-<script setup>
+<script setup lang="uts">
 	import { generateColorGradient } from "./utils.uts";
 	import { getOsColor } from "@/uni_modules/ucs-config";
 	import { ref, computed, watch, onUnmounted } from "vue";

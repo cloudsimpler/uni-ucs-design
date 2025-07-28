@@ -41,7 +41,7 @@
 	</ucs-layout>
 </template>
 
-<script setup>
+<script setup lang="uts">
 	import { useSlots, reactive, watch } from "vue";
 	// @ts-ignore
 	import { onPullDownRefresh, onLoad, onShow, onReachBottom } from "@dcloudio/uni-app";

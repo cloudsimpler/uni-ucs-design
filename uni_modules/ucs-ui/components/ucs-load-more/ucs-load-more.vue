@@ -6,7 +6,7 @@
 	</view>
 </template>
 
-<script setup>
+<script setup lang="uts">
 	import { getOsTextColor, getOsFontSize } from "@/uni_modules/ucs-config";
 
 	const props = defineProps({

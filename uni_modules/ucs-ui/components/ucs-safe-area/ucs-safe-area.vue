@@ -2,7 +2,7 @@
 	<view class="_ucs-safe-area" :style="{backgroundColor:props.backgroundColor}" />
 </template>
 
-<script setup>
+<script setup lang="uts">
 	const props = defineProps({
 		backgroundColor: {
 			type: String,
