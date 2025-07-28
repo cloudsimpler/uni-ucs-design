@@ -11,7 +11,7 @@
 	import { ref, computed, watch, onUnmounted } from "vue";
 
 	const props = defineProps({
-		loading: {
+		isLoading: {
 			type: Boolean,
 			default: false
 		},
@@ -46,7 +46,7 @@
 		})
 	};
 
-	watch(() : boolean => props.loading, (newVal : boolean) => {
+	watch(() : boolean => props.isLoading, (newVal : boolean) => {
 		if (newVal == true) {
 			// #ifdef UNI-APP-X && APP
 			startRequestAnimationFrame()

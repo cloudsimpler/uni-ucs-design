@@ -8,13 +8,20 @@
 		{
 			"path": "pages/demo/demo",
 			"style": {
-				"navigationBarTitleText": "演示"
+				"navigationBarTitleText": "Ucs Desgin 演示"
 			}
 		},
 		{
 			"path": "pages/config/config",
 			"style": {
-				"navigationBarTitleText": "配置"
+				"navigationBarTitleText": "全局配置"
+			}
+		},
+		{
+			"path" : "pages/config/theme/theme",
+			"style" : 
+			{
+				"navigationBarTitleText" : "主题设置"
 			}
 		}
 	],

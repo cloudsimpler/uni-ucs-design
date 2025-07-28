@@ -1,0 +1,33 @@
+<template>
+	<view :style="[lineStyle]"></view>
+</template>
+
+<script setup>
+	/**
+	* 间隔
+	*/
+	import { computed } from "vue";
+
+	const props = defineProps({
+		direction: {
+			type: String,
+			default: "across"   // vertical、across
+		},
+		thick: {
+			type: Number,
+			default: 1
+		}
+	});
+
+	const lineStyle = computed(() : UTSJSONObject => {
+		if (props.direction == 'across') {
+			return { height: `${props.thick}px` }
+		} else {
+			return { width: `${props.thick}px` }
+		};
+	});
+</script>
+
+<style>
+
+</style>

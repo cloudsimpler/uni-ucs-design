@@ -1,0 +1,23 @@
+<template>
+	<ucs-layout>
+		<ucs-card>
+			<template v-slot:header>
+				头部
+			</template>
+		</ucs-card>
+		<ucs-interval :thick="200"></ucs-interval>
+		<ucs-card>
+			<template v-slot:header>
+				头部
+			</template>
+		</ucs-card>
+	</ucs-layout>
+</template>
+
+<script setup>
+		
+</script>
+
+<style>
+		
+</style>

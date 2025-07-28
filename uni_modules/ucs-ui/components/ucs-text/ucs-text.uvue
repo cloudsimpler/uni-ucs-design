@@ -1,13 +1,15 @@
 <template>
-	<ucs-layout>
-		
-	</ucs-layout>
+	<view>
+
+	</view>
 </template>
 
 <script setup>
-		
+	/**
+	* 文本
+	*/
 </script>
 
 <style>
-		
+
 </style>

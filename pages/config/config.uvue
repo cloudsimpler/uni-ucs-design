@@ -1,11 +1,37 @@
 <template>
-	<view>
+	<ucs-layout>
+		<navigator url="/pages/config/theme/theme" class="mx-md mt-md px-md py-lg rounded-sm flex-row justify-between items-center"
+			:style="[getOsBackground('grey-1')]">
+			<text class="text-md"> 主题设置 </text>
+			<ucs-icon-right :strokeWidth="3" />
+		</navigator>
+		<navigator class="mx-md mt-md px-md py-lg rounded-sm flex-row justify-between items-center"
+			:style="[getOsBackground('grey-1')]">
+			<text class="text-md"> 色彩设置 </text>
+			<ucs-icon-right :strokeWidth="3" />
+		</navigator>
+		<navigator class="mx-md mt-md px-md py-lg rounded-sm flex-row justify-between items-center"
+			:style="[getOsBackground('grey-1')]">
+			<text class="text-md"> 字体设置 </text>
+			<ucs-icon-right :strokeWidth="3" />
+		</navigator>
+		<navigator class="mx-md mt-md px-md py-lg rounded-sm flex-row justify-between items-center"
+			:style="[getOsBackground('grey-1')]">
+			<text class="text-md"> 语言设置 </text>
+			<ucs-icon-right :strokeWidth="3" />
+		</navigator>
 		
-	</view>
+		<template v-slot:footer>
+			<view class="m-md px-md py-lg rounded-full justify-items"
+				:style="[getOsBackground('primary')]">
+				<text class="font-bold" :style="[getOsTextColor('grey-1')]">重置配置</text>
+			</view>
+		</template>
+	</ucs-layout>
 </template>
 
 <script setup>
-	
+	import { getOsBackground, getOsTextColor } from "@/uni_modules/ucs-config";
 </script>
 
 <style>
