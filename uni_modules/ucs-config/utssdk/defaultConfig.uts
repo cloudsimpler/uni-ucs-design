@@ -9,6 +9,7 @@ import en from "../language/en.uts";
 let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
 	osTheme: "light",
 	osLanguage: "zh-Hans",
+	osFontSize: 0,
 	osColor: {
 		primary: "#604CFC",
 		success: "#07C160",

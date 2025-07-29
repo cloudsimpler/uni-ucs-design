@@ -1,13 +1,13 @@
 <template>
 	<view class="__ucs-load-more" v-if="props.status != 'none'">
-		<ucs-loading class="__ucs-load-more_loading" v-if="props.status == 'loading'" :size="props.size+2"
-			:color="props.color" :isLoading="true" />
-		<text :style="[getOsTextColor(props.color),getOsFontSize(props.size)]">{{props.statusText[props.status]}}</text>
+		<ucs-loading class="__ucs-load-more_loading" v-if="props.status == 'loading'"
+			:size="getOsFontSize(props.size+2)" :color="props.color" :isLoading="true" />
+		<text :style="[getOsTextColor(props.color),getOsTextSize(props.size)]">{{props.statusText[props.status]}}</text>
 	</view>
 </template>
 
 <script setup lang="uts">
-	import { getOsTextColor, getOsFontSize } from "@/uni_modules/ucs-config";
+	import { getOsTextColor, getOsTextSize, getOsFontSize } from "@/uni_modules/ucs-config";
 
 	const props = defineProps({
 		status: {

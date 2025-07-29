@@ -1,0 +1,17 @@
+<template>
+	<view class="__ucs-navigation-bar">
+		
+	</view>
+</template>
+
+<script setup lang="uts">
+console.log(uni.getSystemInfoSync())
+</script>
+
+<style lang="scss">
+	.__ucs-navigation-bar {
+		padding-top: var(--status-bar-height);
+		display: flex;
+		flex-direction: row;
+	}
+</style>

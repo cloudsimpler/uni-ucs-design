@@ -1,0 +1,9 @@
+import { defaultConfig } from "../utssdk/defaultConfig.uts";
+
+export const setOsFontSize = (size : number) : void => {
+	defaultConfig.osFontSize = size;
+}
+
+export const getOsFontSize = (size : number) : number => {
+	return defaultConfig.osFontSize + size
+}

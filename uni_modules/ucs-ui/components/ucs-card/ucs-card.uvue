@@ -1,17 +1,17 @@
 <template>
 	<view class="__ucs-card" :style="[getOsBackground('grey-1')]">
 		<!-- 上 -->
-		<view :class="{'padding':!!slots.header && props.isPadding}">
+		<view :class="{'padding':slots['header'] != null && props.isPadding}">
 			<slot name="header" />
 		</view>
-		<ucs-line :length="props.lineLength" :color="props.lineColor" v-if="!!slots.header && props.isLine" />
+		<ucs-line :length="props.lineLength" :color="props.lineColor" v-if="slots['header'] != null && props.isLine" />
 		<!-- 中 -->
 		<view :class="{'padding':props.isPadding}">
 			<slot />
 		</view>
-		<ucs-line :length="props.lineLength" :color="props.lineColor" v-if="!!slots.footer && props.isLine" />
+		<ucs-line :length="props.lineLength" :color="props.lineColor" v-if="slots['footer'] != null && props.isLine" />
 		<!-- 下 -->
-		<view :class="{'padding':!!slots.footer && props.isPadding}">
+		<view :class="{'padding':slots['footer'] != null && props.isPadding}">
 			<slot name="footer" />
 		</view>
 	</view>

@@ -1,11 +1,40 @@
 <template>
-	<view>
-		
-	</view>
+	<ucs-layout>
+		<template v-slot:header>
+			<ucs-navigation-bar></ucs-navigation-bar>
+		</template>
+		<scroll-view class="h-full" v-show="tabbarIndex == 0">
+			<ucs-icon></ucs-icon>
+		</scroll-view>
+		<scroll-view class="h-full" v-show="tabbarIndex == 1">
+			配置
+		</scroll-view>
+		<!-- 底部导航栏 -->
+		<template v-slot:footer>
+			<view class="flex-row py-sm" :style="[getOsBackground('grey-1')]">
+				<view class="flex-1 flex-column justify-items" @tap="onTabbarIndex(0)">
+					<ucs-icon-application-one :theme="tabbarIndex == 0? 'filled':'outline'"
+						:fill="tabbarIndex == 0 ?[getOsColor('primary')]:[getOsColor('grey-12')]" :size="22" />
+					<ucs-text class="pt-xs" :color="tabbarIndex == 0?'primary':'grey-12'" :size="11">组件</ucs-text>
+				</view>
+				<view class="flex-1 flex-column justify-items" @tap="onTabbarIndex(1)">
+					<ucs-icon-platte :theme="tabbarIndex == 1? 'filled':'outline'"
+						:fill="tabbarIndex == 1 ?[getOsColor('primary')]:[getOsColor('grey-12')]" :size="22" />
+					<ucs-text class="pt-xs" :color="tabbarIndex == 1?'primary':'grey-12'" :size="11">配置</ucs-text>
+				</view>
+			</view>
+		</template>
+	</ucs-layout>
 </template>
 
 <script setup>
-	
+	import { getOsBackground, setOsTheme, getOsColor } from "@/uni_modules/ucs-config";
+
+	let tabbarIndex = ref(0);
+
+	const onTabbarIndex = (index : number) => {
+		tabbarIndex.value = index
+	}
 </script>
 
 <style lang="scss">

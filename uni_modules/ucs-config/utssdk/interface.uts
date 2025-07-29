@@ -1,6 +1,7 @@
 export type defaultConfigType = {
 	osTheme : string;
 	osLanguage : string;
+	osFontSize : number;
 	osColor : UTSJSONObject;
 	osUcsLanguage : UTSJSONObject;
 	osI18nLanguage : UTSJSONObject;

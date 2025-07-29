@@ -2,7 +2,8 @@
 	"pages": [{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "首页"
+				"navigationBarTitleText": "Ucs Desgin 演示",
+				"navigationStyle": "custom"
 			}
 		},
 		{
@@ -18,10 +19,9 @@
 			}
 		},
 		{
-			"path" : "pages/config/theme/theme",
-			"style" : 
-			{
-				"navigationBarTitleText" : "主题设置"
+			"path": "pages/config/theme/theme",
+			"style": {
+				"navigationBarTitleText": "主题设置"
 			}
 		}
 	],
@@ -31,27 +31,5 @@
 		"navigationBarBackgroundColor": "#FFFFFF",
 		"backgroundColor": "#F4F4F4",
 		"backgroundColorContent": "#F4F4F4"
-	},
-	"tabBar": {
-		"color": "@tabBarColor",
-		"selectedColor": "@tabBarSelectedColor",
-		"borderStyle": "black",
-		"backgroundColor": "@tabBarBackgroundColor",
-		"list": [{
-			"pagePath": "pages/index/index",
-			"iconPath": "@indexIconPath",
-			"selectedIconPath": "static/tabbar/indexs.png",
-			"text": "首页"
-		},{
-			"pagePath": "pages/demo/demo",
-			"iconPath": "@demoIconPath",
-			"selectedIconPath": "static/tabbar/demos.png",
-			"text": "演示"
-		}, {
-			"pagePath": "pages/config/config",
-			"iconPath": "@configIconPath",
-			"selectedIconPath": "static/tabbar/configs.png",
-			"text": "配置"
-		}]
 	}
 }

@@ -1,5 +1,5 @@
 import { defaultColors } from "../utssdk/defaultColors.uts";
-
+import { getOsFontSize } from "./fontSize.uts";
 /**
  * 获取颜色值
  * @param str 颜色值，可以是primary、success、warning、danger配置定义颜色，也可以是hex值
@@ -20,11 +20,11 @@ export const getOsTextColor = (color : string) : UTSJSONObject => {
 
 /**
  * 获取文本大小
- * @param color ucs色彩变量或者hex颜色值
- * @returns UTSJSONObject
+ * @param size 字号
+ * @returns UTSJSONObject，字体大小json
  */
-export const getOsFontSize = (size : number) : UTSJSONObject => {
-	return { fontSize: `${size}px` };
+export const getOsTextSize = (size : number) : UTSJSONObject => {
+	return { fontSize: `${getOsFontSize + size}px` };
 };
 
 /**

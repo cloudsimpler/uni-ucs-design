@@ -1,7 +1,7 @@
 import App from './App.uvue'
 import { createSSRApp } from 'vue'
 
-import "./ucsDefineConfig.uts";
+// import "./ucsDefineConfig.uts";
 
 export function createApp() {
 	const app = createSSRApp(App)

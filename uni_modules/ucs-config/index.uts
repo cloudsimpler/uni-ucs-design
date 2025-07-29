@@ -8,3 +8,5 @@ export * from "./common/language.uts";
 export * from "./common/theme.uts";
 // 颜色
 export * from "./common/colors.uts";
+// 字号
+export * from "./common/fontSize.uts";

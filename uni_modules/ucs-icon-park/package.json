@@ -4,8 +4,8 @@
 	"version": "1.0.1",
 	"description": "一个通过技术驱动矢量图标样式的开源图标库，可以实现根据单一SVG源文件变换出多种主题，具备丰富的分类、更轻量的代码和更灵活的使用场景。",
 	"keywords": [
-        "Vue3,iconPark,icon"
-    ],
+		"Vue3,iconPark,icon"
+	],
 	"repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-icon-park",
 	"engines": {
 		"HBuilderX": "^4.24"
@@ -31,7 +31,7 @@
 		"npmurl": ""
 	},
 	"uni_modules": {
-		"dependencies": ["ucs-svg"],
+		"dependencies": ["ucs-svg", "ucs-config"],
 		"encrypt": [],
 		"platforms": {
 			"cloud": {
