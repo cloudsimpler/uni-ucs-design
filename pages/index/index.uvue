@@ -1,13 +1,15 @@
 <template>
-	<ucs-layout>
+	<ucs-layout safeAreaColor="grey-1">
 		<template v-slot:header>
-			<ucs-navigation-bar></ucs-navigation-bar>
+			<ucs-navigation-bar :title="tabbarIndex == 0?'组件':'配置'"></ucs-navigation-bar>
 		</template>
 		<scroll-view class="h-full" v-show="tabbarIndex == 0">
-			<ucs-icon></ucs-icon>
+
 		</scroll-view>
 		<scroll-view class="h-full" v-show="tabbarIndex == 1">
-			配置
+			<button @tap="onTap">切换主题</button>
+			<button @tap="onTap1">切换主题颜色</button>
+			<button @tap="onTap2">设置字体大小</button>
 		</scroll-view>
 		<!-- 底部导航栏 -->
 		<template v-slot:footer>
@@ -28,12 +30,22 @@
 </template>
 
 <script setup>
-	import { getOsBackground, setOsTheme, getOsColor } from "@/uni_modules/ucs-config";
+	import { getOsBackground, setOsTheme, getOsColor, setOsColorPrimary, setOsFontSize } from "@/uni_modules/ucs-config";
 
 	let tabbarIndex = ref(0);
 
 	const onTabbarIndex = (index : number) => {
 		tabbarIndex.value = index
+	}
+
+	const onTap = () => {
+		setOsTheme('dark')
+	}
+	const onTap1 = () => {
+		setOsColorPrimary('#F53F3F')
+	}
+	const onTap2 = () => {
+		setOsFontSize(10)
 	}
 </script>
 

@@ -1,8 +1,9 @@
 <template>
-	<view class="_ucs-safe-area" :style="{backgroundColor:props.backgroundColor}" />
+	<view class="_ucs-safe-area" :style="[getOsBackground(props.backgroundColor)]" />
 </template>
 
 <script setup lang="uts">
+	import { getOsBackground } from "@/uni_modules/ucs-config";
 	const props = defineProps({
 		backgroundColor: {
 			type: String,

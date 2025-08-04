@@ -24,7 +24,7 @@ export const getOsTextColor = (color : string) : UTSJSONObject => {
  * @returns UTSJSONObject，字体大小json
  */
 export const getOsTextSize = (size : number) : UTSJSONObject => {
-	return { fontSize: `${getOsFontSize + size}px` };
+	return { fontSize: `${getOsFontSize(size)}px` };
 };
 
 /**

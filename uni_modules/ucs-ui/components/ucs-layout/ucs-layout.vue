@@ -65,7 +65,8 @@
 	});
 
 	// #ifdef UNI-APP-X
-	import { ref, getCurrentInstance, nextTick } from "vue";
+	import { ref, getCurrentInstance, nextTick, watch } from "vue";
+	import { defaultConfig } from "@/uni_modules/ucs-config/utssdk/defaultConfig.uts";
 
 	const instance = getCurrentInstance();
 	const windowHeight = ref<number>(0);
@@ -73,24 +74,34 @@
 	const sginHeight = ref<number>(0);
 	const footerHeight = ref<number>(0);
 
-	nextTick(() => {
-		// window
-		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-scroll-view').boundingClientRect().exec((ret) => {
-			windowHeight.value = (ret[0] as NodeInfo).height as number;
+	const boundingClientRect = () => {
+		nextTick(() => {
+			// window
+			uni.createSelectorQuery().in(instance?.proxy).select('._ucs-scroll-view').boundingClientRect().exec((ret) => {
+				windowHeight.value = (ret[0] as NodeInfo).height as number;
+			});
+			// header
+			uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-header').boundingClientRect().exec((ret) => {
+				headerHeight.value = (ret[0] as NodeInfo).height as number;
+			});
+			// sgin
+			uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-sgin').boundingClientRect().exec((ret) => {
+				sginHeight.value = (ret[0] as NodeInfo).height as number
+			});
+			// footer
+			uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-footer').boundingClientRect().exec((ret) => {
+				footerHeight.value = (ret[0] as NodeInfo).height as number
+			});
 		});
-		// header
-		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-header').boundingClientRect().exec((ret) => {
-			headerHeight.value = (ret[0] as NodeInfo).height as number;
-		});
-		// sgin
-		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-sgin').boundingClientRect().exec((ret) => {
-			sginHeight.value = (ret[0] as NodeInfo).height as number
-		});
-		// footer
-		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-footer').boundingClientRect().exec((ret) => {
-			footerHeight.value = (ret[0] as NodeInfo).height as number
-		});
+	};
+
+	watch(() : number => defaultConfig.osFontSize, () => {
+		boundingClientRect();
+	}, {
+		immediate: true
 	});
+
+
 	// #endif
 </script>
 
