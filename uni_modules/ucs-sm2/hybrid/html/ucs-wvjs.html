@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>wvjs</title>
+	</head>
+	<body>
+		<script type="text/javascript" src="./uni.webview.1.5.5.js"></script>
+		<script type="text/javascript" src="./sm2.js"></script>
+		<script type="text/javascript">
+			// 初始化时候抛送
+			uni.webView.postMessage({data: {isInitialize: true}});
+			/**
+			 * 响应 sm2 加密数据
+			 */
+			function onPostMessage(text,key,mode) {
+				uni.webView.postMessage({
+					data: {
+						result: sm2.doEncrypt(text, key, mode)
+					}
+				});
+			};
+		</script>
+	</body>
+</html>
