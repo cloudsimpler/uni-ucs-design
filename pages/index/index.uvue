@@ -4,7 +4,15 @@
 			<ucs-navigation-bar :title="tabbarIndex == 0?'组件':'配置'"></ucs-navigation-bar>
 		</template>
 		<scroll-view class="h-full" v-show="tabbarIndex == 0">
-
+			<button @tap="onTap3(true)">弹出层</button>
+			<ucs-popup :isShow="show" @change="onChange">
+				<view style="width: 200px;height: 300px;background-color: red;" @tap="onTap3(false)">
+					
+				</view>
+			</ucs-popup>
+			<view style="height: 1000px;">
+				
+			</view>
 		</scroll-view>
 		<scroll-view class="h-full" v-show="tabbarIndex == 1">
 			<button @tap="onTap">切换主题</button>
@@ -46,6 +54,16 @@
 	}
 	const onTap2 = () => {
 		setOsFontSize(10)
+	}
+	
+	let show = ref(false)
+
+	const onTap3 = (e:boolean) => {
+		show.value = e
+	}
+	
+	const onChange = (e:boolean)=>{
+		show.value = e;
 	}
 </script>
 
