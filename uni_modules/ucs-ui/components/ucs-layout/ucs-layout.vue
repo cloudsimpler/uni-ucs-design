@@ -120,14 +120,14 @@
 		position: fixed;
 		top: var(--window-top);
 		width: 100%;
-		z-index: 996;
+		z-index: 3;
 	}
 
 	._ucs-rect-footer {
 		position: fixed;
 		bottom: 0px;
 		width: 100%;
-		z-index: 996;
+		z-index: 3;
 	}
 
 	// #endif

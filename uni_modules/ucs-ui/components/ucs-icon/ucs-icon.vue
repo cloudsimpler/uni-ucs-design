@@ -6,6 +6,21 @@
 
 <script setup lang="uts">
 	const iconText = "\ueaa2"
+
+	const props = defineProps({
+		name: {
+			type: String,
+			default: "left"
+		},
+		size: {
+			type: Number,
+			default: 16
+		},
+		color: {
+			type: String,
+			default: 'grey-12'
+		}
+	});
 </script>
 
 <style lang="scss">

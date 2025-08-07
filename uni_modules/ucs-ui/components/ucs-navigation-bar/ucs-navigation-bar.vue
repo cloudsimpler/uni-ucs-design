@@ -20,7 +20,7 @@
 		},
 		title: {
 			type: String,
-			default: "标题"
+			default: "导航栏标题"
 		},
 		color: {
 			type: String,
