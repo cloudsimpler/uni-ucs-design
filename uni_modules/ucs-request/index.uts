@@ -67,10 +67,10 @@ const requestPreposition = (method : string, options : UcsRequestOptions) => {
 			uni.$emit("ucsRequestInterception", { type: "complete", content: log });
 			if (params.log as boolean) {
 				// #ifdef UNI-APP-X
-				console.log(UTSJSONObject.assign(log as IUTSObject, { "requestDetails": params }))
+				console.log(UTSJSONObject.assign(JSON.parse(JSON.stringify(log)) as IUTSObject, { "requestDetails": params }))
 				// #endif
 				// #ifndef UNI-APP-X
-				console.log(Object.assign(log as IUTSObject, { "requestDetails": params }))
+				console.log(Object.assign(log, { "requestDetails": params }))
 				// #endif
 			};
 		}
