@@ -1,8 +1,9 @@
-@import "./scss/border-width.scss";
-@import "./scss/border-style.scss";
+@import "./colors/index.scss";
 @import "./scss/justify-content.scss";
 @import "./scss/align-items.scss";
 @import "./scss/align-self.scss";
+@import "./scss/border-width.scss";
+@import "./scss/border-style.scss";
 @import "./scss/border-radius.scss";
 @import "./scss/box-sizing.scss";
 @import "./scss/display.scss";
@@ -30,8 +31,3 @@
 @import "./scss/white-space.scss";
 @import "./scss/width.scss";
 @import "./scss/z-index.scss";
-
-/**
- * 色彩文件
- * @import "./colors/index.scss";
- */
