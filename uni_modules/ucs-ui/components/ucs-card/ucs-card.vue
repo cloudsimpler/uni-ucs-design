@@ -17,7 +17,7 @@
 	</view>
 </template>
 
-<script setup>
+<script setup lang="uts">
 	/**
 	 * 卡片
 	 */

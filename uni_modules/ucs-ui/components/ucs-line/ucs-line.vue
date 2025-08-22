@@ -14,14 +14,14 @@
 	const props = defineProps({
 		direction: {
 			type: String,
-			default: "across"   // vertical、across
+			default: "row"   // col、row
 		},
 		color: {
 			type: String,
 			default: "grey-3"
 		},
 		length: {
-			type: String,
+			type: [String, Number],
 			default: "100%"
 		},
 		thick: {
@@ -31,7 +31,7 @@
 	});
 
 	const lineStyle = computed(() : UTSJSONObject => {
-		if (props.direction == 'across') {
+		if (props.direction == 'row') {
 			return { width: `${props.length}`, height: `${props.thick}px` }
 		} else {
 			return { height: `${props.length}`, width: `${props.thick}px` }

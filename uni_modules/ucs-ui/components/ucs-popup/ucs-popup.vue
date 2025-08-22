@@ -11,7 +11,7 @@
 	</view>
 </template>
 
-<script setup>
+<script setup lang="uts">
 	/**
 	 * 弹出层
 	 * @description 用于弹出窗口

@@ -4,6 +4,7 @@
 
 <script setup lang="uts">
 	import { getOsBackground } from "@/uni_modules/ucs-config";
+	
 	const props = defineProps({
 		backgroundColor: {
 			type: String,

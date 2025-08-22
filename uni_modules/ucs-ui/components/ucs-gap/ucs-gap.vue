@@ -2,7 +2,7 @@
 	<view :style="[lineStyle]"></view>
 </template>
 
-<script setup>
+<script setup lang="uts">
 	/**
 	* 间隔
 	*/
@@ -10,20 +10,20 @@
 
 	const props = defineProps({
 		height: {
-			type: Number,
+			type: [Number,String],
 			default: 0
 		},
 		width: {
-			type: Number,
+			type: [Number,String],
 			default: 0
 		}
 	});
 
 	const lineStyle = computed(() : UTSJSONObject => {
 		if (props.height != 0) {
-			return { height: `${props.height}px` }
+			return { height: `${props.height}` }
 		} else {
-			return { width: `${props.width}px` }
+			return { width: `${props.width}` }
 		};
 	});
 </script>

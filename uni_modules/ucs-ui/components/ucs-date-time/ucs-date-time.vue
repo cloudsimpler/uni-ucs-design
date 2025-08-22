@@ -21,7 +21,7 @@
 	</picker-view>
 </template>
 
-<script setup>
+<script setup lang="uts">
 	const props = defineProps({
 		mode: {
 			type: Number,
