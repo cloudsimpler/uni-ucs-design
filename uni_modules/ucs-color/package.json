@@ -8,7 +8,9 @@
 ],
   "repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-color",
   "engines": {
-    "HBuilderX": "^4.24"
+    "HBuilderX": "^4.24",
+    "uni-app": "^4.66",
+    "uni-app-x": "^4.66"
   },
   "dcloudext": {
     "type": "uts",
@@ -28,54 +30,72 @@
       "data": "插件不采集任何数据",
       "permissions": "无"
     },
-    "npmurl": ""
+    "npmurl": "",
+    "darkmode": "x",
+    "i18n": "x",
+    "widescreen": "x"
   },
   "uni_modules": {
     "dependencies": [],
     "encrypt": [],
     "platforms": {
       "cloud": {
-        "tcb": "y",
-        "aliyun": "y",
-        "alipay": "y"
+        "tcb": "√",
+        "aliyun": "√",
+        "alipay": "√"
       },
       "client": {
-        "Vue": {
-          "vue2": "n",
-          "vue3": "y"
+        "uni-app": {
+          "vue": {
+            "vue2": "x",
+            "vue3": "√"
+          },
+          "web": {
+            "safari": "√",
+            "chrome": "√"
+          },
+          "app": {
+            "vue": "√",
+            "nvue": "√",
+            "android": {
+                "extVersion": "",
+                "minVersion": "21"
+            },
+            "ios": "√",
+            "harmony": "√"
+          },
+          "mp": {
+            "weixin": "√",
+            "alipay": "√",
+            "toutiao": "√",
+            "baidu": "√",
+            "kuaishou": "√",
+            "jd": "√",
+            "harmony": "√",
+            "qq": "√",
+            "lark": "√"
+          },
+          "quickapp": {
+            "huawei": "√",
+            "union": "√"
+          }
         },
-        "App": {
-            "app-android": "y",
-            "app-ios": "y",
-            "app-harmony": "y"
-        },
-        "H5-mobile": {
-          "Safari": "y",
-          "Android Browser": "y",
-          "微信浏览器(Android)": "y",
-          "QQ浏览器(Android)": "y"
-        },
-        "H5-pc": {
-          "Chrome": "y",
-          "IE": "y",
-          "Edge": "y",
-          "Firefox": "y",
-          "Safari": "y"
-        },
-        "小程序": {
-          "微信": "y",
-          "阿里": "y",
-          "百度": "y",
-          "字节跳动": "y",
-          "QQ": "y",
-          "钉钉": "y",
-          "快手": "y",
-          "飞书": "y",
-          "京东": "y"
-        },
-        "快应用": {
-          "华为": "y",
-          "联盟": "y"
+        "uni-app-x": {
+          "web": {
+            "safari": "√",
+            "chrome": "√"
+          },
+          "app": {
+            "android": {
+                "extVersion": "",
+                "minVersion": "21"
+            },
+            "ios": "√",
+            "harmony": "√"
+          },
+          "mp": {
+            "weixin": "√"
+          }
         }
       }
     }

@@ -82,16 +82,16 @@
         },
         "uni-app-x": {
           "web": {
-            "safari": "-",
-            "chrome": "-"
+            "safari": "√",
+            "chrome": "√"
           },
           "app": {
-            "android": "-",
-            "ios": "-",
-            "harmony": "-"
+            "android": "√",
+            "ios": "√",
+            "harmony": "√"
           },
           "mp": {
-            "weixin": "-"
+            "weixin": "√"
           }
         }
       }

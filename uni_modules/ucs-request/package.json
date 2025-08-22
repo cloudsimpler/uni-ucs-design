@@ -1,10 +1,10 @@
 {
   "id": "ucs-request",
-  "displayName": "ucs-request",
-  "version": "1.0.0",
+  "displayName": "ucs-request 请求库",
+  "version": "1.0.1",
   "description": "通过将网络请求的通用逻辑（如发送请求、处理响应、错误捕获、日志记录等）抽象为可复用的代码模块，以提高代码的可维护性、可扩展性和一致性。",
   "keywords": [
-    "request，请求库"
+    "request,请求库"
 ],
   "repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-request",
   "engines": {
@@ -36,7 +36,7 @@
     "widescreen": "x"
   },
   "uni_modules": {
-    "dependencies": [],
+    "dependencies": ["ucs-config"],
     "encrypt": [],
     "platforms": {
       "cloud": {
