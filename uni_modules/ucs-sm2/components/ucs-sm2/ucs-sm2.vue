@@ -31,7 +31,7 @@
 	
 	const getwebviewContext = (text: string, key: string, mode: number) => {
 		const sm2js = uni.createWebviewContext("ucs_WvSm2")
-		sm2js?.evalJS(`onPostMessage(${text},${key},${mode})`);
+		sm2js?.evalJS(`onPostMessage('${text}','${key}',${mode})`);
 	};
 	
 	const changeMessageWv = (event: UniWebViewMessageEvent) => {
