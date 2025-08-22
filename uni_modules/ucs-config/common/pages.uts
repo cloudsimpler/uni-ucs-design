@@ -1,0 +1,97 @@
+import pagesJson from "@/pages.json";
+
+/**
+ * 获取tabbar路径数组
+ */
+const getTabbarListPath = () : string[] => {
+	const tabbarList : string[] = [];
+	if (pagesJson['tabBar'] != null) {
+		const tabbar = pagesJson['tabBar'] as UTSJSONObject;
+		for (let i of tabbar['list'] as Array<UTSJSONObject>) {
+			tabbarList.push(i['pagePath'] as string)
+		};
+		return tabbarList;
+	} else {
+		return tabbarList;
+	}
+};
+
+/**
+ * 获取转化后路径下的配置
+ */
+const getPagesStyle = () : UTSJSONObject => {
+	const windowInfo = uni.getWindowInfo();
+	const pagesList : UTSJSONObject = {};
+	const tabbarList : string[] = getTabbarListPath();
+
+	for (let i of pagesJson['pages'] as Array<UTSJSONObject>) {
+		let styleJson : UTSJSONObject;
+		if (pagesJson['globalStyle'] != null) {
+			const globalStyle = JSON.parse(JSON.stringify(pagesJson['globalStyle']));
+			// #ifdef UNI-APP-X
+			styleJson = UTSJSONObject.assign(globalStyle as UTSJSONObject, i['style'] as UTSJSONObject);
+			// #endif
+			// #ifndef UNI-APP-X
+			styleJson = Object.assign(globalStyle as UTSJSONObject, i['style'] as UTSJSONObject);
+			// #endif
+		} else {
+			styleJson = i['style'] as UTSJSONObject;
+		};
+		let ucsStyle : UTSJSONObject = {};
+		let screenHeight = windowInfo.screenHeight;
+		// 是否存在原生导航
+		if (styleJson['navigationStyle'] !== 'custom') {
+			ucsStyle['isNavBar'] = true;
+			screenHeight = screenHeight - windowInfo.statusBarHeight - 44;
+			ucsStyle['distanceTop'] = 0;
+		} else {
+			ucsStyle['isNavBar'] = false;
+			ucsStyle['distanceTop'] = windowInfo.statusBarHeight;
+		};
+		// 是否为tabbar页面
+		if (tabbarList.includes(i['path'] as string)) {
+			ucsStyle['isTabBar'] = true;
+			screenHeight = screenHeight - windowInfo.safeAreaInsets.bottom - 50;
+			ucsStyle['distanceBottom'] = 0;
+		} else {
+			ucsStyle['isTabBar'] = false;
+			ucsStyle['distanceBottom'] = windowInfo.safeAreaInsets.bottom;
+		};
+
+		// 减0.1是为了适配部分高度实际小了0.1，会出现滚动条的情况（鸿蒙）
+		ucsStyle['windowHeight'] = screenHeight - 0.1;
+		styleJson['ucsStyle'] = ucsStyle;
+		pagesList[i['path'] as string] = styleJson;
+	};
+
+	return pagesList;
+};
+
+const pagesStyle = getPagesStyle();
+
+/**
+ * 根据path路径地址拿到pages配置信息
+ * @param {string} path 页面路径
+ */
+export const getCurrentPagesStyle = (path : string) : UTSJSONObject => {
+	return pagesStyle[path] as UTSJSONObject
+}
+/**
+ * 获取当前页面路径
+ */
+export const getCurrentPagesRoute = () : UTSJSONObject => {
+	const pages = getCurrentPages();
+	const currentPage = pages[pages.length - 1];
+	return {
+		index: pages.length - 1,
+		route: currentPage.route
+	}
+}
+/**
+ * 获取框架内根据pages style 自定义的部分内容
+ */
+export const getCurrentPagesUcsStyle = () : UTSJSONObject => {
+	const pagesRoute = getCurrentPagesRoute();
+	const currenPagesStyle = pagesStyle[pagesRoute['route'] as string] as UTSJSONObject;
+	return currenPagesStyle['ucsStyle'] as UTSJSONObject;
+}

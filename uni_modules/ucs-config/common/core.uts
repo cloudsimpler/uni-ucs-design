@@ -1,6 +1,6 @@
-import { defaultConfigType } from "./interface.uts";
-import { defaultConfig } from "./defaultConfig.uts";
-import { defaultColors, darkGrey, lightGrey } from "./defaultColors.uts";
+import { defaultConfigType } from "../utssdk/interface.uts";
+import { defaultConfig } from "../utssdk/defaultConfig.uts";
+import { defaultColors, darkGrey, lightGrey } from "../utssdk/defaultColors.uts";
 // @ts-ignore
 import { generateObject } from "@/uni_modules/ucs-color";
 

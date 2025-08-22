@@ -1,5 +1,5 @@
 // 核心文件
-export * from "./utssdk/core.uts";
+export * from "./common/core.uts";
 // 请求库
 export * from "./common/request.uts";
 // 国际化语言
@@ -10,3 +10,5 @@ export * from "./common/theme.uts";
 export * from "./common/colors.uts";
 // 字号
 export * from "./common/fontSize.uts";
+// pagesJson
+export * from "./common/pages.uts";

@@ -1,3 +1,8 @@
+## 1.0.5（2025-08-22）
+- 【官方文档】[UCS Design 全局配置](https://ucs.cloudsimpler.com/library/ucs-config)
+- 【版本兼容】 Vue3【uni-app / uni-app-x】
+- 【开发版本】HBuilderX - 4.24+
+- 【更新内容】添加request请求配置，优化部分语法
 ## 1.0.4（2025-01-09）
 - 【官方文档】[UCS Design 全局配置](https://ucs.cloudsimpler.com/library/ucs-config)
 - 【版本兼容】 Vue3【uni-app / uni-app-x】
