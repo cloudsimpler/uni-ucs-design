@@ -1,5 +1,5 @@
 <template>
-	<ucs-svg :width="getOsFontSize(size)" :height="getOsFontSize(size)" :src="iconSvg" />
+	<ucs-svg :width="size" :height="size" :src="iconSvg" />
 </template>
 <script setup lang="uts">
 	/**
@@ -13,7 +13,6 @@
 	 * @property {String} strokeLinejoin 图标大小
 	 */
 	import { colors, IiconParkProps } from "../../mixins/iconParkMixin.uts";
-	import { getOsFontSize } from "@/uni_modules/ucs-config"
 	import { computed } from "vue";
 	
 	const props = withDefaults(defineProps<IiconParkProps>(), {
