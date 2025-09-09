@@ -42,8 +42,15 @@ const optionsRetrieval = (options : UcsRequestOptions) => {
 	if (url != null && typeof url == 'string' && url.startsWith('http')) {
 		// 完整地址，直接复用
 	} else {
+		// 检查是否存在“/”，存在则移除
+		const removeLeadingSlash = (str : string) => {
+			if (str.startsWith('/')) {
+				return str.slice(1);
+			}
+			return str;
+		};
 		// 拼接地址
-		params.url = `${getRequestPrefix()}/${params.url}`;
+		params.url = `${getRequestPrefix()}/${removeLeadingSlash(params.url as string)}`;
 	}
 
 	return getJsonMerge(osRequestConfig, params);
