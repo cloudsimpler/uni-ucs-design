@@ -1,7 +1,7 @@
 {
   "id": "ucs-request",
   "displayName": "ucs-request 请求库",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "通过将网络请求的通用逻辑（如发送请求、处理响应、错误捕获、日志记录等）抽象为可复用的代码模块，以提高代码的可维护性、可扩展性和一致性。",
   "keywords": [
     "request,请求库"

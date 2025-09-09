@@ -29,7 +29,6 @@
 ## 版权信息
 - 遵循 `MIT` 开源协议，无需支付任何费用，也无需授权，即可将框架应用到产品中。
 - 仅供学习交流，如作它用所承受的法律责任一概与作者无关。
-- 此插件采用[《uts svg组件》](https://ext.dcloud.net.cn/plugin?id=14948)部分代码，已获得插件作者[「码农朱哲」](https://ext.dcloud.net.cn/publisher?id=9053)的授权开源使用。
 
 ## 致谢
 首先感谢 [DCloud](https://www.dcloud.io/) 官方，旗下出品的 [uni-app](https://uniapp.dcloud.net.cn/) 、[uni-app-x](https://uniapp.dcloud.net.cn/uni-app-x/) 、[uniCloud](https://uniapp.dcloud.net.cn/uniCloud/)、[uni-app 小程序](https://nativesupport.dcloud.net.cn/README) 等多平台、多元化的技术体系。  

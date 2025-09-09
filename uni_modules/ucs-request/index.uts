@@ -1,12 +1,20 @@
 import { getRequestPrefix, osRequestConfig } from "../ucs-config";
 import { UcsRequestOptions } from "./utssdk/interface";
-
+// 合并去重
 export const getArrayMerge = (p1 : UTSJSONObject[], p2 : UTSJSONObject[]) : UTSJSONObject[] => {
 	const mergedArray = p1.concat(p2);
 	const stringifiedArray = mergedArray.map(obj => JSON.stringify(obj));
 	const uniqueStringSet = new Set(stringifiedArray);
 	const uniqueArray = Array.from(uniqueStringSet).map(str => JSON.parse(str as string) as any);
 	return uniqueArray as UTSJSONObject[];
+};
+// 合并去重刷新
+export const getArrayMergeRefresh = (p1 : UTSJSONObject[], p2 : UTSJSONObject[], refresh : boolean) : UTSJSONObject[] => {
+	if (refresh) {
+		return p2;
+	} else {
+		return getArrayMerge(p1, p2);
+	};
 };
 
 const getJsonMerge = (p1 : UTSJSONObject, p2 : UTSJSONObject) : UTSJSONObject => {
@@ -43,7 +51,7 @@ const optionsRetrieval = (options : UcsRequestOptions) => {
 
 const requestPreposition = (method : string, options : UcsRequestOptions) => {
 	uni.$emit("ucsRequestInterception", { type: "invoke", content: options });
-	const params = optionsRetrieval(options);
+	const params = JSON.parse(JSON.stringify(optionsRetrieval(options))) as UTSJSONObject;
 	uni.request({
 		method: method,
 		url: params.url as string,
@@ -78,6 +86,14 @@ const requestPreposition = (method : string, options : UcsRequestOptions) => {
 }
 
 export class http {
+	// 合并去重刷新
+	static getArrayMergeRefresh(p1 : UTSJSONObject[], p2 : UTSJSONObject[], refresh : boolean) : UTSJSONObject[] {
+		if (refresh) {
+			return p2;
+		} else {
+			return getArrayMerge(p1, p2);
+		};
+	};
 	// 合并去重
 	static getArrayMerge(p1 : UTSJSONObject[], p2 : UTSJSONObject[]) : UTSJSONObject[] {
 		return getArrayMerge(p1, p2);

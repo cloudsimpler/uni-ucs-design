@@ -29,7 +29,6 @@
 
 ## 版权信息
 - `ucs-iconPark` 图标库来源于高质量开源图标库 iconPark - 字节跳动出品，致谢 iconPark 官方所有工作人员，点赞。
-- 此插件采用[《uts svg组件》](https://ext.dcloud.net.cn/plugin?id=14948)部分代码，已获得插件作者[「码农朱哲」](https://ext.dcloud.net.cn/publisher?id=9053)的授权开源使用。
 - 遵循 `MIT` 开源协议，无需支付任何费用，也无需授权，即可将框架应用到产品中。
 - 仅供学习交流，如作它用所承受的法律责任一概与作者无关。
 
