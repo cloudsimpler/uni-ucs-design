@@ -1,0 +1,39 @@
+/**
+ * 正则
+ */
+const regex = (rule : RegExp, value : string) : boolean => {
+	return rule.test(value);
+};
+
+
+const checkResult = (item : UTSJSONObject) => {
+	let message = [];
+	switch (item['type']) {
+		case 'string':
+			
+		
+			return false;
+		default:
+
+			return false;
+	}
+}
+
+
+
+export const validateSingle = (value : any, rule : UTSJSONObject[]) => {
+
+}
+
+export const validate = (formData : UTSJSONObject, rules : UTSJSONObject) => {
+	for (let i in formData) {
+		if (rules[i] != null) {
+			const rule = rules[i] as UTSJSONObject[];
+			rule.forEach(item => {
+				if (item['type'] == null || item['type'] == '') { item.set("type", "string"); };
+				item.set("formValue", formData[i]);
+				checkResult(item)
+			})
+		};
+	}
+}

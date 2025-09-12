@@ -1,7 +1,12 @@
 <template>
 	<view class="_ucs-approve-status">
 		<ucs-svg :width="size" :height="size" :src="statusSvg" />
-		<text class="_desc" :style="descStyle">{{text}}</text>
+		<text v-if="slots['default']" class="_desc" :style="descStyle">
+			<slot />
+		</text>
+		<text v-else class="_desc" :style="descStyle">
+			{{text}}
+		</text>
 	</view>
 </template>
 <script lang="uts" setup>
@@ -14,7 +19,9 @@
 	 */
 	import { computed } from "vue";
 	import { getOsColor } from "@/uni_modules/ucs-config";
-	
+	import { useSlots } from "vue";
+	const slots = useSlots();
+
 	const props = defineProps({
 		text: {
 			type: String,

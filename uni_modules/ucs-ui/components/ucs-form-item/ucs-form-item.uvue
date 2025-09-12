@@ -1,0 +1,89 @@
+<template>
+	<view class="__ucs-form-item">
+		<view class="__content">
+			<view class="label">
+				<text class="required">*</text>
+				<ucs-text :size="15">{{props.label}}</ucs-text>
+			</view>
+			<view class="operation" :style="{minHeight: `${props.minHeight}`}">
+				<slot></slot>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script setup>
+	import { getCurrentInstance } from 'vue';
+
+	const instance = getCurrentInstance();
+	const parent = instance?.parent;
+	console.log(parent?.props['model'])
+
+	const props = defineProps({
+		prop: {
+			type: String,
+			default: ""
+		},
+		label: {
+			type: String,
+			default: ""
+		},
+		rules: {
+			type: Array,
+			default: () => {
+				return []
+			}
+		},
+		isBorder: {
+			type: Boolean,
+			default: true
+		},
+		minHeight: {
+			type: [String, Number],
+			default: 55
+		},
+		isRequired: {
+			type: Boolean,
+			default: false
+		},
+		isDisplay: {
+			type: Boolean,
+			default: true
+		},
+		isEditor: {
+			type: Boolean,
+			default: true
+		}
+	})
+</script>
+
+<style lang="scss" scoped>
+	.__ucs-form-item {
+		background-color: #ffffff;
+
+		.__content {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			border-bottom: 1px solid #f1f1f1;
+			margin: 0 12px;
+
+			.label {
+				display: flex;
+				flex-direction: row;
+
+				.required {
+					color: red;
+					margin-right: 4px;
+				}
+			}
+
+			.operation {
+				flex: 1;
+				padding-left: 12px;
+			}
+		}
+
+
+	}
+</style>

@@ -1,9 +1,9 @@
 <template>
 	<!-- #ifdef UNI-APP-X && APP -->
-	<scroll-view class="_ucs-scroll-view" :style="{backgroundColor:props.backgroundColor,paddingTop:`${props.headerHeight+(slots['header'] != null?distanceTop:0)}px`,paddingBottom:`${props.footerHeight + (props.isSafeArea?distanceBottom:0)}px`}">
+	<scroll-view class="_ucs-scroll-view" :style="{backgroundColor:getOsColor(props.backgroundColor),paddingTop:`${props.headerHeight+(slots['header'] != null?distanceTop:0)}px`,paddingBottom:`${props.footerHeight + (props.isSafeArea?distanceBottom:0)}px`}">
 	<!-- #endif -->
 		<!-- #ifndef UNI-APP-X && APP -->
-		<view class="_ucs-scroll-view" :style="{backgroundColor:props.backgroundColor,paddingTop:`${props.headerHeight+(slots['header'] != null?distanceTop:0)}px`,paddingBottom:`${props.footerHeight + (props.isSafeArea?distanceBottom:0)}px`}">
+		<view class="_ucs-scroll-view" :style="{backgroundColor:getOsColor(props.backgroundColor),paddingTop:`${props.headerHeight+(slots['header'] != null?distanceTop:0)}px`,paddingBottom:`${props.footerHeight + (props.isSafeArea?distanceBottom:0)}px`}">
 		<!-- #endif -->
 			<view class="_ucs-layout-header" :style="{'height':`${props.headerHeight + (slots['header'] != null?distanceTop:0)}px`}">
 				<slot name="header" />
@@ -16,7 +16,7 @@
 			</view>
 			<view class="_ucs-layout-footer" :style="{'height':`${props.footerHeight + (props.isSafeArea?distanceBottom:0)}px`}">
 				<slot name="footer" />
-				<ucs-safe-area :backgroundColor="safeAreaColor" v-if="props.isSafeArea" />
+				<ucs-safe-area :backgroundColor="props.safeAreaColor" v-if="props.isSafeArea" />
 			</view>
 		<!-- #ifndef UNI-APP-X && APP -->
 		</view>
@@ -28,7 +28,7 @@
 
 <script setup lang="uts">
 	import { useSlots } from "vue";
-	import { getCurrentPagesUcsStyle } from "@/uni_modules/ucs-config/index";
+	import { getCurrentPagesUcsStyle,getOsColor } from "@/uni_modules/ucs-config/index";
 	const slots = useSlots();
 	
 	const ucsStyle = getCurrentPagesUcsStyle();

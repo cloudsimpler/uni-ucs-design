@@ -1,0 +1,22 @@
+<template>
+	<slot></slot>
+</template>
+
+<script setup>
+	const props = defineProps({
+		model: {
+			type: Object,
+			default: {}
+		},
+		rules: {
+			type: Object,
+			default: {}
+		}
+	})
+	
+	
+</script>
+
+<style>
+
+</style>

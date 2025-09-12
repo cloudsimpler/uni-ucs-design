@@ -43,7 +43,7 @@
 		},
 		isMaskClose: {
 			type: Boolean,
-			default: false
+			default: true
 		},
 		backgroundColor: {
 			type: String,

@@ -1,0 +1,55 @@
+<template>
+	<input :placeholder="props.placeholder"
+			@input="emits('update:modelValue', ($event.target as UniInputElementImpl).value);" 
+			:value="props.modelValue"
+			:cursor-color="getOsColor('primary')" 
+			:placeholder-style="{color:getOsColor('grey')}"
+			:style="[styleComputed]" type="number" />
+</template>
+
+<script setup>
+	import { getOsColor } from "@/uni_modules/ucs-config/index";
+	import { computed } from "vue";
+	const emits = defineEmits(['update:modelValue']);
+	const props = defineProps({
+		modelValue: {
+			type: String,
+			default: ''
+		},
+		placeholder: {
+			type: String,
+			default: "请输入"
+		},
+		color: {
+			type: String,
+			default: "grey-12"
+		},
+		size: {
+			type: [String, Number],
+			default: 15
+		},
+		align: {
+			type: String,
+			default: "left"
+		},
+		height: {
+			type: [String, Number],
+			default: 55
+		}
+	});
+
+	const styleComputed = computed(() : UTSJSONObject => {
+		let style = {
+			color: `${getOsColor(props.color)}`,
+			fontSize: `${props.size}px`,
+			textAlign: `${props.align}`,
+			height: `${props.height}px`
+		};
+
+		return style;
+	});
+</script>
+
+<style>
+
+</style>

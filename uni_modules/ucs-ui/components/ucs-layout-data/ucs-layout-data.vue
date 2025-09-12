@@ -1,12 +1,14 @@
 <template>
-	<ucs-layout>
+	<ucs-layout :backgroundColor="props.backgroundColor" :headerHeight="props.headerHeight"
+		:footerHeight="props.footerHeight" :sginHeight="props.sginHeight" :isSafeArea="props.isSafeArea"
+		:safeAreaColor="props.safeAreaColor">
 		<template v-slot:header>
 			<slot name="header" />
 		</template>
 
 		<!-- 缺省页状态 -->
 		<view v-if="!dataWorkers.isReady">
-			<ucs-empty-loading :offset-top="32" :offset-bottom="32" />
+			<ucs-empty-loading v-if="isLoading" :offset-top="32" :offset-bottom="32" />
 		</view>
 		<view v-else-if="!dataWorkers.isData && dataWorkers.isReady">
 			<view v-if="props.status== 200">
@@ -42,13 +44,43 @@
 </template>
 
 <script setup lang="uts">
-	import { useSlots, reactive, watch } from "vue";
+	import { reactive, watch, onUnmounted } from "vue";
 	// @ts-ignore
 	import { onPullDownRefresh, onLoad, onShow, onReachBottom } from "@dcloudio/uni-app";
+
+	// 超过设定时间区间未加载数据则显示加载中状态
+	const isLoading = ref<boolean>(false);
+	const isLoadingVar = setTimeout(() => {
+		isLoading.value = true;
+	}, 500);
 
 	const emits = defineEmits(['change']);
 
 	const props = defineProps({
+		backgroundColor: {
+			type: String,
+			default: "transparent"
+		},
+		headerHeight: {
+			type: Number,
+			default: 0
+		},
+		footerHeight: {
+			type: Number,
+			default: 0
+		},
+		sginHeight: {
+			type: Number,
+			default: 0
+		},
+		isSafeArea: {
+			type: Boolean,
+			default: true
+		},
+		safeAreaColor: {
+			type: String,
+			default: "transparent"
+		},
 		period: {
 			type: String,
 			default: "onReady"
@@ -209,7 +241,11 @@
 	// 暴露方法
 	defineExpose({
 		refresh, refreshLoading
-	})
+	});
+	// 卸载组件
+	onUnmounted(() => {
+		clearInterval(isLoadingVar);
+	});
 </script>
 
 <style>
