@@ -1,39 +1,177 @@
 /**
  * 正则
  */
-const regex = (rule : RegExp, value : string) : boolean => {
+const regExp = (rule : UTSRegExp, value : string) : boolean => {
 	return rule.test(value);
 };
-
-
-const checkResult = (item : UTSJSONObject) => {
-	let message = [];
-	switch (item['type']) {
-		case 'string':
-			
-		
-			return false;
+/**
+ * 验证结果
+ */
+const checkResult = (ruleName : string, ruleValue : any, value : any) : boolean => {
+	switch (ruleName) {
+		case "required":
+			// 必须项
+			return !(ruleValue as boolean) || (value as string).length != 0;
+		case "number":
+			// 数值
+			return !(ruleValue as boolean) || regExp(/^-?[1-9][0-9]?.?[0-9]*$/, value as string);
+		case "integer":
+			// 整数
+			return !(ruleValue as boolean) || regExp(/(^[1-9]\d*$)/, value as string);
+		case "float":
+			// 浮点数
+			return !(ruleValue as boolean) || regExp(/^[+-]?\d+(\.\d+)?$/, value as string);
+		case "chn":
+			// 中文
+			return !(ruleValue as boolean) || regExp(/^[\u4e00-\u9fa5]+$/u, value as string);
+		case "chnNum":
+			// 同时包含数字和汉字
+			return !(ruleValue as boolean) || regExp(/^[0-9\u4e00-\u9fa5]+$/u, value as string);
+		case "chnOrNum":
+			// 包含汉字或者数字
+			return !(ruleValue as boolean) || regExp(/^[\u4e00}-\u9fa5]+|[0-9]+$/u, value as string);
+		case "alphaLine":
+			// 英文和下划线，首尾不能是下划线、且不能只是下划线
+			const val = value as string;
+			return !(ruleValue as boolean) || (val.slice(0, 1) != '_' && val.slice(-1) != '_' && regExp(/^[A-Za-z\_]+$/, val));
+		case "landline":
+			// 固定电话号
+			return !(ruleValue as boolean) || regExp(/^(0\d{2,3}-?)?\d{7,8}(-\d{1,6})?$/, value as string);
+		case "mobile":
+			// 手机号
+			return !(ruleValue as boolean) || regExp(/^1[3-9]\d{9}$/, value as string);
+		case "alphaNum":
+			// 字母和数字
+			return !(ruleValue as boolean) || regExp(/^[a-zA-Z]+|[0-9]+$/, value as string);
+		case "zipCode":
+			// 邮政编码
+			return !(ruleValue as boolean) || regExp(/^[0-9]{6}$/, value as string);
+		case "email":
+			// 电子邮箱
+			return !(ruleValue as boolean) || regExp(/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/, value as string);
+		case "idCard":
+			// 身份证
+			return !(ruleValue as boolean) || regExp(/^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/, value as string);
+		case "regExp":
+			// 正则验证
+			return regExp(ruleValue as UTSRegExp, value as string);
+		case "min":
+			// 长度不能小于
+			const val = value as string;
+			return (ruleValue as number) <= val.length;
+		case "max":
+			// 长度不能大于
+			const val = value as string;
+			return (ruleValue as number) >= val.length;
+		case "length":
+			// 长度范围内
+			const val = value as string;
+			const ruleVal = ruleValue as number[];
+			return val.length >= ruleVal[0] && val.length <= ruleVal[1];
+		case "notbetween":
+			// 不在范围之间
+			const val = value as string;
+			const ruleVal = ruleValue as number[];
+			return val.length < ruleVal[0] || val.length > ruleVal[1];
+		case "in":
+			// 数据范围内
+			const ruleVal = ruleValue as string[];
+			return ruleVal.includes(value as string);
+		case "notIn":
+			// 数组不在范围内
+			const ruleVal = ruleValue as string[];
+			return !ruleVal.includes(value as string);
+		case "gt":
+			// 大于某值
+			return (ruleValue as number) < parseFloat(value as string);
+		case "egt":
+			// 大于或等于某值
+			return (ruleValue as number) <= parseFloat(value as string);
+		case "elt":
+			// 小于或等于某值
+			return (ruleValue as number) >= parseFloat(value as string);
+		case "lt":
+			// 小于某值
+			return (ruleValue as number) > parseFloat(value as string);
+		case "eq":
+			// 等于某值
+			return (ruleValue as number) == parseFloat(value as string);
+		case "notEq":
+			// 不等于某值
+			return (ruleValue as number) != parseFloat(value as string);
 		default:
-
-			return false;
+			// 不属于以上验证类型均进行放行
+			return true;
 	}
 }
 
+// 错误信息集
+type validateSingleResultType = {
+	result : boolean;
+	error : string[];
+};
 
+export const validateSingle = (value : any, rule : UTSJSONObject[]) : validateSingleResultType => {
+	const validateResult : validateSingleResultType = {
+		result: true,
+		error: []
+	};
 
-export const validateSingle = (value : any, rule : UTSJSONObject[]) => {
+	rule.forEach(item => {
+		for (let ii in item) {
+			if (ii != 'message') {
+				const result = checkResult(ii, item[ii] as any, value);
+				if (!result) {
+					validateResult.result = false;
+					const message = item['message'] as string | null;
+					if (message != null) {
+						validateResult.error.push(message);
+					};
+				};
+			};
+		};
+	});
 
-}
+	return validateResult;
+};
 
-export const validate = (formData : UTSJSONObject, rules : UTSJSONObject) => {
+// 错误信息集
+type validateResultType = {
+	result : boolean;
+	error : string[];
+	detail : UTSJSONObject;
+};
+
+export const validate = (formData : UTSJSONObject, rules : UTSJSONObject) : validateResultType => {
+
+	const validateResult : validateResultType = {
+		result: true,
+		error: [],
+		detail: {}
+	};
+
 	for (let i in formData) {
 		if (rules[i] != null) {
 			const rule = rules[i] as UTSJSONObject[];
+			validateResult.detail.set(i, [] as string[]);
 			rule.forEach(item => {
-				if (item['type'] == null || item['type'] == '') { item.set("type", "string"); };
-				item.set("formValue", formData[i]);
-				checkResult(item)
+				for (let ii in item) {
+					if (ii != 'message') {
+						const result = checkResult(ii, item[ii] as any, formData[i] as any);
+						if (!result) {
+							validateResult.result = false;
+							const message = item['message'] as string | null;
+							const detail = validateResult.detail[i] as string[];
+							if (message != null) {
+								validateResult.error.push(message);
+								detail.push(message);
+							};
+						};
+					};
+				};
 			})
 		};
-	}
+	};
+
+	return validateResult;
 }
