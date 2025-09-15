@@ -1,17 +1,19 @@
 {
-	"pages": [{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "Ucs Desgin 演示",
-				"navigationStyle": "custom"
-			}
-		},
+	"pages": [
 		{
 			"path": "pages/demo/demo",
 			"style": {
 				"navigationBarTitleText": "Ucs Desgin 演示"
 			}
 		},
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "Ucs Desgin 演示",
+				"navigationStyle": "custom"
+			}
+		},
+		
 		{
 			"path": "pages/config/config",
 			"style": {

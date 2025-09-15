@@ -9,15 +9,18 @@
 				<slot></slot>
 			</view>
 		</view>
+
 	</view>
 </template>
 
 <script setup>
-	import { getCurrentInstance } from 'vue';
-
-	const instance = getCurrentInstance();
-	const parent = instance?.parent;
-	console.log(parent?.props['model'])
+	import { uuid } from './getCurrentInstance.uts';
+	
+	if (uuid() != null) {
+		uni.$on(`${uuid()}`, (e : any) => {
+			console.log(e)
+		})
+	};
 
 	const props = defineProps({
 		prop: {

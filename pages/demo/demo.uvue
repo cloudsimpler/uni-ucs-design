@@ -1,13 +1,45 @@
 <template>
-	<ucs-layout>
-		
-	</ucs-layout>
+	<ucs-form ref="formRef" :model="formData" :rules="rules">
+		<ucs-form-item label="用户名">
+			<ucs-input v-model="formData['userName']" align="right" />
+		</ucs-form-item>
+		<ucs-form-item label="密码">
+			<ucs-input v-model="formData['userPassword']" align="right" />
+		</ucs-form-item>
+
+	</ucs-form>
 </template>
 
 <script setup>
-		
+	import { validate } from "@/uni_modules/ucs-validate";
+
+
+	const formData = ref({
+		userName: "5",
+		userPassword: "1"
+	});
+
+	const rules = {
+		userName: [
+			{ required: true, message: '请输入用户名' },
+			{ eq: 5, message: '密码长度为3-5个字符' }
+		],
+		userPassword: [
+			{ required: true, message: '请输入密码' },
+			{ min: 3, message: '密码长度为3-5个字符' }
+		]
+	}
+	
+	const { result, error, detail } = validate(formData.value, rules);
+		if (result) {
+			console.log("验证通过")
+		} else {
+			console.log("验证失败")
+			console.log(error[0])
+			console.log(detail)
+		}
 </script>
 
 <style>
-		
+
 </style>

@@ -1,8 +1,10 @@
 <template>
 	<slot></slot>
+	<button @tap="callParentMethod">调用子组件方法</button>
 </template>
 
 <script setup>
+	import { onUnmounted } from "vue";
 	const props = defineProps({
 		model: {
 			type: Object,
@@ -11,10 +13,20 @@
 		rules: {
 			type: Object,
 			default: {}
+		},
+		uuid: {
+			type: Number,
+			default: Date.now()
 		}
+	});
+
+	const callParentMethod = () => {
+		uni.$emit(`${props.uuid}`, props.model)
+	};
+
+	onUnmounted(() => {
+		uni.$off(`${props.uuid}`);
 	})
-	
-	
 </script>
 
 <style>

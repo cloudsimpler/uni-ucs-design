@@ -1,5 +1,5 @@
 <template>
-	<ucs-layout safeAreaColor="grey-1">
+	<ucs-layout safeAreaColor="grey-1" :footer-height="50">
 		<template v-slot:header>
 			<ucs-navigation-bar :title="tabbarIndex == 0?'组件':'配置'"></ucs-navigation-bar>
 		</template>

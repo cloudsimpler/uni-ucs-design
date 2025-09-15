@@ -1,15 +1,20 @@
 <template>
 	<input :placeholder="props.placeholder"
-			@input="emits('update:modelValue', ($event.target as UniInputElementImpl).value);" 
-			:value="props.modelValue"
-			:cursor-color="getOsColor('primary')" 
-			:placeholder-style="{color:getOsColor('grey')}"
-			:style="[styleComputed]" type="number" />
+		@input="emits('update:modelValue', ($event.target as UniInputElementImpl).value);" :value="props.modelValue"
+		:cursor-color="getOsColor('primary')" :placeholder-style="{color:getOsColor('grey')}" :style="[styleComputed]"
+		type="number" />
 </template>
 
 <script setup>
 	import { getOsColor } from "@/uni_modules/ucs-config/index";
 	import { computed } from "vue";
+	import { uuid } from './getCurrentInstance.uts';
+
+
+	if (uuid() != null) {
+		
+	};
+
 	const emits = defineEmits(['update:modelValue']);
 	const props = defineProps({
 		modelValue: {
