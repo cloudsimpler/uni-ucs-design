@@ -1,9 +1,9 @@
 <template>
 	<slot></slot>
-	<button @tap="callParentMethod">调用子组件方法</button>
 </template>
 
 <script setup>
+	import { validation as formValidation, validationResultType } from "@/uni_modules/ucs-form-validation";
 	import { onUnmounted } from "vue";
 	const props = defineProps({
 		model: {
@@ -20,9 +20,17 @@
 		}
 	});
 
-	const callParentMethod = () => {
-		uni.$emit(`${props.uuid}`, props.model)
+	const validation = () : validationResultType => {
+		uni.$emit(`${props.uuid}`, {
+			"__ucsModel": props.model,
+			"__ucsRules": props.rules
+		});
+		return formValidation(props.model as UTSJSONObject, props.rules as UTSJSONObject);
 	};
+
+	defineExpose({
+		validation
+	})
 
 	onUnmounted(() => {
 		uni.$off(`${props.uuid}`);

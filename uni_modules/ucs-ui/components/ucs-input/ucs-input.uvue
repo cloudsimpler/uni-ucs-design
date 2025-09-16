@@ -1,6 +1,5 @@
 <template>
-	<input :placeholder="props.placeholder"
-		@input="emits('update:modelValue', ($event.target as UniInputElementImpl).value);" :value="props.modelValue"
+	<input :placeholder="props.placeholder" @input="inputChange" :value="props.modelValue"
 		:cursor-color="getOsColor('primary')" :placeholder-style="{color:getOsColor('grey')}" :style="[styleComputed]"
 		type="number" />
 </template>
@@ -8,14 +7,12 @@
 <script setup>
 	import { getOsColor } from "@/uni_modules/ucs-config/index";
 	import { computed } from "vue";
-	import { uuid } from './getCurrentInstance.uts';
+	import { getCurrentInstance, inject } from 'vue';
 
-
-	if (uuid() != null) {
-		
-	};
-
+	const instance = getCurrentInstance();
+	const parentProps = instance?.parent?.props;
 	const emits = defineEmits(['update:modelValue']);
+	
 	const props = defineProps({
 		modelValue: {
 			type: String,
@@ -42,6 +39,22 @@
 			default: 55
 		}
 	});
+
+	const uuid = parentProps?.get("uuid") as number | null;
+	const formItemProp = parentProps?.get("prop") as string | null;
+	const isVerify = inject("ucsFormItemIsVerify", () : boolean => { return false; }) as (() => boolean) | null;
+
+	const inputChange = (event : UniInputEvent) => {
+		const value = (event.target as UniInputElementImpl).value;
+
+		if (isVerify?.() == true && uuid != null && formItemProp != null) {
+			let tempValue : UTSJSONObject = {};
+			tempValue.set(formItemProp, value)
+			uni.$emit(`${uuid}`, tempValue);
+		};
+
+		emits('update:modelValue', value);
+	}
 
 	const styleComputed = computed(() : UTSJSONObject => {
 		let style = {

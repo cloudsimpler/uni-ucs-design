@@ -4,4 +4,4 @@ export const uuid = () : number | null => {
 	const instance = getCurrentInstance();
 	const parentProps = instance?.parent?.props;
 	return parentProps?.get("uuid") as number | null
-}
+};

@@ -1,12 +1,19 @@
 <template>
-	<view class="__ucs-form-item">
-		<view class="__content">
-			<view class="label">
-				<text class="required">*</text>
-				<ucs-text :size="15">{{props.label}}</ucs-text>
+	<view :style="[getOsBackground('grey-1')]">
+		<view class="V_zGQU" :style="[getOsBorder('bottom','1px','solid','grey-3')]">
+			<view class="zPeF_g" :class="[props.layout]">
+				<view class="joQc_K">
+					<text v-if="isRequired" class="F_fbIs">*</text>
+					<ucs-text :style="{minWidth: isRequired?props.labelWidth:props.labelWidth+12}"
+						:size="15">{{props.label}}</ucs-text>
+				</view>
+				<view class="operation" :style="{minHeight: `${props.minHeight}`}">
+					<slot></slot>
+				</view>
 			</view>
-			<view class="operation" :style="{minHeight: `${props.minHeight}`}">
-				<slot></slot>
+			<view class="NEg_vd" v-if="validationSingleResult.error.length != 0">
+				<ucs-text :size="13" :leading="20" color="danger"
+					v-for="(item,index) in validationSingleResult.error">{{item}}</ucs-text>
 			</view>
 		</view>
 
@@ -14,15 +21,16 @@
 </template>
 
 <script setup>
+	import { getOsBackground, getOsBorder } from "@/uni_modules/ucs-config/index";
+	import { validationSingle, validationSingleResultType } from "@/uni_modules/ucs-form-validation";
 	import { uuid } from './getCurrentInstance.uts';
-	
-	if (uuid() != null) {
-		uni.$on(`${uuid()}`, (e : any) => {
-			console.log(e)
-		})
-	};
+	import { ref, provide } from 'vue';
 
 	const props = defineProps({
+		layout: {
+			type: String,
+			default: "row"
+		},
 		prop: {
 			type: String,
 			default: ""
@@ -30,6 +38,10 @@
 		label: {
 			type: String,
 			default: ""
+		},
+		labelWidth: {
+			type: Number,
+			default: 55
 		},
 		rules: {
 			type: Array,
@@ -56,37 +68,80 @@
 		isEditor: {
 			type: Boolean,
 			default: true
+		},
+		uuid: {
+			type: Number,
+			default: () => {
+				return uuid()
+			}
 		}
-	})
+	});
+	// 验证信息
+	const validationSingleResult = ref<validationSingleResultType>({
+		result: true,
+		error: []
+	});
+	// 子组件的验证状态：是否已经验证过一次
+	let isVerifyVal : boolean = false;
+	const isVerify = () : boolean => { return isVerifyVal; };
+	provide("ucsFormItemIsVerify", isVerify);
+	// 验证规则
+	let itemRules : UTSJSONObject[] = [];
+	// 存在则进行验证
+	if (uuid() != null) {
+		uni.$on(`${uuid()}`, (params : UTSJSONObject) => {
+			if (props.prop != "") {
+				const itemValue = params.getAny(`__ucsModel.${props.prop}`) ?? params.getAny(`${props.prop}`);
+				itemRules = params.getAny(`__ucsRules.${props.prop}`) as UTSJSONObject[] | null ?? itemRules;
+				const fromItemRules = props.rules as UTSJSONObject[];
+				// 获取到值则进行验证
+				if (itemValue != null) {
+					isVerifyVal = true;
+					validationSingleResult.value = validationSingle(itemValue, (fromItemRules.length == 0 ? itemRules : fromItemRules) as UTSJSONObject[]);
+				};
+			};
+		});
+	};
 </script>
 
 <style lang="scss" scoped>
-	.__ucs-form-item {
-		background-color: #ffffff;
+	.V_zGQU {
+		margin: 0 16px;
 
-		.__content {
+		.NEg_vd {
 			display: flex;
-			flex-direction: row;
-			align-items: center;
-			border-bottom: 1px solid #f1f1f1;
-			margin: 0 12px;
+			flex-direction: column;
+			align-items: flex-start;
+			padding-bottom: 6px;
+		}
 
-			.label {
-				display: flex;
+		.zPeF_g {
+			display: flex;
+
+			&.row {
 				flex-direction: row;
-
-				.required {
-					color: red;
-					margin-right: 4px;
-				}
+				align-items: center;
 			}
 
-			.operation {
-				flex: 1;
-				padding-left: 12px;
+			&.col {
+				flex-direction: column;
+				padding-top: 12px;
 			}
 		}
 
+		.joQc_K {
+			display: flex;
+			flex-direction: row;
+			margin-right: 12px;
 
+			.F_fbIs {
+				color: red;
+				width: 12px;
+			}
+		}
+
+		.operation {
+			flex: 1;
+		}
 	}
 </style>

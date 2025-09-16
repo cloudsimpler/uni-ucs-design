@@ -1,43 +1,45 @@
 <template>
-	<ucs-form ref="formRef" :model="formData" :rules="rules">
-		<ucs-form-item label="用户名">
-			<ucs-input v-model="formData['userName']" align="right" />
-		</ucs-form-item>
-		<ucs-form-item label="密码">
-			<ucs-input v-model="formData['userPassword']" align="right" />
-		</ucs-form-item>
-
-	</ucs-form>
+	<view>
+		<ucs-form ref="formRef" :model="formData" :rules="rules">
+			<ucs-form-item isRequired label="用户名" prop="userName">
+				<ucs-input v-model="formData['userName']" />
+			</ucs-form-item>
+			<ucs-form-item isRequired label="密码" prop="userPassword">
+				<ucs-input v-model="formData['userPassword']" />
+			</ucs-form-item>
+			<ucs-form-item label="备注" prop="userPassword">
+				<textarea style="margin-top: 12px;" placeholder="请输入备注"></textarea>
+			</ucs-form-item>
+			<button @tap="callParentMethod">调用子组件方法</button>
+		</ucs-form>
+	</view>
 </template>
 
 <script setup>
-	import { validate } from "@/uni_modules/ucs-validate";
+	import { ref, reactive } from "vue";
 
+	const formRef = ref<UcsFormComponentPublicInstance | null>(null)
 
 	const formData = ref({
-		userName: "5",
-		userPassword: "1"
+		userName: "",
+		userPassword: ""
 	});
 
 	const rules = {
 		userName: [
 			{ required: true, message: '请输入用户名' },
-			{ eq: 5, message: '密码长度为3-5个字符' }
+			{ length: [3, 5], message: '用户名长度为3-5个字符' }
 		],
 		userPassword: [
 			{ required: true, message: '请输入密码' },
-			{ min: 3, message: '密码长度为3-5个字符' }
+			{ min: 3, message: '密码长度为最小为3个字符' }
 		]
+	};
+
+	const callParentMethod = () => {
+		const validationResult = formRef.value?.validation?.();
+		console.log(validationResult)
 	}
-	
-	const { result, error, detail } = validate(formData.value, rules);
-		if (result) {
-			console.log("验证通过")
-		} else {
-			console.log("验证失败")
-			console.log(error[0])
-			console.log(detail)
-		}
 </script>
 
 <style>
