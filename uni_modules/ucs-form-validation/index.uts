@@ -106,13 +106,13 @@ const checkResult = (ruleName : string, ruleValue : any, value : any) : boolean 
 }
 
 // 错误信息集
-type validateSingleResultType = {
+export type validationSingleResultType = {
 	result : boolean;
 	error : string[];
 };
 
-export const validateSingle = (value : any, rule : UTSJSONObject[]) : validateSingleResultType => {
-	const validateResult : validateSingleResultType = {
+export const validationSingle = (value : any, rule : UTSJSONObject[]) : validationSingleResultType => {
+	const validationResult : validationSingleResultType = {
 		result: true,
 		error: []
 	};
@@ -122,29 +122,29 @@ export const validateSingle = (value : any, rule : UTSJSONObject[]) : validateSi
 			if (ii != 'message') {
 				const result = checkResult(ii, item[ii] as any, value);
 				if (!result) {
-					validateResult.result = false;
+					validationResult.result = false;
 					const message = item['message'] as string | null;
 					if (message != null) {
-						validateResult.error.push(message);
+						validationResult.error.push(message);
 					};
 				};
 			};
 		};
 	});
 
-	return validateResult;
+	return validationResult;
 };
 
 // 错误信息集
-type validateResultType = {
+export type validationResultType = {
 	result : boolean;
 	error : string[];
 	detail : UTSJSONObject;
 };
 
-export const validate = (formData : UTSJSONObject, rules : UTSJSONObject) : validateResultType => {
+export const validation = (formData : UTSJSONObject, rules : UTSJSONObject) : validationResultType => {
 
-	const validateResult : validateResultType = {
+	const validationResult : validationResultType = {
 		result: true,
 		error: [],
 		detail: {}
@@ -153,17 +153,17 @@ export const validate = (formData : UTSJSONObject, rules : UTSJSONObject) : vali
 	for (let i in formData) {
 		if (rules[i] != null) {
 			const rule = rules[i] as UTSJSONObject[];
-			validateResult.detail.set(i, [] as string[]);
+			validationResult.detail.set(i, [] as string[]);
 			rule.forEach(item => {
 				for (let ii in item) {
 					if (ii != 'message') {
 						const result = checkResult(ii, item[ii] as any, formData[i] as any);
 						if (!result) {
-							validateResult.result = false;
+							validationResult.result = false;
 							const message = item['message'] as string | null;
-							const detail = validateResult.detail[i] as string[];
+							const detail = validationResult.detail[i] as string[];
 							if (message != null) {
-								validateResult.error.push(message);
+								validationResult.error.push(message);
 								detail.push(message);
 							};
 						};
@@ -173,5 +173,5 @@ export const validate = (formData : UTSJSONObject, rules : UTSJSONObject) : vali
 		};
 	};
 
-	return validateResult;
+	return validationResult;
 }
