@@ -1,13 +1,13 @@
 <template>
-	<view :style="[getOsBackground('grey-1')]">
-		<view class="V_zGQU" :style="[getOsBorder('bottom','1px','solid','grey-3')]">
+	<view class="__ucs-form-item" :style="[getOsBackground('grey-1')]" v-if="props.isDisplay">
+		<view class="V_zGQU" :style="[props.isBorder?getOsBorder('bottom','1px','solid','grey-3'):{}]">
 			<view class="zPeF_g" :class="[props.layout]">
 				<view class="joQc_K">
-					<text v-if="isRequired" class="F_fbIs">*</text>
+					<ucs-text v-if="props.isRequired" class="F_fbIs" color="danger">*</ucs-text>
 					<ucs-text :style="{minWidth: isRequired?props.labelWidth:props.labelWidth+12}"
 						:size="15">{{props.label}}</ucs-text>
 				</view>
-				<view class="operation" :style="{minHeight: `${props.minHeight}`}">
+				<view class="o_QXSc" :style="{minHeight: `${props.height}`}">
 					<slot></slot>
 				</view>
 			</view>
@@ -16,7 +16,6 @@
 					v-for="(item,index) in validationSingleResult.error">{{item}}</ucs-text>
 			</view>
 		</view>
-
 	</view>
 </template>
 
@@ -29,7 +28,7 @@
 	const props = defineProps({
 		layout: {
 			type: String,
-			default: "row"
+			default: "col"
 		},
 		prop: {
 			type: String,
@@ -41,7 +40,7 @@
 		},
 		labelWidth: {
 			type: Number,
-			default: 55
+			default: 60
 		},
 		rules: {
 			type: Array,
@@ -49,23 +48,19 @@
 				return []
 			}
 		},
+		height: {
+			type: [String, Number],
+			default: 55
+		},
 		isBorder: {
 			type: Boolean,
 			default: true
-		},
-		minHeight: {
-			type: [String, Number],
-			default: 55
 		},
 		isRequired: {
 			type: Boolean,
 			default: false
 		},
 		isDisplay: {
-			type: Boolean,
-			default: true
-		},
-		isEditor: {
 			type: Boolean,
 			default: true
 		},
@@ -105,43 +100,45 @@
 </script>
 
 <style lang="scss" scoped>
-	.V_zGQU {
-		margin: 0 16px;
+	.__ucs-form-item {
+		.V_zGQU {
+			margin: 0 16px;
 
-		.NEg_vd {
-			display: flex;
-			flex-direction: column;
-			align-items: flex-start;
-			padding-bottom: 6px;
-		}
-
-		.zPeF_g {
-			display: flex;
-
-			&.row {
-				flex-direction: row;
-				align-items: center;
-			}
-
-			&.col {
+			.NEg_vd {
+				display: flex;
 				flex-direction: column;
-				padding-top: 12px;
+				align-items: flex-end;
+				padding-bottom: 6px;
 			}
-		}
 
-		.joQc_K {
-			display: flex;
-			flex-direction: row;
-			margin-right: 12px;
+			.zPeF_g {
+				display: flex;
 
-			.F_fbIs {
-				color: red;
-				width: 12px;
+				&.row {
+					flex-direction: row;
+					align-items: center;
+				}
+
+				&.col {
+					flex-direction: column;
+					padding-top: 12px;
+				}
 			}
-		}
 
-		.operation {
-			flex: 1;
+			.joQc_K {
+				display: flex;
+				flex-direction: row;
+
+
+				.F_fbIs {
+					width: 12px;
+				}
+			}
+
+			.o_QXSc {
+				flex: 1;
+				padding-left: 12px;
+			}
 		}
 	}
 </style>
