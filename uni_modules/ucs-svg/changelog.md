@@ -1,3 +1,8 @@
+## 1.0.7（2025-09-22）
+- 【官方文档】[ucs-svg 矢量图形](https://ucs.cloudsimpler.com/library/ucs-svg)
+- 【版本兼容】uni-app / uni-app-x
+- 【开发版本】HBuilderX - 4.24+
+- 【修复内容】HBuilderX 4.81版本androidsvg库打包冲突报错问题
 ## 1.0.6（2025-08-22）
 - 【官方文档】[ucs-svg 矢量图形](https://ucs.cloudsimpler.com/library/ucs-svg)
 - 【版本兼容】uni-app / uni-app-x
