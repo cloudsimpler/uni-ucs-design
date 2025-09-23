@@ -1,57 +1,58 @@
 <template>
-	<!-- #ifdef UNI-APP-X && APP -->
-	<scroll-view class="_ucs-scroll-view" :style="{backgroundColor:getOsColor(props.backgroundColor),paddingTop:`${props.headerHeight+(slots['header'] != null?distanceTop:0)}px`,paddingBottom:`${props.footerHeight + (props.isSafeArea?distanceBottom:0)}px`}">
+	<!-- #ifdef UNI-APP-X -->
+	<!-- #ifdef APP -->
+	<scroll-view class="_ucs-scroll-view" :style="{backgroundColor:getOsColor(props.backgroundColor)}">
 	<!-- #endif -->
-		<!-- #ifndef UNI-APP-X && APP -->
-		<view class="_ucs-scroll-view" :style="{backgroundColor:getOsColor(props.backgroundColor),paddingTop:`${props.headerHeight+(slots['header'] != null?distanceTop:0)}px`,paddingBottom:`${props.footerHeight + (props.isSafeArea?distanceBottom:0)}px`}">
+		<!-- #ifndef APP -->
+		<view class="_ucs-scroll-view" :style="{backgroundColor:getOsColor(props.backgroundColor)}">
 		<!-- #endif -->
-			<view class="_ucs-layout-header" :style="{'height':`${props.headerHeight + (slots['header'] != null?distanceTop:0)}px`}">
+			<view class="_ucs-rect-header" :class="{'_ucs-rect-header-change':headerHeight!=0}">
 				<slot name="header" />
 			</view>
-			<view :style="{minHeight:`${windowHeight - (props.headerHeight+(slots['header'] != null?distanceTop:0)) - props.sginHeight- (props.footerHeight + (props.isSafeArea?distanceBottom:0))}px`}">
-				<slot name="default" />
+			<view :style="{paddingTop:`${headerHeight}px`,paddingBottom:`${footerHeight}px`}">
+				<view :style="{minHeight:`${windowHeight- headerHeight - sginHeight- footerHeight}px`}">
+					<slot name="default" />
+				</view>
+				<view class="_ucs-rect-sgin" :style="{opacity: sginHeight}">
+					<slot name="sign" />
+				</view>
 			</view>
-			<view class="_ucs-layout-sgin" :style="{'height':`${props.sginHeight}px`}">
-				<slot name="sign" />
-			</view>
-			<view class="_ucs-layout-footer" :style="{'height':`${props.footerHeight + (props.isSafeArea?distanceBottom:0)}px`}">
+			<view class="_ucs-rect-footer">
 				<slot name="footer" />
-				<ucs-safe-area :backgroundColor="props.safeAreaColor" v-if="props.isSafeArea" />
+				<view v-if="props.isSafeArea" class="_ucs-rect-SafeArea" />
+				<ucs-safe-area :backgroundColor="safeAreaColor" v-if="props.isSafeArea" />
 			</view>
-		<!-- #ifndef UNI-APP-X && APP -->
+		<!-- #ifndef APP -->
 		</view>
 		<!-- #endif -->
-	<!-- #ifdef UNI-APP-X && APP -->
+	<!-- #ifdef APP -->
 	</scroll-view>
+	<!-- #endif -->
+	<!-- #endif -->
+	<!-- #ifndef UNI-APP-X -->
+	<view class="_ucs-scroll-view" :style="{backgroundColor:getOsColor(props.backgroundColor)}">
+		<view class="_ucs-rect-header">
+			<slot name="header" />
+		</view>
+		<view class="_ucs-rect-main">
+			<slot name="default" />
+		</view>
+		<view class="_ucs-rect-sgin">
+			<slot name="sign" />
+		</view>
+		<view class="_ucs-rect-footer">
+			<slot name="footer" />
+			<ucs-safe-area :backgroundColor="safeAreaColor" v-if="props.isSafeArea" />
+		</view>
+	</view>
 	<!-- #endif -->
 </template>
 
 <script setup lang="uts">
-	import { useSlots } from "vue";
-	import { getCurrentPagesUcsStyle,getOsColor } from "@/uni_modules/ucs-config/index";
-	const slots = useSlots();
-	
-	const ucsStyle = getCurrentPagesUcsStyle();
-	const windowHeight = ucsStyle['windowHeight'] as number;
-	const distanceBottom = ucsStyle['distanceBottom'] as number;
-	const distanceTop = ucsStyle['distanceTop'] as number;
-
 	const props = defineProps({
 		backgroundColor: {
 			type: String,
 			default: "transparent"
-		},
-		headerHeight: {
-			type: Number,
-			default: 0
-		},
-		footerHeight: {
-			type: Number,
-			default: 0
-		},
-		sginHeight: {
-			type: Number,
-			default: 0
 		},
 		isSafeArea: {
 			type: Boolean,
@@ -62,35 +63,126 @@
 			default: "transparent"
 		}
 	});
+
+	// #ifdef UNI-APP-X
+	import { ref, getCurrentInstance, nextTick, watch } from "vue";
+	import { defaultConfig } from "@/uni_modules/ucs-config/utssdk/defaultConfig.uts";
+	import { getCurrentPagesUcsStyle, getOsColor } from "@/uni_modules/ucs-config/index";
+
+	const ucsStyle = getCurrentPagesUcsStyle();
+
+	const instance = getCurrentInstance();
+	const watchWindowHeight = ref<number>(0);
+	const windowHeight = ref<number>(0);
+	const headerHeight = ref<number>(0);
+	const sginHeight = ref<number>(0);
+	const footerHeight = ref<number>(0);
+
+	nextTick(() => {
+		// window
+		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-scroll-view').boundingClientRect().exec((ret) => {
+			watchWindowHeight.value = (ret[0] as NodeInfo).height as number;
+		});
+	});
+
+	// 判断数值是否在某个中心值上下一定范围内
+	const isAround = (num : number, center : number, range : number) : boolean => {
+		return num >= center - range && num <= center + range;
+	};
+	// 元素节点查询
+	const boundingClientRect = () => {
+		nextTick(() => {
+			// header
+			uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-header').boundingClientRect().exec((ret) => {
+				headerHeight.value = (ret[0] as NodeInfo).height as number;
+			});
+			// sgin
+			uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-sgin').boundingClientRect().exec((ret) => {
+				sginHeight.value = (ret[0] as NodeInfo).height as number;
+			});
+			// footer
+			uni.createSelectorQuery().in(instance?.proxy).select('._ucs-rect-footer').boundingClientRect().exec((ret) => {
+				footerHeight.value = (ret[0] as NodeInfo).height as number;
+			});
+		});
+	};
+
+	watch(() : number => defaultConfig.osFontSize, () => {
+		boundingClientRect();
+	});
+
+	// 为了处理各端延迟获取不正确问题
+	watch(() : number => watchWindowHeight.value, () => {
+		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-scroll-view').boundingClientRect().exec((ret) => {
+			const windowHeightTemp = (ret[0] as NodeInfo).height as number;
+			if (isAround(windowHeightTemp, ucsStyle['windowHeight'] as number, 2)) {
+				windowHeight.value = windowHeightTemp;
+				boundingClientRect();
+			} else {
+				setTimeout(() => {
+					watchWindowHeight.value += 1;
+				}, 66);
+			};
+		});
+	});
+	// #endif
 </script>
 
 <style lang="scss" scoped>
+	// #ifdef UNI-APP-X
 	._ucs-scroll-view {
-		// #ifdef UNI-APP-X && APP
+		// #ifdef APP
 		flex: 1;
 		// #endif
-		// #ifndef UNI-APP-X && APP
+		// #ifndef APP
 		min-height: 100%;
 		// #endif
 	}
 
-	._ucs-layout-header {
+	._ucs-rect-sgin {
+		transition: opacity 0.3s ease;
+	}
+
+	._ucs-rect-header-change {
 		position: fixed;
 		top: var(--window-top);
 		width: 100%;
 		z-index: 3;
-		overflow: hidden;
 	}
 
-	._ucs-layout-sgin {
-		overflow: hidden;
-	}
-
-	._ucs-layout-footer {
+	._ucs-rect-footer {
 		position: fixed;
 		bottom: 0px;
 		width: 100%;
 		z-index: 3;
-		overflow: hidden;
 	}
+
+	// #endif
+	// #ifndef UNI-APP-X
+	._ucs-scroll-view {
+		min-height: 100%;
+		display: flex;
+		flex-direction: column;
+		position: relative;
+	}
+
+	._ucs-rect-header {
+		position: sticky;
+		z-index: 2;
+		top: var(--window-top);
+	}
+
+	._ucs-rect-main {
+		flex: 1;
+		z-index: 1;
+		position: relative;
+	}
+
+	._ucs-rect-footer {
+		position: sticky;
+		bottom: 0;
+		z-index: 2;
+	}
+
+	// #endif
 </style>

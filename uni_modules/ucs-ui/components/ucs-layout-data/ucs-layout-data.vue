@@ -1,7 +1,5 @@
 <template>
-	<ucs-layout :backgroundColor="props.backgroundColor" :headerHeight="props.headerHeight"
-		:footerHeight="props.footerHeight" :sginHeight="props.sginHeight" :isSafeArea="props.isSafeArea"
-		:safeAreaColor="props.safeAreaColor">
+	<ucs-layout :backgroundColor="props.backgroundColor" :isSafeArea="props.isSafeArea" :safeAreaColor="props.safeAreaColor">
 		<template v-slot:header>
 			<slot name="header" />
 		</template>
@@ -52,7 +50,7 @@
 	const isLoading = ref<boolean>(false);
 	const isLoadingVar = setTimeout(() => {
 		isLoading.value = true;
-	}, 500);
+	}, 300);
 
 	const emits = defineEmits(['change']);
 
@@ -60,18 +58,6 @@
 		backgroundColor: {
 			type: String,
 			default: "transparent"
-		},
-		headerHeight: {
-			type: Number,
-			default: 0
-		},
-		footerHeight: {
-			type: Number,
-			default: 0
-		},
-		sginHeight: {
-			type: Number,
-			default: 0
 		},
 		isSafeArea: {
 			type: Boolean,
