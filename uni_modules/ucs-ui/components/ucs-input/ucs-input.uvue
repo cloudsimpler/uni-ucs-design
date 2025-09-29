@@ -1,7 +1,12 @@
 <template>
-	<input :placeholder="props.placeholder" @input="inputChange" :value="props.modelValue" :disabled="props.isDisabled"
-		:cursor-color="getOsColor('primary')" :placeholder-style="{color:getOsColor('grey')}" :style="[styleComputed]"
-		type="number" />
+	<input :placeholder="props.placeholder" 
+			@input="inputChange" 
+			:value="props.modelValue" 
+			:disabled="props.disabled"
+			:cursor-color="getOsColor('primary')" 
+			:placeholder-style="{color:getOsColor('grey')}" 
+			:style="[styleComputed]"
+			:type="props.type" />
 </template>
 
 <script setup>
@@ -18,13 +23,17 @@
 			type: String,
 			default: ''
 		},
+		type: {
+			type: String,
+			default: "text"
+		},
 		placeholder: {
 			type: String,
 			default: "请输入"
 		},
-		isDisabled: {
+		disabled: {
 			type: Boolean,
-			default: true
+			default: false
 		},
 		color: {
 			type: String,
@@ -40,13 +49,14 @@
 		},
 		height: {
 			type: [String, Number],
-			default: 60
+			default: 55
 		}
 	});
 
 	const uuid = parentProps?.get("uuid") as number | null;
 	const formItemProp = parentProps?.get("prop") as string | null;
 	const formItemHeight = parentProps?.get("height") as number | null;
+	const formItemColumn = parentProps?.get("column") as boolean | null;
 	const isVerify = inject("ucsFormItemIsVerify", () : boolean => { return false; }) as (() => boolean) | null;
 
 	const inputChange = (event : UniInputEvent) => {
@@ -59,14 +69,18 @@
 		};
 
 		emits('update:modelValue', value);
-	}
+	};
 
 	const styleComputed = computed(() : UTSJSONObject => {
 		let style = {
-			color: `${getOsColor(props.isDisabled?'grey-8':'primary')}`,
+			color: `${getOsColor(props.disabled ? 'grey-8' : props.color)}`,
 			fontSize: `${props.size}px`,
 			textAlign: `${props.align}`,
-			height: `${formItemHeight??props.height}px`
+			height: `${formItemHeight ?? props.height}px`
+		};
+
+		if (formItemColumn != null) {
+			style.set("textAlign", formItemColumn ? 'left' : 'right');
 		};
 
 		return style;

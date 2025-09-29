@@ -19,7 +19,6 @@
 			</view>
 			<view class="_ucs-rect-footer">
 				<slot name="footer" />
-				<view v-if="props.isSafeArea" class="_ucs-rect-SafeArea" />
 				<ucs-safe-area :backgroundColor="safeAreaColor" v-if="props.isSafeArea" />
 			</view>
 		<!-- #ifndef APP -->
@@ -121,7 +120,7 @@
 			} else {
 				setTimeout(() => {
 					watchWindowHeight.value += 1;
-				}, 66);
+				}, 69);
 			};
 		});
 	});

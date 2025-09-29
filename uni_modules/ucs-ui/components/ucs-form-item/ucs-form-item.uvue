@@ -1,11 +1,10 @@
 <template>
-	<view class="__ucs-form-item" :style="[getOsBackground('grey-1')]" v-if="props.isDisplay">
-		<view class="V_zGQU" :style="[props.isBorder?getOsBorder('bottom','1px','solid','grey-3'):{}]">
-			<view class="zPeF_g" :class="[props.layout]">
+	<view class="__ucs-form-item" :style="[getOsBackground('grey-1')]" v-if="props.display">
+		<view class="V_zGQU" :style="[props.border?getOsBorder('bottom','1px','solid','grey-3'):{}]">
+			<view class="zPeF_g" :class="[props.column?'col':'row']">
 				<view class="joQc_K">
-					<ucs-text v-if="props.isRequired" class="F_fbIs" color="danger">*</ucs-text>
-					<ucs-text :style="{minWidth: isRequired?props.labelWidth:props.labelWidth+12}"
-						:size="15">{{props.label}}</ucs-text>
+					<ucs-text v-if="props.required" class="F_fbIs" color="danger">*</ucs-text>
+					<ucs-text :size="15">{{props.label}}</ucs-text>
 				</view>
 				<view class="o_QXSc" :style="{minHeight: `${props.height}`}">
 					<slot></slot>
@@ -26,10 +25,6 @@
 	import { ref, provide } from 'vue';
 
 	const props = defineProps({
-		layout: {
-			type: String,
-			default: "col"
-		},
 		prop: {
 			type: String,
 			default: ""
@@ -37,10 +32,6 @@
 		label: {
 			type: String,
 			default: ""
-		},
-		labelWidth: {
-			type: Number,
-			default: 60
 		},
 		rules: {
 			type: Array,
@@ -52,15 +43,19 @@
 			type: [String, Number],
 			default: 55
 		},
-		isBorder: {
+		border: {
 			type: Boolean,
 			default: true
 		},
-		isRequired: {
+		column: {
 			type: Boolean,
 			default: false
 		},
-		isDisplay: {
+		required: {
+			type: Boolean,
+			default: false
+		},
+		display: {
 			type: Boolean,
 			default: true
 		},
@@ -128,6 +123,7 @@
 			.joQc_K {
 				display: flex;
 				flex-direction: row;
+				margin-right: 12px;
 
 
 				.F_fbIs {
@@ -137,7 +133,6 @@
 
 			.o_QXSc {
 				flex: 1;
-				padding-left: 12px;
 			}
 		}
 	}

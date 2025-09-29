@@ -1,0 +1,100 @@
+import { UcsRequestOptions, UcsCustomRequestOptions } from "./interface";
+
+/**
+ * 合并全局请求参数
+ * 将 p2 中的自定义配置合并到 p1 的请求配置中，如果 p1 中已有对应配置则保留，否则使用 p2 的默认值
+ * @param p1 原始请求配置对象
+ * @param p2 自定义请求配置对象，用于提供默认值
+ * @returns 合并后的请求配置对象
+ */
+const mergeGlobalParams = (p1 : UcsRequestOptions, p2 : UcsCustomRequestOptions) : UcsRequestOptions => {
+	p1.development = p2.development;
+	p1.production = p2.production;
+	// #ifdef UNI-APP-X
+	p1.header = UTSJSONObject.assign(p1.header ?? {}, p2.header ?? {});
+	// #endif
+	// #ifndef UNI-APP-X
+	p1.header = Object.assign(p1.header ?? {}, p2.header ?? {});
+	// #endif
+	p1.requestTimeout = p1.requestTimeout ?? p2.requestTimeout;
+	p1.uploadFileTimeout = p1.uploadFileTimeout ?? p2.uploadFileTimeout;
+	p1.downloadFileTimeout = p1.downloadFileTimeout ?? p2.downloadFileTimeout;
+	p1.withCredentials = p1.withCredentials ?? p2.withCredentials;
+	p1.firstIpv4 = p1.firstIpv4 ?? p2.firstIpv4;
+	p1.enableChunked = p1.enableChunked ?? p2.enableChunked;
+	return p1;
+};
+/**
+ * 获取当前环境下的请求前缀
+ * 根据不同平台（App/Web/小程序）和环境（正式/测试/开发）返回对应的请求前缀
+ * @param production 正式环境的请求前缀
+ * @param development 测试/开发环境的请求前缀
+ * @returns 当前环境对应的请求前缀，如果未适配平台则返回正式环境前缀
+ */
+export const getRequestPrefix = (production : string | null, development : string | null) : string | null => {
+	// #ifdef APP || WEB
+	/**
+	 * 正式环境：production
+	 * 测试环境：development
+	 */
+	if (process.env.NODE_ENV == "production") {
+		return production;
+	} else {
+		return development;
+	};
+	// #endif
+	// #ifdef MP-WEIXIN || MP-ALIPAY || MP-QQ || MP-KUAISHOU
+	/**
+	 * 正式版：release
+	 * 开发版：develop
+	 * 体验版：trial
+	 */
+	const accountInfo = uni.getAccountInfoSync();
+	if (accountInfo.miniProgram.envVersion == "release") {
+		return production;
+	} else {
+		return development;
+	};
+	// #endif
+	// 未适配平台则返回正式环境
+	// #ifndef APP || WEB || MP-WEIXIN || MP-ALIPAY || MP-QQ || MP-KUAISHOU
+	return production;
+	// #endif
+};
+/**
+ * 合并请求配置并生成完整请求 URL
+ * 1. 合并全局参数（调用 mergeGlobalParams）
+ * 2. 如果 URL 不是以 http 开头，则拼接请求前缀
+ * @param options 原始请求配置
+ * @param customOptions 自定义请求配置（包含全局默认值）
+ * @returns 合并后的完整请求配置对象
+ */
+export const getMergeOptions = (options : UcsRequestOptions, customOptions : UcsCustomRequestOptions) : UcsRequestOptions => {
+	// 合并全局参数
+	options = mergeGlobalParams(options, customOptions);
+	// 合并请求前缀
+	if (!options.url.startsWith('http')) {
+		const removeLeadingSlash = (str : string) => {
+			if (str.startsWith('/')) {
+				return str.slice(1);
+			}
+			return str;
+		};
+		options.url = `${getRequestPrefix(customOptions.production, customOptions.development)}/${removeLeadingSlash(options.url)}`
+	};
+	return options;
+};
+/**
+ * 合并两个 UTSJSONObject 数组并去重
+ * 使用 JSON.stringify 进行对象比较，确保相同结构的对象只保留一个
+ * @param p1 第一个 UTSJSONObject 数组
+ * @param p2 第二个 UTSJSONObject 数组
+ * @returns 合并并去重后的 UTSJSONObject 数组
+ */
+export const arrayMerge = (p1 : UTSJSONObject[], p2 : UTSJSONObject[]) : UTSJSONObject[] => {
+	const mergedArray = p1.concat(p2);
+	const stringifiedArray = mergedArray.map(obj => JSON.stringify(obj));
+	const uniqueStringSet = new Set(stringifiedArray);
+	const uniqueArray = Array.from(uniqueStringSet).map(str => JSON.parse(str as string) as any);
+	return uniqueArray as UTSJSONObject[];
+};

@@ -1,137 +1,425 @@
-import { getRequestPrefix, osRequestConfig } from "../ucs-config";
-import { UcsRequestOptions } from "./utssdk/interface";
-// 合并去重
-export const getArrayMerge = (p1 : UTSJSONObject[], p2 : UTSJSONObject[]) : UTSJSONObject[] => {
-	const mergedArray = p1.concat(p2);
-	const stringifiedArray = mergedArray.map(obj => JSON.stringify(obj));
-	const uniqueStringSet = new Set(stringifiedArray);
-	const uniqueArray = Array.from(uniqueStringSet).map(str => JSON.parse(str as string) as any);
-	return uniqueArray as UTSJSONObject[];
-};
-// 合并去重刷新
-export const getArrayMergeRefresh = (p1 : UTSJSONObject[], p2 : UTSJSONObject[], refresh : boolean) : UTSJSONObject[] => {
-	if (refresh) {
-		return p2;
-	} else {
-		return getArrayMerge(p1, p2);
+/**
+ * 请求拦截器队列
+ */
+import { UcsRequestOptions, UcsCustomRequestOptions } from "./utssdk/interface";
+import { arrayMerge, getRequestPrefix, getMergeOptions } from "./utssdk/tools";
+/**
+ * 请求体属性
+ */
+export type { UcsRequestOptions };
+
+/**
+ * 请求前拦截器类型定义
+ * @param options - 请求参数
+ * @returns 处理后的请求参数
+ */
+type BeforeRequestInterceptor = (options : UcsRequestOptions) => Promise<UcsRequestOptions>;
+
+/**
+ * 请求成功拦截器类型定义
+ * @param response - 响应数据
+ * @returns 处理后的响应数据
+ */
+type SuccessRequestInterceptor = (response : UTSJSONObject) => Promise<UTSJSONObject>;
+
+/**
+ * 请求失败拦截器类型定义
+ * @param fail - 失败信息
+ * @returns 处理后的失败信息
+ */
+type FailRequestInterceptor = (fail : UTSJSONObject) => Promise<UTSJSONObject>;
+
+/**
+ * 请求完成拦截器类型定义（无论成功或失败都会执行）
+ * @param all - 完整响应数据
+ * @returns 处理后的响应数据
+ */
+type CompleteRequestInterceptor = (all : UTSJSONObject) => Promise<UTSJSONObject>;
+
+/**
+ * 请求管理器类
+ * 提供请求拦截、全局配置、请求发起等功能
+ */
+export class RequestManager {
+	/**
+	 * 合并两个数组并去重
+	 * @param p1 - 第一个数组
+	 * @param p2 - 第二个数组
+	 * @returns 合并去重后的新数组
+	 */
+	getArrayMerge(p1 : UTSJSONObject[], p2 : UTSJSONObject[]) : UTSJSONObject[] {
+		return arrayMerge(p1, p2);
 	};
-};
 
-const getJsonMerge = (p1 : UTSJSONObject, p2 : UTSJSONObject) : UTSJSONObject => {
-	// #ifdef UNI-APP-X
-	return UTSJSONObject.assign(p1, p2);
-	// #endif
-	// #ifndef UNI-APP-X
-	return Object.assign(p1, p2);
-	// #endif
-};
-
-const optionsRetrieval = (options : UcsRequestOptions) => {
-	let params = {};
-	for (let i in options) {
-		if (options[i] !== null && !['success', 'fail', 'complete'].includes(i)) {
-			params[i] = options[i]
-		};
-	};
-
-	if (params.hasOwnProperty('header')) {
-		params.header = getJsonMerge(osRequestConfig.header as UTSJSONObject, params.header as UTSJSONObject)
-	};
-
-	const url = params['url'] as string | null;
-	if (url != null && typeof url == 'string' && url.startsWith('http')) {
-		// 完整地址，直接复用
-	} else {
-		// 检查是否存在“/”，存在则移除
-		const removeLeadingSlash = (str : string) => {
-			if (str.startsWith('/')) {
-				return str.slice(1);
-			}
-			return str;
-		};
-		// 拼接地址
-		params.url = `${getRequestPrefix()}/${removeLeadingSlash(params.url as string)}`;
-	}
-
-	return getJsonMerge(osRequestConfig, params);
-};
-
-const requestPreposition = (method : string, options : UcsRequestOptions) => {
-	uni.$emit("ucsRequestInterception", { type: "invoke", content: options });
-	const params = JSON.parse(JSON.stringify(optionsRetrieval(options))) as UTSJSONObject;
-	uni.request({
-		method: method,
-		url: params.url as string,
-		data: params.data as UTSJSONObject,
-		header: params.header as UTSJSONObject,
-		timeout: params.timeout as number,
-		withCredentials: params.withCredentials as boolean,
-		firstIpv4: params.firstIpv4 as boolean,
-		enableChunked: params.enableChunked as boolean,
-		success: (res) => {
-			options.success?.(res);
-			options.complete?.(res);
-			uni.$emit("ucsRequestInterception", { type: "success", content: res });
-		},
-		fail: (err) => {
-			options.fail?.(err);
-			options.complete?.(err);
-			uni.$emit("ucsRequestInterception", { type: "fail", content: err });
-		},
-		complete: (log) => {
-			uni.$emit("ucsRequestInterception", { type: "complete", content: log });
-			if (params.log as boolean) {
-				// #ifdef UNI-APP-X
-				console.log(UTSJSONObject.assign(JSON.parse(JSON.stringify(log)) as IUTSObject, { "requestDetails": params }))
-				// #endif
-				// #ifndef UNI-APP-X
-				console.log(Object.assign(log, { "requestDetails": params }))
-				// #endif
-			};
-		}
-	})
-}
-
-export class http {
-	// 合并去重刷新
-	static getArrayMergeRefresh(p1 : UTSJSONObject[], p2 : UTSJSONObject[], refresh : boolean) : UTSJSONObject[] {
+	/**
+	 * 合并两个数组，可选择是否刷新
+	 * @param p1 - 第一个数组
+	 * @param p2 - 第二个数组
+	 * @param refresh - 是否刷新（true则直接返回p2，false则合并去重）
+	 * @returns 合并后的数组
+	 */
+	getArrayMergeRefresh(p1 : UTSJSONObject[], p2 : UTSJSONObject[], refresh : boolean) : UTSJSONObject[] {
 		if (refresh) {
 			return p2;
 		} else {
 			return getArrayMerge(p1, p2);
 		};
 	};
-	// 合并去重
-	static getArrayMerge(p1 : UTSJSONObject[], p2 : UTSJSONObject[]) : UTSJSONObject[] {
-		return getArrayMerge(p1, p2);
+
+	// 请求前拦截器队列
+	private beforeRequestInterceptors : BeforeRequestInterceptor[] = [];
+
+	/**
+	 * 添加请求前拦截器
+	 * @param interceptor - 拦截器函数
+	 */
+	useBeforeRequestInterceptor(interceptor : BeforeRequestInterceptor) {
+		this.beforeRequestInterceptors.push(interceptor);
+	}
+
+	/**
+	 * 执行所有请求前拦截器
+	 * @param requestOptions - 请求参数
+	 * @returns 处理后的请求参数
+	 */
+	private async runBeforeRequestInterceptors(requestOptions : UcsRequestOptions) : Promise<UcsRequestOptions> {
+		for (const interceptor of this.beforeRequestInterceptors) {
+			requestOptions = await interceptor(requestOptions);
+		}
+		return requestOptions;
 	};
 
-	static get(options : UcsRequestOptions) {
-		requestPreposition("GET", options)
+	// 请求成功拦截器队列
+	private successRequestInterceptors : SuccessRequestInterceptor[] = [];
+
+	/**
+	 * 添加请求成功拦截器
+	 * @param interceptor - 拦截器函数
+	 */
+	useSuccessRequestInterceptor(interceptor : SuccessRequestInterceptor) {
+		this.successRequestInterceptors.push(interceptor);
+	}
+
+	/**
+	 * 执行所有请求成功拦截器
+	 * @param response - 响应数据
+	 */
+	private async runSuccessRequestInterceptors(response : UTSJSONObject) : Promise<UTSJSONObject> {
+		for (const interceptor of this.successRequestInterceptors) {
+			response = await interceptor(response);
+		};
+		return response
 	};
 
-	static post(options : UcsRequestOptions) {
-		requestPreposition("POST", options)
+	// 请求失败拦截器队列
+	private failRequestInterceptors : FailRequestInterceptor[] = [];
+
+	/**
+	 * 添加请求失败拦截器
+	 * @param interceptor - 拦截器函数
+	 */
+	useFailRequestInterceptor(interceptor : FailRequestInterceptor) {
+		this.failRequestInterceptors.push(interceptor);
+	}
+
+	/**
+	 * 执行所有请求失败拦截器
+	 * @param fail - 失败信息
+	 */
+	private async runFailRequestInterceptors(fail : UTSJSONObject) : Promise<UTSJSONObject> {
+		for (const interceptor of this.failRequestInterceptors) {
+			fail = await interceptor(fail);
+		};
+		return fail;
 	};
 
-	static put(options : UcsRequestOptions) {
-		requestPreposition("PUT", options)
+	// 请求完成拦截器队列（无论成功或失败都会执行）
+	private completeRequestInterceptors : CompleteRequestInterceptor[] = [];
+
+	/**
+	 * 添加请求完成拦截器
+	 * @param interceptor - 拦截器函数
+	 */
+	useCompleteRequestInterceptor(interceptor : CompleteRequestInterceptor) {
+		this.completeRequestInterceptors.push(interceptor);
+	}
+
+	/**
+	 * 执行所有请求完成拦截器
+	 * @param all - 完整响应数据
+	 */
+	private async runCompleteRequestInterceptors(all : UTSJSONObject) : Promise<UTSJSONObject> {
+		for (const interceptor of this.completeRequestInterceptors) {
+			all = await interceptor(all);
+		};
+		return all;
 	};
 
-	static patch(options : UcsRequestOptions) {
-		requestPreposition("PATCH", options)
+	// 全局默认请求参数
+	private customRequestOptions : UcsCustomRequestOptions = {};
+
+	/**
+	 * 设置全局默认请求参数
+	 * @param options - 自定义请求参数
+	 */
+	setRequestConfig(options : UcsCustomRequestOptions) {
+		this.customRequestOptions = options;
 	};
 
-	static delete(options : UcsRequestOptions) {
-		requestPreposition("DELETE", options)
+	/**
+	 * 获取当前设置的全局请求参数
+	 * @returns 包含环境信息的全局请求参数
+	 */
+	getRequestConfig() {
+		this.customRequestOptions.env = getRequestPrefix(this.customRequestOptions.production, this.customRequestOptions.development);
+		return this.customRequestOptions;
 	};
 
-	static head(options : UcsRequestOptions) {
-		requestPreposition("HEAD", options)
+	/**
+	 * 发起网络请求
+	 * @param method - 请求方法（GET/POST/PUT等）
+	 * @param options - 请求参数
+	 * @returns RequestTask实例
+	 */
+	async request(method : string, options : UcsRequestOptions) : Promise<RequestTask> {
+		// 合并全局参数
+		options = getMergeOptions(options, this.customRequestOptions);
+		// 拦截器状态
+		const closeInterceptor = !(options.closeInterceptor ?? false);
+		// 执行所有请求之前的拦截器
+		if (closeInterceptor) {
+			options = await this.runBeforeRequestInterceptors(options);
+		};
+		// 发起请求
+		const requestTask : RequestTask = await uni.request({
+			method: method,
+			url: options.url,
+			data: options.data,
+			header: options.header,
+			timeout: options.requestTimeout ?? 60000,
+			withCredentials: options.withCredentials,
+			firstIpv4: options.firstIpv4,
+			enableChunked: options.enableChunked,
+			success: (res) => {
+				(async () => {
+					let transferJson = JSON.parse(JSON.stringify(res)) as UTSJSONObject;
+					transferJson.set("requestDetail", options);
+					if (closeInterceptor) {
+						transferJson = await this.runSuccessRequestInterceptors(transferJson);
+					};
+					options.success?.(transferJson);
+				})();
+			},
+			fail: (fail) => {
+				(async () => {
+					let transferJson = JSON.parse(JSON.stringify(fail)) as UTSJSONObject;
+					transferJson.set("requestDetail", options);
+					if (closeInterceptor) {
+						transferJson = await this.runFailRequestInterceptors(transferJson);
+					};
+					options.success?.(transferJson);
+				})();
+			},
+			complete: (all) => {
+				(async () => {
+					let transferJson = JSON.parse(JSON.stringify(all)) as UTSJSONObject;
+					transferJson.set("requestDetail", options);
+					if (closeInterceptor) {
+						transferJson = await this.runCompleteRequestInterceptors(transferJson);
+					};
+					options.complete?.(transferJson);
+				})();
+			}
+		});
+		// 返回请求Task
+		options.requestTask?.(requestTask);
+
+		return requestTask;
 	};
 
-	static options(options : UcsRequestOptions) {
-		requestPreposition("OPTIONS", options)
+	/**
+	 * 发起GET请求
+	 * @param options - 请求参数
+	 * @returns RequestTask实例
+	 */
+	async get(options : UcsRequestOptions) {
+		return await this.request("GET", options);
 	};
 
-}
+	/**
+	 * 发起POST请求
+	 * @param options - 请求参数
+	 * @returns RequestTask实例
+	 */
+	async post(options : UcsRequestOptions) {
+		return await this.request("POST", options);
+	};
+
+	/**
+	 * 发起PUT请求
+	 * @param options - 请求参数
+	 * @returns RequestTask实例
+	 */
+	async put(options : UcsRequestOptions) {
+		return await this.request("PUT", options);
+	};
+
+	/**
+	 * 发起PATCH请求
+	 * @param options - 请求参数
+	 * @returns RequestTask实例
+	 */
+	async patch(options : UcsRequestOptions) {
+		return await this.request("PATCH", options);
+	};
+
+	/**
+	 * 发起DELETE请求
+	 * @param options - 请求参数
+	 * @returns RequestTask实例
+	 */
+	async delete(options : UcsRequestOptions) {
+		return await this.request("DELETE", options);
+	};
+
+	/**
+	 * 发起HEAD请求
+	 * @param options - 请求参数
+	 * @returns RequestTask实例
+	 */
+	async head(options : UcsRequestOptions) {
+		return await this.request("HEAD", options);
+	};
+
+	/**
+	 * 发起OPTIONS请求
+	 * @param options - 请求参数
+	 * @returns RequestTask实例
+	 */
+	async options(options : UcsRequestOptions) {
+		return await this.request("OPTIONS", options);
+	};
+
+	/**
+	 * 上传文件
+	 * @param options - 上传参数
+	 * @returns UploadTask实例
+	 */
+	async uploadFile(options : UcsRequestOptions) : Promise<UploadTask> {
+		// 合并全局参数
+		options = getMergeOptions(options, this.customRequestOptions);
+		// 拦截器状态
+		const closeInterceptor = !(options.closeInterceptor ?? false);
+		// 执行所有请求之前的拦截器
+		if (closeInterceptor) {
+			options = await this.runBeforeRequestInterceptors(options);
+		};
+		// 发起上传请求
+		const uploadTask : UploadTask = await uni.uploadFile({
+			url: options.url,
+			filePath: options.filePath,
+			name: options.name,
+			files: options.files,
+			header: options.header,
+			formData: options.formData,
+			timeout: options.uploadFileTimeout ?? 120000,
+			success: (res) => {
+				(async () => {
+					let transferJson = JSON.parse(JSON.stringify(res)) as UTSJSONObject;
+					transferJson.set("requestDetail", options);
+					if (closeInterceptor) {
+						transferJson = await this.runSuccessRequestInterceptors(transferJson);
+					};
+					options.success?.(transferJson);
+				})();
+			},
+			fail: (fail) => {
+				(async () => {
+					let transferJson = JSON.parse(JSON.stringify(fail)) as UTSJSONObject;
+					transferJson.set("requestDetail", options);
+					if (closeInterceptor) {
+						transferJson = await this.runFailRequestInterceptors(transferJson);
+					};
+					options.success?.(transferJson);
+				})();
+			},
+			complete: (all) => {
+				(async () => {
+					let transferJson = JSON.parse(JSON.stringify(all)) as UTSJSONObject;
+					transferJson.set("requestDetail", options);
+					if (closeInterceptor) {
+						transferJson = await this.runCompleteRequestInterceptors(transferJson);
+					};
+					options.complete?.(transferJson);
+				})();
+			}
+		});
+		// 返回上传Task
+		options.uploadTask?.(uploadTask);
+
+		return uploadTask;
+	};
+
+	/**
+	 * 下载文件
+	 * @param options - 下载参数
+	 * @returns DownloadTask实例
+	 */
+	async downloadFile(options : UcsRequestOptions) : Promise<DownloadTask> {
+		// 合并全局参数
+		options = getMergeOptions(options, this.customRequestOptions);
+		// 拦截器状态
+		const closeInterceptor = !(options.closeInterceptor ?? false);
+		// 执行所有请求之前的拦截器
+		if (closeInterceptor) {
+			options = await this.runBeforeRequestInterceptors(options);
+		};
+		// 发起下载请求
+		const downloadTask : DownloadTask = await uni.downloadFile({
+			url: options.url,
+			header: options.header,
+			filePath: options.filePath,
+			timeout: options.downloadFileTimeout ?? 120000,
+			success: (res) => {
+				(async () => {
+					let transferJson = JSON.parse(JSON.stringify(res)) as UTSJSONObject;
+					transferJson.set("requestDetail", options);
+					if (closeInterceptor) {
+						transferJson = await this.runSuccessRequestInterceptors(transferJson);
+					};
+					options.success?.(transferJson);
+				})();
+			},
+			fail: (fail) => {
+				(async () => {
+					let transferJson = JSON.parse(JSON.stringify(fail)) as UTSJSONObject;
+					transferJson.set("requestDetail", options);
+					if (closeInterceptor) {
+						transferJson = await this.runFailRequestInterceptors(transferJson);
+					};
+					options.success?.(transferJson);
+				})();
+			},
+			complete: (all) => {
+				(async () => {
+					let transferJson = JSON.parse(JSON.stringify(all)) as UTSJSONObject;
+					transferJson.set("requestDetail", options);
+					if (closeInterceptor) {
+						transferJson = await this.runCompleteRequestInterceptors(transferJson);
+					};
+					options.complete?.(transferJson);
+				})();
+			}
+		});
+		// 返回下载Task
+		options.downloadTask?.(downloadTask);
+
+		return downloadTask;
+	};
+};
+
+/**
+ * 默认导出的HTTP请求实例
+ * 可直接使用此实例发起请求
+ */
+export const http = new RequestManager();

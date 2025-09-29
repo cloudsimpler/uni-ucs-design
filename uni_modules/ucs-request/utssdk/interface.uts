@@ -1,12 +1,48 @@
+/**
+ * 请求属性类型
+ */
 export type UcsRequestOptions = {
 	url : string;
-	data ?: any;
-	header ?: UTSJSONObject;
-	timeout ?: number;
-	withCredentials ?: boolean;
-	firstIpv4 ?: boolean;
-	enableChunked ?: boolean;
-	success ?: (res : RequestSuccess<any>) => void;
-	fail ?: (res : RequestFail) => void;
-	complete ?: (res : any) => void;
+	// request 属性
+	data ?: any | null;
+	header ?: UTSJSONObject | null;
+	timeout ?: number | null;
+	withCredentials ?: boolean | null;
+	firstIpv4 ?: boolean | null;
+	enableChunked ?: boolean | null;
+	// uploadFile 属性
+	name ?: string | null;
+	files ?: Array<UploadFileOptionFiles> | null;
+	formData ?: UTSJSONObject | null;
+	// uploadFile 和 downloadFile 共有属性
+	filePath ?: string | null;
+	requestTask ?: (task : RequestTask) => void;
+	uploadTask ?: (task : UploadTask) => void;
+	downloadTask ?: (task : DownloadTask) => void;
+	// 公共属性
+	success ?: (res : UTSJSONObject) => void;
+	fail ?: (res : UTSJSONObject) => void;
+	complete ?: (res : UTSJSONObject) => void;
+	// 自定义属性
+	development ?: string | null;
+	production ?: string | null;
+	requestTimeout ?: number | null;
+	uploadFileTimeout ?: number | null;
+	downloadFileTimeout ?: number | null;
+	closeInterceptor ?: boolean | null;
+};
+/**
+ * 全局请求属性类型
+ */
+export type UcsCustomRequestOptions = {
+	env ?: string | null;
+	development ?: string | null;
+	production ?: string | null;
+	header ?: UTSJSONObject | null;
+	requestTimeout ?: number | null;
+	uploadFileTimeout ?: number | null;
+	downloadFileTimeout ?: number | null;
+	withCredentials ?: boolean | null;
+	firstIpv4 ?: boolean | null;
+	enableChunked ?: boolean | null;
 }

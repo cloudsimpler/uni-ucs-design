@@ -1,16 +1,16 @@
 {
   "id": "ucs-request",
-  "displayName": "【支持鸿蒙】ucs-request 请求库",
-  "version": "1.0.4",
-  "description": "通过将网络请求的通用逻辑（如发送请求、处理响应、错误捕获、日志记录等）抽象为可复用的代码模块，以提高代码的可维护性、可扩展性和一致性。",
+  "displayName": "ucs-request",
+  "version": "1.0.0",
+  "description": "ucs-request",
   "keywords": [
-    "request,请求库"
-],
-  "repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-request",
+    "ucs-request"
+  ],
+  "repository": "",
   "engines": {
     "HBuilderX": "^3.6.8",
-    "uni-app": "^4.72",
-    "uni-app-x": "^4.72"
+    "uni-app": "^3.1.0",
+    "uni-app-x": "^3.1.0"
   },
   "dcloudext": {
     "type": "uts",
@@ -26,69 +26,69 @@
       "qq": ""
     },
     "declaration": {
-      "ads": "无",
-      "data": "插件不采集任何数据",
-      "permissions": "无"
+      "ads": "",
+      "data": "",
+      "permissions": ""
     },
     "npmurl": "",
-    "darkmode": "x",
-    "i18n": "x",
-    "widescreen": "x"
+    "darkmode": "-",
+    "i18n": "-",
+    "widescreen": "-"
   },
   "uni_modules": {
-    "dependencies": ["ucs-config"],
+    "dependencies": [],
     "encrypt": [],
     "platforms": {
       "cloud": {
-        "tcb": "√",
-        "aliyun": "√",
-        "alipay": "√"
+        "tcb": "-",
+        "aliyun": "-",
+        "alipay": "-"
       },
       "client": {
         "uni-app": {
           "vue": {
-            "vue2": "x",
-            "vue3": "√"
+            "vue2": "-",
+            "vue3": "-"
           },
           "web": {
-            "safari": "√",
-            "chrome": "√"
+            "safari": "-",
+            "chrome": "-"
           },
           "app": {
-            "vue": "√",
-            "nvue": "√",
-            "android": "√",
-            "ios": "√",
-            "harmony": "√"
+            "vue": "-",
+            "nvue": "-",
+            "android": "-",
+            "ios": "-",
+            "harmony": "-"
           },
           "mp": {
-            "weixin": "√",
-            "alipay": "√",
-            "toutiao": "√",
-            "baidu": "√",
-            "kuaishou": "√",
-            "jd": "√",
-            "harmony": "√",
-            "qq": "√",
-            "lark": "√"
+            "weixin": "-",
+            "alipay": "-",
+            "toutiao": "-",
+            "baidu": "-",
+            "kuaishou": "-",
+            "jd": "-",
+            "harmony": "-",
+            "qq": "-",
+            "lark": "-"
           },
           "quickapp": {
-            "huawei": "√",
-            "union": "√"
+            "huawei": "-",
+            "union": "-"
           }
         },
         "uni-app-x": {
           "web": {
-            "safari": "√",
-            "chrome": "√"
+            "safari": "-",
+            "chrome": "-"
           },
           "app": {
-            "android": "√",
-            "ios": "√",
-            "harmony": "√"
+            "android": "-",
+            "ios": "-",
+            "harmony": "-"
           },
           "mp": {
-            "weixin": "√"
+            "weixin": "-"
           }
         }
       }
