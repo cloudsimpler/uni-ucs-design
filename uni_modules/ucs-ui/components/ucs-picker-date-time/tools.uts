@@ -1,0 +1,169 @@
+const now = new Date();
+
+// 判断是否闰年还是平年，返回2月份天数
+export const getDaysInMonth = (year : number, month : number) => {
+	return new Date(year, month, 0).getDate();
+};
+
+export const currentDateTime = () : string => {
+	const year = now.getFullYear(); // 年份（4位）
+	const month = now.getMonth() + 1; // 月份（0-11，需+1）
+	const day = now.getDate(); // 日（1-31）
+	const hours = now.getHours(); // 小时（0-23）
+	const minutes = now.getMinutes(); // 分钟（0-59）
+	const seconds = now.getSeconds(); // 秒（0-59）
+	return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+export const defaultDateTime = (str : string) : string => {
+	const currentYear = now.getFullYear();
+	return str == 'start' ? `${currentYear - 100}-01-01 00:00:00` : `${currentYear + 100}-01-01 00:00:00`
+}
+/**
+ * 解析 "YYYY-MM-DD HH:mm:ss" 格式的时间字符串
+ * @param {string} timeStr - 时间字符串，例如 "1925-01-01 00:00:00 / 1925-1-1 00:00:00"
+ * @returns {object} 包含年月日时分秒的对象
+ */
+type parseDateTimeType = {
+	year : number;
+	month : number;
+	day : number;
+	hour : number;
+	minute : number;
+	second : number;
+}
+
+export const parseDateTime = (timeStr : string) : parseDateTimeType => {
+	const [datePart, timePart] = timeStr.split(' ');
+	const [year, month, day] = datePart.split('-');
+	const [hour, minute, second] = timePart.split(':');
+	return {
+		year: parseInt(year, 10),
+		month: parseInt(month, 10),
+		day: parseInt(day, 10),
+		hour: parseInt(hour, 10),
+		minute: parseInt(minute, 10),
+		second: parseInt(second, 10)
+	} as parseDateTimeType;
+};
+/**
+ * 限制一个时间值在指定的开始和结束时间范围内。
+ * @param {string} valueStr - 需要检查的时间字符串。
+ * @param {string} startStr - 范围的开始时间字符串。
+ * @param {string} endStr - 范围的结束时间字符串。
+ * @returns {string} 返回最终确定的时间字符串。
+ */
+export const clampTime = (startStr : string, endStr : string, valueStr : string) : string => {
+	// new Date() 可以直接解析 "YYYY-MM-DD HH:mm:ss" 格式
+	const valueDate = new Date(valueStr);
+	const startDate = new Date(startStr);
+	const endDate = new Date(endStr);
+
+	if (valueDate < startDate) {
+		return startStr;
+	} else if (valueDate > endDate) {
+		return endStr;
+	} else {
+		return valueStr;
+	}
+}
+
+export const getYearsList = (start : string, end : string, value : string) : UTSJSONObject => {
+	let combinedJson : UTSJSONObject = {};
+	let combinedValue : number[] = [0, 0, 0, 0, 0, 0];
+
+	const s1 = parseDateTime(start) as parseDateTimeType;
+	const s2 = parseDateTime(end) as parseDateTimeType;
+	const s3 = parseDateTime(clampTime(start, end, value)) as parseDateTimeType;
+	// 年份
+	let tempYearList : number[] = [];
+	for (let i = s1.year; i <= s2.year; i++) { tempYearList.push(i); };
+	combinedJson.set("year", tempYearList);
+	combinedValue[0] = tempYearList.indexOf(s3.year) == -1 ? tempYearList.length - 1 : tempYearList.indexOf(s3.year);
+	// 最低年份
+	const earliestYear = tempYearList[0];
+	// 最高年份
+	const maximumYear = tempYearList[tempYearList.length - 1];
+	// 需验证年份
+	const needVerifyYear = [earliestYear, maximumYear];
+	const tempMonthIndex = needVerifyYear.indexOf(s3.year);
+	// 月份
+	let tempMonthList : number[] = [];
+
+	if (tempMonthIndex != -1) {
+		if (tempMonthIndex == 0) {
+			for (let i = s1.month; i <= 12; i++) { tempMonthList.push(i); };
+		};
+		if (tempMonthIndex == 1) {
+			for (let i = 1; i <= s2.month; i++) { tempMonthList.push(i); };
+		};
+	} else {
+		for (let i = 1; i <= 12; i++) { tempMonthList.push(i); };
+	};
+
+	combinedJson.set("month", tempMonthList)
+	combinedValue[1] = tempMonthList.indexOf(s3.month) == -1 ? tempMonthList.length - 1 : tempMonthList.indexOf(s3.month);
+	// 日
+	let tempDayList : number[] = [];
+	const currentMonthDay = getDaysInMonth(s3.year, s3.month);
+	if (tempMonthIndex != -1) {
+		if (tempMonthIndex == 0) {
+			for (let i = s1.day; i <= currentMonthDay; i++) { tempDayList.push(i); };
+		};
+		if (tempMonthIndex == 1) {
+			for (let i = 1; i <= s2.day; i++) { tempDayList.push(i); };
+		};
+	} else {
+		for (let i = 1; i <= currentMonthDay; i++) { tempDayList.push(i); };
+	};
+	combinedJson.set("day", tempDayList)
+	combinedValue[2] = tempDayList.indexOf(s3.day) == -1 ? tempDayList.length - 1 : tempDayList.indexOf(s3.day);
+
+	// 时
+	let tempHourList : number[] = [];
+	if (tempMonthIndex != -1) {
+		if (tempMonthIndex == 0) {
+			for (let i = s1.hour; i <= 23; i++) { tempHourList.push(i); };
+		};
+		if (tempMonthIndex == 1) {
+			for (let i = 0; i <= s2.hour; i++) { tempHourList.push(i); };
+		};
+	} else {
+		for (let i = 0; i <= 23; i++) { tempHourList.push(i); };
+	};
+	combinedJson.set("hour", tempHourList)
+	combinedValue[3] = tempHourList.indexOf(s3.hour) == -1 ? tempHourList.length - 1 : tempHourList.indexOf(s3.hour);
+	// 分
+	let tempMinuteList : number[] = [];
+	if (tempMonthIndex != -1) {
+		if (tempMonthIndex == 0) {
+			for (let i = s1.minute; i <= 59; i++) { tempMinuteList.push(i); };
+		};
+		if (tempMonthIndex == 1) {
+			for (let i = 0; i <= s2.minute; i++) { tempMinuteList.push(i); };
+		};
+	} else {
+		for (let i = 0; i <= 59; i++) { tempMinuteList.push(i); };
+	};
+	combinedJson.set("minute", tempMinuteList)
+	combinedValue[4] = tempMinuteList.indexOf(s3.minute) == -1 ? tempMinuteList.length - 1 : tempMinuteList.indexOf(s3.minute);
+	// 秒
+	let tempSecondList : number[] = [];
+	if (tempMonthIndex != -1) {
+		if (tempMonthIndex == 0) {
+			for (let i = s1.second; i <= 59; i++) { tempSecondList.push(i); };
+		};
+		if (tempMonthIndex == 1) {
+			for (let i = 0; i <= s2.second; i++) { tempSecondList.push(i); };
+		};
+	} else {
+		for (let i = 0; i <= 59; i++) { tempSecondList.push(i); };
+	};
+	combinedJson.set("second", tempSecondList)
+	combinedValue[5] = tempSecondList.indexOf(s3.second) == -1 ? tempSecondList.length - 1 : tempSecondList.indexOf(s3.second);
+
+	return {
+		"dateTimeList": combinedJson,
+		"dateTimeIndex": combinedValue
+	}
+}
