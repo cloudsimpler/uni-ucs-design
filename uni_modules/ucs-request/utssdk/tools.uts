@@ -1,4 +1,4 @@
-import { UcsRequestOptions, UcsCustomRequestOptions } from "./interface";
+import { UcsRequestOptions, UcsDefaultRequestOptions } from "./interface";
 
 /**
  * 合并全局请求参数
@@ -7,7 +7,7 @@ import { UcsRequestOptions, UcsCustomRequestOptions } from "./interface";
  * @param p2 自定义请求配置对象，用于提供默认值
  * @returns 合并后的请求配置对象
  */
-const mergeGlobalParams = (p1 : UcsRequestOptions, p2 : UcsCustomRequestOptions) : UcsRequestOptions => {
+const mergeGlobalParams = (p1 : UcsRequestOptions, p2 : UcsDefaultRequestOptions) : UcsRequestOptions => {
 	p1.development = p2.development;
 	p1.production = p2.production;
 	// #ifdef UNI-APP-X
@@ -69,7 +69,7 @@ export const getRequestPrefix = (production : string | null, development : strin
  * @param customOptions 自定义请求配置（包含全局默认值）
  * @returns 合并后的完整请求配置对象
  */
-export const getMergeOptions = (options : UcsRequestOptions, customOptions : UcsCustomRequestOptions) : UcsRequestOptions => {
+export const getMergeOptions = (options : UcsRequestOptions, customOptions : UcsDefaultRequestOptions) : UcsRequestOptions => {
 	// 合并全局参数
 	options = mergeGlobalParams(options, customOptions);
 	// 合并请求前缀

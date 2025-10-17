@@ -1,8 +1,8 @@
 import { defaultConfigType } from "../utssdk/interface.uts";
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
-import { defaultColors, darkGrey, lightGrey } from "../utssdk/defaultColors.uts";
+import { defaultColors, darkGrey, lightGrey, darkGray, lightGray } from "../utssdk/defaultColors.uts";
 // @ts-ignore
-import { generateObject } from "@/uni_modules/ucs-color";
+import { generateObject } from "../plugin/ucs-color";
 
 // 声明函数
 let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSONObject) | null = null;
@@ -65,7 +65,9 @@ export const defineConfig = (config : UTSJSONObject) => {
 	};
 	if (osTheme !== "dark") {
 		for (let i in lightGrey) { defaultColors[i] = lightGrey[i]; };
+		for (let i in lightGray) { defaultColors[i] = lightGray[i]; };
 	} else {
 		for (let i in darkGrey) { defaultColors[i] = darkGrey[i]; };
+		for (let i in darkGray) { defaultColors[i] = darkGray[i]; };
 	};
 };

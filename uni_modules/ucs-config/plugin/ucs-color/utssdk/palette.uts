@@ -1,0 +1,57 @@
+import { hsvToHex, hexToHsv } from "./color.uts";
+
+/**
+ * 浅色系颜色动态梯度算法
+ * @param color 基础色，仅支持hex十六进制格式
+ * @param index 索引 [1-10]
+ * @returns string
+ */
+export function colorPalette(originColor : string, i : number) : string {
+	const color = hexToHsv(originColor);
+
+	const h = color.h;
+	const s = color.s * 100;
+	const v = color.v * 100;
+
+	const hueStep = 2;
+	const maxSaturationStep = 100;
+	const minSaturationStep = 9;
+
+	const maxValue = 100;
+	const minValue = 30;
+
+	function getNewHue(isLight : boolean, i : number) : number {
+		let hue : number;
+		if (h >= 60 && h <= 240) {
+			hue = isLight ? h - hueStep * i : h + hueStep * i;
+		} else {
+			hue = isLight ? h + hueStep * i : h - hueStep * i;
+		}
+		if (hue < 0) {
+			hue += 360;
+		} else if (hue >= 360) {
+			hue -= 360;
+		}
+		return Math.round(hue) == 360 ? 0 : Math.round(hue);
+	}
+
+	function getNewSaturation(isLight : boolean, i : number) : number {
+		let newSaturation : number;
+
+		if (isLight) {
+			newSaturation = s <= minSaturationStep ? s : s - ((s - minSaturationStep) / 5) * i;
+		} else {
+			newSaturation = s + ((maxSaturationStep - s) / 4) * i;
+		}
+		return newSaturation;
+	}
+
+	function getNewValue(isLight : boolean, i : number) : number {
+		return isLight ? v + ((maxValue - v) / 5) * i : (v <= minValue ? v : v - ((v - minValue) / 4) * i);
+	}
+
+	const isLight = i < 6;
+	const index = isLight ? 6 - i : i - 6;
+
+	return i == 6 ? originColor : hsvToHex(getNewHue(isLight, index), getNewSaturation(isLight, index) / 100, getNewValue(isLight, index) / 100);
+};

@@ -34,7 +34,7 @@ export type UcsRequestOptions = {
 /**
  * 全局请求属性类型
  */
-export type UcsCustomRequestOptions = {
+export type UcsDefaultRequestOptions = {
 	env ?: string | null;
 	development ?: string | null;
 	production ?: string | null;

@@ -1,16 +1,16 @@
 {
-  "id": "ucs-request",
-  "displayName": "【支持鸿蒙】ucs-request 请求库",
+  "id": "ucs-color",
+  "displayName": "ucs-color 色彩",
   "version": "1.0.4",
-  "description": "通过将网络请求的通用逻辑（如发送请求、处理响应、错误捕获、日志记录等）抽象为可复用的代码模块，以提高代码的可维护性、可扩展性和一致性。",
+  "description": "一个用于颜色处理的工具库，根据给定颜色通过算法生成指定包含十个颜色的梯度色板，也可生成暗色模式下包含十个颜色的色板",
   "keywords": [
-    "request,请求库"
+    "color,颜色,颜色转换"
 ],
-  "repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-request",
+  "repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-color",
   "engines": {
-    "HBuilderX": "^3.6.8",
-    "uni-app": "^4.72",
-    "uni-app-x": "^4.72"
+    "HBuilderX": "^4.24",
+    "uni-app": "^4.66",
+    "uni-app-x": "^4.66"
   },
   "dcloudext": {
     "type": "uts",
@@ -23,7 +23,7 @@
       }
     },
     "contact": {
-      "qq": ""
+      "qq": "1827239383"
     },
     "declaration": {
       "ads": "无",
@@ -36,7 +36,7 @@
     "widescreen": "x"
   },
   "uni_modules": {
-    "dependencies": ["ucs-config"],
+    "dependencies": [],
     "encrypt": [],
     "platforms": {
       "cloud": {
@@ -57,7 +57,10 @@
           "app": {
             "vue": "√",
             "nvue": "√",
-            "android": "√",
+            "android": {
+                "extVersion": "",
+                "minVersion": "21"
+            },
             "ios": "√",
             "harmony": "√"
           },
@@ -83,7 +86,10 @@
             "chrome": "√"
           },
           "app": {
-            "android": "√",
+            "android": {
+                "extVersion": "",
+                "minVersion": "21"
+            },
             "ios": "√",
             "harmony": "√"
           },

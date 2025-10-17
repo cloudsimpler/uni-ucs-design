@@ -32,6 +32,55 @@ const darkGrey = {
 	"grey": "#929293"
 };
 
+/**
+ * 【中性灰】
+ * 色彩来源于 element plus 中性色
+ */
+const lightGray = {
+	"gray-1": "#FFFFFF",
+	"gray-2": "#FAFCFF",
+	"gray-3": "#FAFAFA",
+	"gray-4": "#F5F7FA",
+	"gray-5": "#F0F2F5",
+	"gray-6": "#EBEDF0",
+	"gray-7": "#E6E8EB",
+	"gray-8": "#F2F6FC",
+	"gray-9": "#EBEEF5",
+	"gray-10": "#E4E7ED",
+	"gray-11": "#DCDFE6",
+	"gray-12": "#D4D7DE",
+	"gray-13": "#CDD0D6",
+	"gray-14": "#C0C4CC",
+	"gray-15": "#A8ABB2",
+	"gray-16": "#909399",
+	"gray-17": "#606266",
+	"gray-18": "#303133",
+	"gray": "#EBEEF5"
+};
+const darkGray = {
+	"gray-1": "#141414",
+	"gray-2": "#191919",
+	"gray-3": "#1D1D1D",
+	"gray-4": "#262727",
+	"gray-5": "#303030",
+	"gray-6": "#39393A",
+	"gray-7": "#424243",
+	"gray-8": "#2B2B2C",
+	"gray-9": "#363637",
+	"gray-10": "#414243",
+	"gray-11": "#4C4D4F",
+	"gray-12": "#58585B",
+	"gray-13": "#636466",
+	"gray-14": "#6C6E72",
+	"gray-15": "#8D9095",
+	"gray-16": "#A3A6AD",
+	"gray-17": "#CFD3DC",
+	"gray-18": "#E5EAF3",
+	"gray": "#363637"
+};
+
+
+
 let defaultColors : UTSJSONObject = reactive<UTSJSONObject>({
 	"primary-1": "#EFE8FF",
 	"primary-2": "#D6C9FE",
@@ -236,5 +285,5 @@ let defaultColors : UTSJSONObject = reactive<UTSJSONObject>({
 });
 
 export {
-	defaultColors, darkGrey, lightGrey
+	defaultColors, darkGrey, lightGrey, darkGray, lightGray
 }

@@ -45,10 +45,10 @@ let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
 		development: "",
 		// 正式环境
 		production: "",
-		log: false,
-		data: {},
 		header: {},
-		timeout: 60000,
+		requestTimeout: 60000,
+		uploadFileTimeout: 120000,
+		downloadFileTimeout: 120000,
 		withCredentials: false,
 		firstIpv4: false,
 		enableChunked: false

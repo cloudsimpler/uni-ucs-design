@@ -1,0 +1,187 @@
+@import "./var.scss";
+/**
+ * 背景色
+ */
+.bg-gray{background-color: $ucs-color-gray;}
+.bg-gray-1{background-color: $ucs-color-gray-1;}
+.bg-gray-2{background-color: $ucs-color-gray-2;}
+.bg-gray-3{background-color: $ucs-color-gray-3;}
+.bg-gray-4{background-color: $ucs-color-gray-4;}
+.bg-gray-5{background-color: $ucs-color-gray-5;}
+.bg-gray-6{background-color: $ucs-color-gray-6;}
+.bg-gray-7{background-color: $ucs-color-gray-7;}
+.bg-gray-8{background-color: $ucs-color-gray-8;}
+.bg-gray-9{background-color: $ucs-color-gray-9;}
+.bg-gray-10{background-color: $ucs-color-gray-10;}
+.bg-gray-11{background-color: $ucs-color-gray-11;}
+.bg-gray-12{background-color: $ucs-color-gray-12;}
+.bg-gray-13{background-color: $ucs-color-gray-13;}
+.bg-gray-14{background-color: $ucs-color-gray-14;}
+.bg-gray-15{background-color: $ucs-color-gray-15;}
+.bg-gray-16{background-color: $ucs-color-gray-16;}
+.bg-gray-17{background-color: $ucs-color-gray-17;}
+.bg-gray-18{background-color: $ucs-color-gray-18;}
+/**
+ * 文本色
+ */
+.color-gray{color: $ucs-color-gray;}
+.color-gray-1{color: $ucs-color-gray-1;}
+.color-gray-2{color: $ucs-color-gray-2;}
+.color-gray-3{color: $ucs-color-gray-3;}
+.color-gray-4{color: $ucs-color-gray-4;}
+.color-gray-5{color: $ucs-color-gray-5;}
+.color-gray-6{color: $ucs-color-gray-6;}
+.color-gray-7{color: $ucs-color-gray-7;}
+.color-gray-8{color: $ucs-color-gray-8;}
+.color-gray-9{color: $ucs-color-gray-9;}
+.color-gray-10{color: $ucs-color-gray-10;}
+.color-gray-11{color: $ucs-color-gray-11;}
+.color-gray-12{color: $ucs-color-gray-12;}
+.color-gray-13{color: $ucs-color-gray-13;}
+.color-gray-14{color: $ucs-color-gray-14;}
+.color-gray-15{color: $ucs-color-gray-15;}
+.color-gray-16{color: $ucs-color-gray-16;}
+.color-gray-17{color: $ucs-color-gray-17;}
+.color-gray-18{color: $ucs-color-gray-18;}
+/**
+ * 边框色
+ */
+.border-gray{border-color: $ucs-color-gray;}
+.border-gray-1{border-color: $ucs-color-gray-1;}
+.border-gray-2{border-color: $ucs-color-gray-2;}
+.border-gray-3{border-color: $ucs-color-gray-3;}
+.border-gray-4{border-color: $ucs-color-gray-4;}
+.border-gray-5{border-color: $ucs-color-gray-5;}
+.border-gray-6{border-color: $ucs-color-gray-6;}
+.border-gray-7{border-color: $ucs-color-gray-7;}
+.border-gray-8{border-color: $ucs-color-gray-8;}
+.border-gray-9{border-color: $ucs-color-gray-9;}
+.border-gray-10{border-color: $ucs-color-gray-10;}
+.border-gray-11{border-color: $ucs-color-gray-11;}
+.border-gray-12{border-color: $ucs-color-gray-12;}
+.border-gray-13{border-color: $ucs-color-gray-13;}
+.border-gray-14{border-color: $ucs-color-gray-14;}
+.border-gray-15{border-color: $ucs-color-gray-15;}
+.border-gray-16{border-color: $ucs-color-gray-16;}
+.border-gray-17{border-color: $ucs-color-gray-17;}
+.border-gray-18{border-color: $ucs-color-gray-18;}
+
+.border-t-gray{border-top-color: $ucs-color-gray;}
+.border-t-gray-1{border-top-color: $ucs-color-gray-1;}
+.border-t-gray-2{border-top-color: $ucs-color-gray-2;}
+.border-t-gray-3{border-top-color: $ucs-color-gray-3;}
+.border-t-gray-4{border-top-color: $ucs-color-gray-4;}
+.border-t-gray-5{border-top-color: $ucs-color-gray-5;}
+.border-t-gray-6{border-top-color: $ucs-color-gray-6;}
+.border-t-gray-7{border-top-color: $ucs-color-gray-7;}
+.border-t-gray-8{border-top-color: $ucs-color-gray-8;}
+.border-t-gray-9{border-top-color: $ucs-color-gray-9;}
+.border-t-gray-10{border-top-color: $ucs-color-gray-10;}
+.border-t-gray-11{border-top-color: $ucs-color-gray-11;}
+.border-t-gray-12{border-top-color: $ucs-color-gray-12;}
+.border-t-gray-13{border-top-color: $ucs-color-gray-13;}
+.border-t-gray-14{border-top-color: $ucs-color-gray-14;}
+.border-t-gray-15{border-top-color: $ucs-color-gray-15;}
+.border-t-gray-16{border-top-color: $ucs-color-gray-16;}
+.border-t-gray-17{border-top-color: $ucs-color-gray-17;}
+.border-t-gray-18{border-top-color: $ucs-color-gray-18;}
+
+.border-b-gray{border-bottom-color: $ucs-color-gray;}
+.border-b-gray-1{border-bottom-color: $ucs-color-gray-1;}
+.border-b-gray-2{border-bottom-color: $ucs-color-gray-2;}
+.border-b-gray-3{border-bottom-color: $ucs-color-gray-3;}
+.border-b-gray-4{border-bottom-color: $ucs-color-gray-4;}
+.border-b-gray-5{border-bottom-color: $ucs-color-gray-5;}
+.border-b-gray-6{border-bottom-color: $ucs-color-gray-6;}
+.border-b-gray-7{border-bottom-color: $ucs-color-gray-7;}
+.border-b-gray-8{border-bottom-color: $ucs-color-gray-8;}
+.border-b-gray-9{border-bottom-color: $ucs-color-gray-9;}
+.border-b-gray-10{border-bottom-color: $ucs-color-gray-10;}
+.border-b-gray-11{border-bottom-color: $ucs-color-gray-11;}
+.border-b-gray-12{border-bottom-color: $ucs-color-gray-12;}
+.border-b-gray-13{border-bottom-color: $ucs-color-gray-13;}
+.border-b-gray-14{border-bottom-color: $ucs-color-gray-14;}
+.border-b-gray-15{border-bottom-color: $ucs-color-gray-15;}
+.border-b-gray-16{border-bottom-color: $ucs-color-gray-16;}
+.border-b-gray-17{border-bottom-color: $ucs-color-gray-17;}
+.border-b-gray-18{border-bottom-color: $ucs-color-gray-18;}
+
+.border-l-gray{border-left-color: $ucs-color-gray;}
+.border-l-gray-1{border-left-color: $ucs-color-gray-1;}
+.border-l-gray-2{border-left-color: $ucs-color-gray-2;}
+.border-l-gray-3{border-left-color: $ucs-color-gray-3;}
+.border-l-gray-4{border-left-color: $ucs-color-gray-4;}
+.border-l-gray-5{border-left-color: $ucs-color-gray-5;}
+.border-l-gray-6{border-left-color: $ucs-color-gray-6;}
+.border-l-gray-7{border-left-color: $ucs-color-gray-7;}
+.border-l-gray-8{border-left-color: $ucs-color-gray-8;}
+.border-l-gray-9{border-left-color: $ucs-color-gray-9;}
+.border-l-gray-10{border-left-color: $ucs-color-gray-10;}
+.border-l-gray-11{border-left-color: $ucs-color-gray-11;}
+.border-l-gray-12{border-left-color: $ucs-color-gray-12;}
+.border-l-gray-13{border-left-color: $ucs-color-gray-13;}
+.border-l-gray-14{border-left-color: $ucs-color-gray-14;}
+.border-l-gray-15{border-left-color: $ucs-color-gray-15;}
+.border-l-gray-16{border-left-color: $ucs-color-gray-16;}
+.border-l-gray-17{border-left-color: $ucs-color-gray-17;}
+.border-l-gray-18{border-left-color: $ucs-color-gray-18;}
+
+.border-r-gray{border-right-color: $ucs-color-gray;}
+.border-r-gray-1{border-right-color: $ucs-color-gray-1;}
+.border-r-gray-2{border-right-color: $ucs-color-gray-2;}
+.border-r-gray-3{border-right-color: $ucs-color-gray-3;}
+.border-r-gray-4{border-right-color: $ucs-color-gray-4;}
+.border-r-gray-5{border-right-color: $ucs-color-gray-5;}
+.border-r-gray-6{border-right-color: $ucs-color-gray-6;}
+.border-r-gray-7{border-right-color: $ucs-color-gray-7;}
+.border-r-gray-8{border-right-color: $ucs-color-gray-8;}
+.border-r-gray-9{border-right-color: $ucs-color-gray-9;}
+.border-r-gray-10{border-right-color: $ucs-color-gray-10;}
+.border-r-gray-11{border-right-color: $ucs-color-gray-11;}
+.border-r-gray-12{border-right-color: $ucs-color-gray-12;}
+.border-r-gray-13{border-right-color: $ucs-color-gray-13;}
+.border-r-gray-14{border-right-color: $ucs-color-gray-14;}
+.border-r-gray-15{border-right-color: $ucs-color-gray-15;}
+.border-r-gray-16{border-right-color: $ucs-color-gray-16;}
+.border-r-gray-17{border-right-color: $ucs-color-gray-17;}
+.border-r-gray-18{border-right-color: $ucs-color-gray-18;}
+
+.border-x-gray{border-right-color: $ucs-color-gray;border-left-color: $ucs-color-gray;}
+.border-x-gray-1{border-right-color: $ucs-color-gray-1;border-left-color: $ucs-color-gray-1;}
+.border-x-gray-2{border-right-color: $ucs-color-gray-2;border-left-color: $ucs-color-gray-2;}
+.border-x-gray-3{border-right-color: $ucs-color-gray-3;border-left-color: $ucs-color-gray-3;}
+.border-x-gray-4{border-right-color: $ucs-color-gray-4;border-left-color: $ucs-color-gray-4;}
+.border-x-gray-5{border-right-color: $ucs-color-gray-5;border-left-color: $ucs-color-gray-5;}
+.border-x-gray-6{border-right-color: $ucs-color-gray-6;border-left-color: $ucs-color-gray-6;}
+.border-x-gray-7{border-right-color: $ucs-color-gray-7;border-left-color: $ucs-color-gray-7;}
+.border-x-gray-8{border-right-color: $ucs-color-gray-8;border-left-color: $ucs-color-gray-8;}
+.border-x-gray-9{border-right-color: $ucs-color-gray-9;border-left-color: $ucs-color-gray-9;}
+.border-x-gray-10{border-right-color: $ucs-color-gray-10;border-left-color: $ucs-color-gray-10;}
+.border-x-gray-11{border-right-color: $ucs-color-gray-11;border-left-color: $ucs-color-gray-11;}
+.border-x-gray-12{border-right-color: $ucs-color-gray-12;border-left-color: $ucs-color-gray-12;}
+.border-x-gray-13{border-right-color: $ucs-color-gray-13;border-left-color: $ucs-color-gray-13;}
+.border-x-gray-14{border-right-color: $ucs-color-gray-14;border-left-color: $ucs-color-gray-14;}
+.border-x-gray-15{border-right-color: $ucs-color-gray-15;border-left-color: $ucs-color-gray-15;}
+.border-x-gray-16{border-right-color: $ucs-color-gray-16;border-left-color: $ucs-color-gray-16;}
+.border-x-gray-17{border-right-color: $ucs-color-gray-17;border-left-color: $ucs-color-gray-17;}
+.border-x-gray-18{border-right-color: $ucs-color-gray-18;border-left-color: $ucs-color-gray-18;}
+
+.border-y-gray{border-top-color: $ucs-color-gray;border-bottom-color: $ucs-color-gray;}
+.border-y-gray-1{border-top-color: $ucs-color-gray-1;border-bottom-color: $ucs-color-gray-1;}
+.border-y-gray-2{border-top-color: $ucs-color-gray-2;border-bottom-color: $ucs-color-gray-2;}
+.border-y-gray-3{border-top-color: $ucs-color-gray-3;border-bottom-color: $ucs-color-gray-3;}
+.border-y-gray-4{border-top-color: $ucs-color-gray-4;border-bottom-color: $ucs-color-gray-4;}
+.border-y-gray-5{border-top-color: $ucs-color-gray-5;border-bottom-color: $ucs-color-gray-5;}
+.border-y-gray-6{border-top-color: $ucs-color-gray-6;border-bottom-color: $ucs-color-gray-6;}
+.border-y-gray-7{border-top-color: $ucs-color-gray-7;border-bottom-color: $ucs-color-gray-7;}
+.border-y-gray-8{border-top-color: $ucs-color-gray-8;border-bottom-color: $ucs-color-gray-8;}
+.border-y-gray-9{border-top-color: $ucs-color-gray-9;border-bottom-color: $ucs-color-gray-9;}
+.border-y-gray-10{border-top-color: $ucs-color-gray-10;border-bottom-color: $ucs-color-gray-10;}
+.border-y-gray-11{border-top-color: $ucs-color-gray-11;border-bottom-color: $ucs-color-gray-11;}
+.border-y-gray-12{border-top-color: $ucs-color-gray-12;border-bottom-color: $ucs-color-gray-12;}
+.border-y-gray-13{border-top-color: $ucs-color-gray-13;border-bottom-color: $ucs-color-gray-13;}
+.border-y-gray-14{border-top-color: $ucs-color-gray-14;border-bottom-color: $ucs-color-gray-14;}
+.border-y-gray-15{border-top-color: $ucs-color-gray-15;border-bottom-color: $ucs-color-gray-15;}
+.border-y-gray-16{border-top-color: $ucs-color-gray-16;border-bottom-color: $ucs-color-gray-16;}
+.border-y-gray-17{border-top-color: $ucs-color-gray-17;border-bottom-color: $ucs-color-gray-17;}
+.border-y-gray-18{border-top-color: $ucs-color-gray-18;border-bottom-color: $ucs-color-gray-18;}

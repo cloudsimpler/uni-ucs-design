@@ -1,7 +1,7 @@
 /**
  * 请求拦截器队列
  */
-import { UcsRequestOptions, UcsCustomRequestOptions } from "./utssdk/interface";
+import { UcsRequestOptions, UcsDefaultRequestOptions } from "./utssdk/interface";
 import { arrayMerge, getRequestPrefix, getMergeOptions } from "./utssdk/tools";
 /**
  * 请求体属性
@@ -156,14 +156,14 @@ export class RequestManager {
 	};
 
 	// 全局默认请求参数
-	private customRequestOptions : UcsCustomRequestOptions = {};
+	private defaultRequestOptions : UcsDefaultRequestOptions = {};
 
 	/**
 	 * 设置全局默认请求参数
 	 * @param options - 自定义请求参数
 	 */
-	setRequestConfig(options : UcsCustomRequestOptions) {
-		this.customRequestOptions = options;
+	setRequestConfig(options : UcsDefaultRequestOptions) {
+		this.defaultRequestOptions = options;
 	};
 
 	/**
@@ -171,8 +171,8 @@ export class RequestManager {
 	 * @returns 包含环境信息的全局请求参数
 	 */
 	getRequestConfig() {
-		this.customRequestOptions.env = getRequestPrefix(this.customRequestOptions.production, this.customRequestOptions.development);
-		return this.customRequestOptions;
+		this.defaultRequestOptions.env = getRequestPrefix(this.defaultRequestOptions.production, this.defaultRequestOptions.development);
+		return this.defaultRequestOptions;
 	};
 
 	/**
@@ -183,7 +183,7 @@ export class RequestManager {
 	 */
 	async request(method : string, options : UcsRequestOptions) : Promise<RequestTask> {
 		// 合并全局参数
-		options = getMergeOptions(options, this.customRequestOptions);
+		options = getMergeOptions(options, this.defaultRequestOptions);
 		// 拦截器状态
 		const closeInterceptor = !(options.closeInterceptor ?? false);
 		// 执行所有请求之前的拦截器
@@ -307,7 +307,7 @@ export class RequestManager {
 	 */
 	async uploadFile(options : UcsRequestOptions) : Promise<UploadTask> {
 		// 合并全局参数
-		options = getMergeOptions(options, this.customRequestOptions);
+		options = getMergeOptions(options, this.defaultRequestOptions);
 		// 拦截器状态
 		const closeInterceptor = !(options.closeInterceptor ?? false);
 		// 执行所有请求之前的拦截器
@@ -367,7 +367,7 @@ export class RequestManager {
 	 */
 	async downloadFile(options : UcsRequestOptions) : Promise<DownloadTask> {
 		// 合并全局参数
-		options = getMergeOptions(options, this.customRequestOptions);
+		options = getMergeOptions(options, this.defaultRequestOptions);
 		// 拦截器状态
 		const closeInterceptor = !(options.closeInterceptor ?? false);
 		// 执行所有请求之前的拦截器
@@ -422,4 +422,8 @@ export class RequestManager {
  * 默认导出的HTTP请求实例
  * 可直接使用此实例发起请求
  */
-export const http = new RequestManager();
+const http = new RequestManager();
+import { osRequestConfig } from "@/uni_modules/ucs-config";
+
+
+export { http };
