@@ -9,6 +9,13 @@ import { arrayMerge, getRequestPrefix, getMergeOptions } from "./utssdk/tools";
 export type { UcsRequestOptions };
 
 /**
+ * 内部拦截器类型定义
+ * @param options - 请求参数
+ * @returns 处理后的请求参数
+ */
+type InternalInterceptor = (options : UcsRequestOptions) => Promise<UcsRequestOptions>;
+
+/**
  * 请求前拦截器类型定义
  * @param options - 请求参数
  * @returns 处理后的请求参数
@@ -65,6 +72,31 @@ export class RequestManager {
 			return getArrayMerge(p1, p2);
 		};
 	};
+
+	// 内部拦截器队列
+	private internalInterceptors : InternalInterceptor[] = [];
+
+	/**
+	 * 添加内部拦截器(不对外提供，请勿使用)
+	 * @param interceptor - 拦截器函数
+	 */
+	useInternalInterceptor(interceptor : InternalInterceptor) {
+		this.internalInterceptors.push(interceptor);
+	}
+
+	/**
+	 * 执行所有内部拦截器
+	 * @param requestOptions - 请求参数
+	 * @returns 处理后的请求参数
+	 */
+	private async runInternalInterceptors(options : UcsRequestOptions) : Promise<UcsRequestOptions> {
+		for (const interceptor of this.internalInterceptors) {
+			options = await interceptor(options);
+		}
+		return options;
+	};
+
+
 
 	// 请求前拦截器队列
 	private beforeRequestInterceptors : BeforeRequestInterceptor[] = [];
@@ -182,11 +214,13 @@ export class RequestManager {
 	 * @returns RequestTask实例
 	 */
 	async request(method : string, options : UcsRequestOptions) : Promise<RequestTask> {
+		// 内部拦截器
+		options = await this.runInternalInterceptors(options);
 		// 合并全局参数
-		options = getMergeOptions(options, this.defaultRequestOptions);
+		options = await getMergeOptions(options, this.defaultRequestOptions);
 		// 拦截器状态
 		const closeInterceptor = !(options.closeInterceptor ?? false);
-		// 执行所有请求之前的拦截器
+		// 执行请求之前的拦截器
 		if (closeInterceptor) {
 			options = await this.runBeforeRequestInterceptors(options);
 		};
@@ -306,6 +340,8 @@ export class RequestManager {
 	 * @returns UploadTask实例
 	 */
 	async uploadFile(options : UcsRequestOptions) : Promise<UploadTask> {
+		// 内部拦截器
+		options = await this.runInternalInterceptors(options);
 		// 合并全局参数
 		options = getMergeOptions(options, this.defaultRequestOptions);
 		// 拦截器状态
@@ -366,6 +402,8 @@ export class RequestManager {
 	 * @returns DownloadTask实例
 	 */
 	async downloadFile(options : UcsRequestOptions) : Promise<DownloadTask> {
+		// 内部拦截器
+		options = await this.runInternalInterceptors(options);
 		// 合并全局参数
 		options = getMergeOptions(options, this.defaultRequestOptions);
 		// 拦截器状态
@@ -423,7 +461,25 @@ export class RequestManager {
  * 可直接使用此实例发起请求
  */
 const http = new RequestManager();
-import { osRequestConfig } from "@/uni_modules/ucs-config";
+import { osRequestConfig } from "@/uni_modules/ucs-config"
 
+// 内部拦截器
+http.useInternalInterceptor(async (options : UcsRequestOptions) => {
+	options.development = osRequestConfig['development'] as string;
+	options.production = osRequestConfig['production'] as string;
+	// #ifdef UNI-APP-X
+	options.header = UTSJSONObject.assign(options.header ?? {}, osRequestConfig['header'] as UTSJSONObject);
+	// #endif
+	// #ifndef UNI-APP-X
+	options.header = Object.assign(options.header ?? {}, osRequestConfig['header']);
+	// #endif
+	options.requestTimeout = osRequestConfig['requestTimeout'] as number;
+	options.uploadFileTimeout = osRequestConfig['uploadFileTimeout'] as number;
+	options.downloadFileTimeout = osRequestConfig['downloadFileTimeout'] as number;
+	options.withCredentials = osRequestConfig['withCredentials'] as boolean;
+	options.firstIpv4 = osRequestConfig['firstIpv4'] as boolean;
+	options.enableChunked = osRequestConfig['enableChunked'] as boolean;
+	return options;
+});
 
 export { http };

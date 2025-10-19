@@ -8,8 +8,8 @@ import { UcsRequestOptions, UcsDefaultRequestOptions } from "./interface";
  * @returns 合并后的请求配置对象
  */
 const mergeGlobalParams = (p1 : UcsRequestOptions, p2 : UcsDefaultRequestOptions) : UcsRequestOptions => {
-	p1.development = p2.development;
-	p1.production = p2.production;
+	p1.development = p1.development ?? p2.development;
+	p1.production = p1.production ?? p2.production;
 	// #ifdef UNI-APP-X
 	p1.header = UTSJSONObject.assign(p1.header ?? {}, p2.header ?? {});
 	// #endif
@@ -69,9 +69,9 @@ export const getRequestPrefix = (production : string | null, development : strin
  * @param customOptions 自定义请求配置（包含全局默认值）
  * @returns 合并后的完整请求配置对象
  */
-export const getMergeOptions = (options : UcsRequestOptions, customOptions : UcsDefaultRequestOptions) : UcsRequestOptions => {
+export const getMergeOptions = (options : UcsRequestOptions, defaultOptions : UcsDefaultRequestOptions) : UcsRequestOptions => {
 	// 合并全局参数
-	options = mergeGlobalParams(options, customOptions);
+	options = mergeGlobalParams(options, defaultOptions);
 	// 合并请求前缀
 	if (!options.url.startsWith('http')) {
 		const removeLeadingSlash = (str : string) => {
@@ -80,7 +80,7 @@ export const getMergeOptions = (options : UcsRequestOptions, customOptions : Ucs
 			}
 			return str;
 		};
-		options.url = `${getRequestPrefix(customOptions.production, customOptions.development)}/${removeLeadingSlash(options.url)}`
+		options.url = `${getRequestPrefix(defaultOptions.production, defaultOptions.development)}/${removeLeadingSlash(options.url)}`
 	};
 	return options;
 };
