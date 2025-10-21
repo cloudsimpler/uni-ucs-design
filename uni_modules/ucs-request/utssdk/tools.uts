@@ -80,7 +80,7 @@ export const getMergeOptions = (options : UcsRequestOptions, defaultOptions : Uc
 			}
 			return str;
 		};
-		options.url = `${getRequestPrefix(defaultOptions.production, defaultOptions.development)}/${removeLeadingSlash(options.url)}`
+		options.url = `${getRequestPrefix(options.production, options.development)}/${removeLeadingSlash(options.url)}`
 	};
 	return options;
 };

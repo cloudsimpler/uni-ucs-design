@@ -251,7 +251,7 @@ export class RequestManager {
 					if (closeInterceptor) {
 						transferJson = await this.runFailRequestInterceptors(transferJson);
 					};
-					options.success?.(transferJson);
+					options.fail?.(transferJson);
 				})();
 			},
 			complete: (all) => {
@@ -376,7 +376,7 @@ export class RequestManager {
 					if (closeInterceptor) {
 						transferJson = await this.runFailRequestInterceptors(transferJson);
 					};
-					options.success?.(transferJson);
+					options.fail?.(transferJson);
 				})();
 			},
 			complete: (all) => {
@@ -435,7 +435,7 @@ export class RequestManager {
 					if (closeInterceptor) {
 						transferJson = await this.runFailRequestInterceptors(transferJson);
 					};
-					options.success?.(transferJson);
+					options.fail?.(transferJson);
 				})();
 			},
 			complete: (all) => {
