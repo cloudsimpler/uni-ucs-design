@@ -80,7 +80,7 @@ export class RequestManager {
 	 * 添加内部拦截器(不对外提供，请勿使用)
 	 * @param interceptor - 拦截器函数
 	 */
-	useInternalInterceptor(interceptor : InternalInterceptor) {
+	programInternalInterceptor(interceptor : InternalInterceptor) {
 		this.internalInterceptors.push(interceptor);
 	}
 
@@ -224,6 +224,7 @@ export class RequestManager {
 		if (closeInterceptor) {
 			options = await this.runBeforeRequestInterceptors(options);
 		};
+		// console.log(options)
 		// 发起请求
 		const requestTask : RequestTask = await uni.request({
 			method: method,
@@ -464,7 +465,7 @@ const http = new RequestManager();
 import { osRequestConfig } from "@/uni_modules/ucs-config"
 
 // 内部拦截器
-http.useInternalInterceptor(async (options : UcsRequestOptions) => {
+http.programInternalInterceptor(async (options : UcsRequestOptions) => {
 	options.development = osRequestConfig['development'] as string;
 	options.production = osRequestConfig['production'] as string;
 	// #ifdef UNI-APP-X
@@ -479,6 +480,7 @@ http.useInternalInterceptor(async (options : UcsRequestOptions) => {
 	options.withCredentials = osRequestConfig['withCredentials'] as boolean;
 	options.firstIpv4 = osRequestConfig['firstIpv4'] as boolean;
 	options.enableChunked = osRequestConfig['enableChunked'] as boolean;
+	
 	return options;
 });
 
