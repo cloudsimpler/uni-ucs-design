@@ -1,5 +1,5 @@
 <template>
-	<view class="__ucs-loading">
+	<view class="__ucs-loading" :class="props.isLoading?'__is-loading':''">
 		<ucs-svg :style="{'transform':`rotate(${rotation}deg)`}" :width="props.size" :height="props.size"
 			:src="iconSvg" />
 	</view>
@@ -47,18 +47,15 @@
 	};
 
 	watch(() : boolean => props.isLoading, (newVal : boolean) => {
+		// #ifdef UNI-APP-X && (APP || WEB)
 		if (newVal == true) {
-			// #ifdef UNI-APP-X && APP
-			startRequestAnimationFrame()
-			// #endif
-			// #ifndef UNI-APP-X && APP
 			startRequestAnimationFrame?.()
-			// #endif
 		} else {
 			if (animationId != null) {
 				cancelAnimationFrame(animationId as number)
 			};
 		}
+		// #endif
 	}, {
 		immediate: true
 	});
@@ -70,7 +67,24 @@
 	})
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+	// #ifndef UNI-APP-X && (APP || WEB)
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.__is-loading {
+		animation: spin 1s linear infinite;
+	}
+
+	// #endif
+
 	.__ucs-loading {
 		display: flex;
 		justify-content: center;

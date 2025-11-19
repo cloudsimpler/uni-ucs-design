@@ -10,7 +10,7 @@
 	/* 小程序特有相关 */
 	"mp-weixin": {
 		"darkmode": true,
-		"appid": "",
+		"appid": "wx8bcdad82ef2abcc9",
 		"setting": {
 			"urlCheck": false,
 			"postcss": true,

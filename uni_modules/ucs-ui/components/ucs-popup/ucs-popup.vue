@@ -63,7 +63,7 @@
 
 	const emits = defineEmits(['change']);
 
-	const _location = computed((): string => {
+	const _location = computed(() : string => {
 		const positionValue = {
 			top: `top:0;width:100%;transform:translateY(${translateValue.value}%);borderRadius:0px 0px ${props.borderRadius}px ${props.borderRadius}px;`,
 			bottom: `bottom:0;width:100%;transform:translateY(${-translateValue.value}%);borderRadius:${props.borderRadius}px ${props.borderRadius}px 0px 0px;`,
@@ -109,7 +109,7 @@
 		close
 	})
 
-	watch((): boolean => props.isShow, (newVal: boolean) => {
+	watch(() : boolean => props.isShow, (newVal : boolean) => {
 		if (newVal) {
 			show();
 		} else {

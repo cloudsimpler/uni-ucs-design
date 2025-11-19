@@ -1,8 +1,8 @@
 <template>
-	<!-- #ifdef UNI-APP-X && APP -->
+	<!-- #ifdef APP-HARMONY -->
 	<native-view :style="{width:`${width}${unit}`,height:`${height}${unit}`}" @init="onInit" />
 	<!-- #endif -->
-	<!-- #ifndef UNI-APP-X && APP -->
+	<!-- #ifndef APP-HARMONY -->
 	<view class="__ucs-svg">
 		<image :src="`data:image/svg+xml;charset=utf-8,${encodeURIComponent(src)}`"
 			:style="{width:`${width}${unit}`,height:`${height}${unit}`}" />
@@ -26,11 +26,11 @@
 			default: ""
 		},
 		width: {
-			type: Number,
+			type: [Number, String],
 			default: 24
 		},
 		height: {
-			type: Number,
+			type: [Number, String],
 			default: 24
 		},
 		unit: {
@@ -39,7 +39,7 @@
 		}
 	})
 
-	// #ifdef UNI-APP-X && APP
+	// #ifdef APP-HARMONY
 	import { UcsSvg } from '@/uni_modules/ucs-svg';
 	const svg = ref<UcsSvg | null>(null)
 
