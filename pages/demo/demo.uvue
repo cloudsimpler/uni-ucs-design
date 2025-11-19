@@ -1,20 +1,17 @@
 <template>
 	<view>
-		<ucs-loading :isLoading="false"></ucs-loading>
-		<!-- #ifdef UNI-APP-X && (APP || WEB) -->
-		测试
-		<!-- #endif -->
+		<ucs-loading :isLoading="a"></ucs-loading>
+		<button @tap="onTap">按钮</button>
 	</view>
 </template>
 
 <script setup>
 	import { ref, reactive } from "vue";
+	
+	let a = ref(false)
+	
 	const onTap = ()=>{
-		uni.showToast({
-			icon:"none",
-			title:"点击了"
-		})
-		console.log("123")
+		a.value = !a.value
 	}
 </script>
 

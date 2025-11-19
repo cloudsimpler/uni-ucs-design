@@ -36,7 +36,7 @@
 
 	let rotation = ref(0);
 	let animationId : number | null = null;
-
+	// #ifdef UNI-APP-X
 	// 旋转动画函数
 	let startRequestAnimationFrame : (() => void) | null = null;
 	startRequestAnimationFrame = () => {
@@ -45,6 +45,7 @@
 			startRequestAnimationFrame?.()
 		})
 	};
+	// #endif
 
 	watch(() : boolean => props.isLoading, (newVal : boolean) => {
 		// #ifdef UNI-APP-X && (APP || WEB)
@@ -80,7 +81,7 @@
 	}
 
 	.__is-loading {
-		animation: spin 1s linear infinite;
+		animation: spin 0.8s linear infinite;
 	}
 
 	// #endif
