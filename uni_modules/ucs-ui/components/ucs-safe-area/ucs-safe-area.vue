@@ -15,10 +15,10 @@
 
 <style lang="scss" scoped>
 	._ucs-safe-area {
-		/* #ifdef UNI-APP-X */
+		/* #ifdef UNI-APP-X && APP */
 		height: var(--uni-safe-area-inset-bottom);
 		/* #endif */
-		/* #ifndef UNI-APP-X */
+		/* #ifndef UNI-APP-X && APP */
 		height: env(safe-area-inset-bottom);
 		/* #endif */
 	}
