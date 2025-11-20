@@ -1,5 +1,5 @@
 <template>
-	<view class="__ucs-loading" :class="props.isLoading?'__is-loading':''">
+	<view class="__ucs-loading" :class="[props.isLoading?'__is-loading':'']">
 		<ucs-svg :style="{'transform':`rotate(${rotation}deg)`}" :width="props.size" :height="props.size"
 			:src="iconSvg" />
 	</view>
@@ -36,7 +36,7 @@
 
 	let rotation = ref(0);
 	let animationId : number | null = null;
-	// #ifdef UNI-APP-X
+	// #ifdef UNI-APP-X && (APP || WEB)
 	// 旋转动画函数
 	let startRequestAnimationFrame : (() => void) | null = null;
 	startRequestAnimationFrame = () => {
@@ -45,10 +45,9 @@
 			startRequestAnimationFrame?.()
 		})
 	};
-	// #endif
+
 
 	watch(() : boolean => props.isLoading, (newVal : boolean) => {
-		// #ifdef UNI-APP-X && (APP || WEB)
 		if (newVal == true) {
 			startRequestAnimationFrame?.()
 		} else {
@@ -56,7 +55,6 @@
 				cancelAnimationFrame(animationId as number)
 			};
 		}
-		// #endif
 	}, {
 		immediate: true
 	});
@@ -66,6 +64,7 @@
 			cancelAnimationFrame(animationId as number)
 		}
 	})
+	// #endif
 </script>
 
 <style lang="scss" scoped>
