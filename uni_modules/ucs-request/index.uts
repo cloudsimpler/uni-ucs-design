@@ -192,7 +192,7 @@ export class RequestManager {
 
 	/**
 	 * 设置全局默认请求参数
-	 * @param options - 自定义请求参数
+	 * @param options - 自定义请求参数（将被后续请求中的同名参数覆盖）
 	 */
 	setRequestConfig(options : UcsDefaultRequestOptions) {
 		this.defaultRequestOptions = options;
@@ -210,7 +210,7 @@ export class RequestManager {
 	/**
 	 * 发起网络请求
 	 * @param method - 请求方法（GET/POST/PUT等）
-	 * @param options - 请求参数
+	 * @param options - 请求参数（具有较高优先级）
 	 * @returns RequestTask实例
 	 */
 	async request(method : string, options : UcsRequestOptions) : Promise<RequestTask> {
@@ -224,7 +224,6 @@ export class RequestManager {
 		if (closeInterceptor) {
 			options = await this.runBeforeRequestInterceptors(options);
 		};
-		// console.log(options)
 		// 发起请求
 		const requestTask : RequestTask = await uni.request({
 			method: method,
@@ -274,7 +273,7 @@ export class RequestManager {
 
 	/**
 	 * 发起GET请求
-	 * @param options - 请求参数
+	 * @param options - 请求参数（具有较高优先级）
 	 * @returns RequestTask实例
 	 */
 	async get(options : UcsRequestOptions) {
@@ -283,7 +282,7 @@ export class RequestManager {
 
 	/**
 	 * 发起POST请求
-	 * @param options - 请求参数
+	 * @param options - 请求参数（具有较高优先级）
 	 * @returns RequestTask实例
 	 */
 	async post(options : UcsRequestOptions) {
@@ -292,7 +291,7 @@ export class RequestManager {
 
 	/**
 	 * 发起PUT请求
-	 * @param options - 请求参数
+	 * @param options - 请求参数（具有较高优先级）
 	 * @returns RequestTask实例
 	 */
 	async put(options : UcsRequestOptions) {
@@ -301,7 +300,7 @@ export class RequestManager {
 
 	/**
 	 * 发起PATCH请求
-	 * @param options - 请求参数
+	 * @param options - 请求参数（具有较高优先级）
 	 * @returns RequestTask实例
 	 */
 	async patch(options : UcsRequestOptions) {
@@ -310,7 +309,7 @@ export class RequestManager {
 
 	/**
 	 * 发起DELETE请求
-	 * @param options - 请求参数
+	 * @param options - 请求参数（具有较高优先级）
 	 * @returns RequestTask实例
 	 */
 	async delete(options : UcsRequestOptions) {
@@ -319,7 +318,7 @@ export class RequestManager {
 
 	/**
 	 * 发起HEAD请求
-	 * @param options - 请求参数
+	 * @param options - 请求参数（具有较高优先级）
 	 * @returns RequestTask实例
 	 */
 	async head(options : UcsRequestOptions) {
@@ -328,7 +327,7 @@ export class RequestManager {
 
 	/**
 	 * 发起OPTIONS请求
-	 * @param options - 请求参数
+	 * @param options - 请求参数（具有较高优先级）
 	 * @returns RequestTask实例
 	 */
 	async options(options : UcsRequestOptions) {
@@ -337,7 +336,7 @@ export class RequestManager {
 
 	/**
 	 * 上传文件
-	 * @param options - 上传参数
+	 * @param options - 上传参数（具有较高优先级）
 	 * @returns UploadTask实例
 	 */
 	async uploadFile(options : UcsRequestOptions) : Promise<UploadTask> {
@@ -399,7 +398,7 @@ export class RequestManager {
 
 	/**
 	 * 下载文件
-	 * @param options - 下载参数
+	 * @param options - 下载参数（具有较高优先级）
 	 * @returns DownloadTask实例
 	 */
 	async downloadFile(options : UcsRequestOptions) : Promise<DownloadTask> {
@@ -468,11 +467,12 @@ import { osRequestConfig } from "@/uni_modules/ucs-config"
 http.programInternalInterceptor(async (options : UcsRequestOptions) => {
 	options.development = osRequestConfig['development'] as string;
 	options.production = osRequestConfig['production'] as string;
+	// 合并header配置，请求时的配置优先于默认配置
 	// #ifdef UNI-APP-X
-	options.header = UTSJSONObject.assign(options.header ?? {}, osRequestConfig['header'] as UTSJSONObject);
+	options.header = UTSJSONObject.assign(osRequestConfig['header'] as UTSJSONObject ?? {}, options.header ?? {});
 	// #endif
 	// #ifndef UNI-APP-X
-	options.header = Object.assign(options.header ?? {}, osRequestConfig['header']);
+	options.header = Object.assign(osRequestConfig['header'] ?? {}, options.header ?? {});
 	// #endif
 	options.requestTimeout = osRequestConfig['requestTimeout'] as number;
 	options.uploadFileTimeout = osRequestConfig['uploadFileTimeout'] as number;

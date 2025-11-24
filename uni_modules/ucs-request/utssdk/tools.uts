@@ -2,19 +2,21 @@ import { UcsRequestOptions, UcsDefaultRequestOptions } from "./interface";
 
 /**
  * 合并全局请求参数
- * 将 p2 中的自定义配置合并到 p1 的请求配置中，如果 p1 中已有对应配置则保留，否则使用 p2 的默认值
- * @param p1 原始请求配置对象
+ * 将 p2 中的默认配置合并到 p1 的请求配置中，如果 p1 中已有对应配置则保留（优先级更高），否则使用 p2 的默认值
+ * 特别地，对于 header 配置，会进行深度合并，请求时的配置会覆盖默认配置中的同名字段
+ * @param p1 原始请求配置对象（具有较高优先级）
  * @param p2 自定义请求配置对象，用于提供默认值
  * @returns 合并后的请求配置对象
  */
 const mergeGlobalParams = (p1 : UcsRequestOptions, p2 : UcsDefaultRequestOptions) : UcsRequestOptions => {
 	p1.development = p1.development ?? p2.development;
 	p1.production = p1.production ?? p2.production;
+	// 合并header配置，请求时的配置优先于默认配置
 	// #ifdef UNI-APP-X
-	p1.header = UTSJSONObject.assign(p1.header ?? {}, p2.header ?? {});
+	p1.header = UTSJSONObject.assign(p2.header ?? {}, p1.header ?? {});
 	// #endif
 	// #ifndef UNI-APP-X
-	p1.header = Object.assign(p1.header ?? {}, p2.header ?? {});
+	p1.header = Object.assign(p2.header ?? {}, p1.header ?? {});
 	// #endif
 	p1.requestTimeout = p1.requestTimeout ?? p2.requestTimeout;
 	p1.uploadFileTimeout = p1.uploadFileTimeout ?? p2.uploadFileTimeout;
@@ -65,8 +67,8 @@ export const getRequestPrefix = (production : string | null, development : strin
  * 合并请求配置并生成完整请求 URL
  * 1. 合并全局参数（调用 mergeGlobalParams）
  * 2. 如果 URL 不是以 http 开头，则拼接请求前缀
- * @param options 原始请求配置
- * @param customOptions 自定义请求配置（包含全局默认值）
+ * @param options 原始请求配置（具有较高优先级）
+ * @param defaultOptions 自定义请求配置（包含全局默认值）
  * @returns 合并后的完整请求配置对象
  */
 export const getMergeOptions = (options : UcsRequestOptions, defaultOptions : UcsDefaultRequestOptions) : UcsRequestOptions => {
