@@ -36,7 +36,7 @@
 		<view class="_ucs-rect-main">
 			<slot name="default" />
 		</view>
-		<view class="_ucs-rect-sgin">
+		<view>
 			<slot name="sign" />
 		</view>
 		<view class="_ucs-rect-footer">

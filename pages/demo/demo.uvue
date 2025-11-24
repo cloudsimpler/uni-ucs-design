@@ -2,6 +2,7 @@
 	<view>
 		<ucs-loading :isLoading="a"></ucs-loading>
 		<button @tap="onTap">按钮</button>
+		<ucs-safe-area backgroundColor="red"></ucs-safe-area>
 	</view>
 </template>
 
