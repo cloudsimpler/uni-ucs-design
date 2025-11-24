@@ -4,7 +4,7 @@ type RGB = {
 	b : number;
 };
 
-const hexToRgb = (hex : string) : RGB => {
+const loadingHexToRgb = (hex : string) : RGB => {
 	// 检查输入的十六进制颜色值是否有效
 	const hexRegex = /^#?([a-fA-F0-9]{6})$/;
 	if (!hexRegex.test(hex)) {
@@ -31,7 +31,7 @@ const hexToRgb = (hex : string) : RGB => {
 export const generateColorGradient = (hex : string) : string[] => {
 	const colors : string[] = []
 
-	const _color = hexToRgb(hex)
+	const _color = loadingHexToRgb(hex)
 
 	for (let i = 1; i <= 12; i++) {
 		colors.push(`rgba(${_color.r},${_color.g},${_color.b},${(i / 12).toFixed(2)})`);
