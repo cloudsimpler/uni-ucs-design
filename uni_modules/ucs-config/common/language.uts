@@ -1,9 +1,10 @@
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
 /**
  * 深度属性
- * @param {object} data 数据
- * @param {string} path 路径
- * @returns 数据路径下的属性
+ * @param data 数据对象
+ * @param path 属性路径，支持嵌套路径如 'a.b.c' 或数组索引如 'a[0].b'
+ * @returns any 数据路径下的属性值
+ * @description 根据路径深度获取对象中的属性值，支持嵌套对象和数组索引
  */
 const getDeepProperty = (data : any, path : string) : any => {
 	if (typeof data !== 'object') return "";
@@ -31,7 +32,9 @@ const getDeepProperty = (data : any, path : string) : any => {
 };
 /**
  * 设置国际化语言
- * @param osLanguage [zh-Hans,zh-Hant,en] 语言
+ * @param language 语言标识，可选值：'zh-Hans'（简体中文）| 'zh-Hant'（繁体中文）| 'en'（英文）
+ * @returns void
+ * @description 设置应用的国际化语言配置
  */
 export const setOsLanguage = (language : string) => {
 	defaultConfig.osLanguage = language;
@@ -39,8 +42,10 @@ export const setOsLanguage = (language : string) => {
 
 /**
  * 获取UCS Design 框架语言
- * @param path 参数路径
- * @returns any
+ * @param path 语言资源路径
+ * @param defaultValue 默认值
+ * @returns any 语言资源值
+ * @description 根据当前语言配置获取对应的本地化文本
  */
 export const getUcsDesignLanguage = (path : string, defaultValue : string) : any => {
 	if (defaultValue == "") {

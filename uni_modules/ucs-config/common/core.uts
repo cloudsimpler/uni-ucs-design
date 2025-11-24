@@ -10,7 +10,7 @@ let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSO
  * object深度合并
  * @param first 原始object数据
  * @param second 需要被合并的object数据
- * @returns object
+ * @returns 合并后的object数据
  */
 deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObject => {
 	for (let f in second) {
@@ -30,9 +30,9 @@ deepMergeObject = (first : UTSJSONObject, second : UTSJSONObject) : UTSJSONObjec
 };
 /**
  * 数据合并
- * @param rawData 原始object数据
- * @param combinedData 需要被合并的object数据
- * @returns object
+ * @param rawData 原始配置数据
+ * @param combinedData 需要被合并的配置数据
+ * @returns void
  */
 const processMerging = (rawData : defaultConfigType, combinedData : UTSJSONObject) => {
 	for (let f in rawData) {
@@ -50,8 +50,9 @@ const processMerging = (rawData : defaultConfigType, combinedData : UTSJSONObjec
 
 /**
  * 定义配置
- * @param config 配置object
- * @returns UTSJSONObject
+ * @param config 用户自定义配置object
+ * @returns void
+ * @description 合并用户配置与默认配置，并初始化颜色主题
  */
 export const defineConfig = (config : UTSJSONObject) => {
 	// 合并配置

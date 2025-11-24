@@ -2,8 +2,9 @@ import { defaultColors } from "../utssdk/defaultColors.uts";
 import { getOsFontSize } from "./fontSize.uts";
 /**
  * 获取颜色值
- * @param str 颜色值，可以是primary、success、warning、danger配置定义颜色，也可以是hex值
- * @returns string
+ * @param str 颜色标识，可以是预定义的颜色变量（如primary、success、warning、danger等）或十六进制颜色值
+ * @returns string 对应的颜色值
+ * @description 根据传入的颜色标识获取对应的颜色值，如果是预定义颜色变量则返回对应的颜色值，否则直接返回传入的值
  */
 export const getOsColor = (str : string) : string => {
 	return defaultColors.hasOwnProperty(str) ? defaultColors[str] as string : str;
@@ -12,7 +13,8 @@ export const getOsColor = (str : string) : string => {
 /**
  * 获取文本色
  * @param color ucs色彩变量或者hex颜色值
- * @returns UTSJSONObject
+ * @returns UTSJSONObject 包含color属性的样式对象
+ * @description 根据传入的颜色标识生成文本颜色样式对象
  */
 export const getOsTextColor = (color : string) : UTSJSONObject => {
 	return { color: getOsColor(color) };
@@ -21,7 +23,8 @@ export const getOsTextColor = (color : string) : UTSJSONObject => {
 /**
  * 获取文本大小
  * @param size 字号
- * @returns UTSJSONObject，字体大小json
+ * @returns UTSJSONObject 包含fontSize属性的样式对象
+ * @description 根据传入的字号生成字体大小样式对象
  */
 export const getOsTextSize = (size : number) : UTSJSONObject => {
 	return { fontSize: `${getOsFontSize(size)}px` };
@@ -30,7 +33,8 @@ export const getOsTextSize = (size : number) : UTSJSONObject => {
 /**
  * 获取背景色
  * @param color ucs色彩变量或者hex颜色值
- * @returns UTSJSONObject
+ * @returns UTSJSONObject 包含backgroundColor属性的样式对象
+ * @description 根据传入的颜色标识生成背景颜色样式对象
  */
 export const getOsBackground = (color : string) : UTSJSONObject => {
 	return { backgroundColor: getOsColor(color) };
@@ -38,10 +42,11 @@ export const getOsBackground = (color : string) : UTSJSONObject => {
 
 /**
  * 获取渐变色
- * @param direction 渐变方向
+ * @param direction 渐变方向，如 'to right', 'to bottom' 等
  * @param colorStart 渐变起始点颜色值
  * @param colorStop 渐变终点颜色值
- * @returns UTSJSONObject
+ * @returns UTSJSONObject 包含backgroundImage属性的样式对象
+ * @description 根据指定的方向和颜色生成线性渐变背景样式对象
  */
 export const getOsGradient = (direction : string, colorStart : string, colorStop : string) : UTSJSONObject => {
 	return { backgroundImage: `linear-gradient(${direction},${getOsColor(colorStart)},${getOsColor(colorStop)})` };
@@ -49,11 +54,12 @@ export const getOsGradient = (direction : string, colorStart : string, colorStop
 
 /**
  * 获取边框色
- * @param direction 方向，all、top、bottom、left、right
- * @param width 边框宽度
- * @param style 边框样式
+ * @param direction 边框方向，可选值：'all'（全部边框）、'top'（上边框）、'bottom'（下边框）、'left'（左边框）、'right'（右边框）
+ * @param width 边框宽度，如 '1px'
+ * @param style 边框样式，如 'solid'、'dashed'、'dotted'
  * @param color ucs色彩变量或者hex颜色值
- * @returns UTSJSONObject
+ * @returns UTSJSONObject 包含对应border属性的样式对象
+ * @description 根据指定的方向、宽度、样式和颜色生成边框样式对象
  */
 export const getOsBorder = (direction : string, width : string, style : string, color : string) : UTSJSONObject => {
 	if (direction == 'top') {

@@ -4,7 +4,9 @@ import { generateObject, generateIndex } from "@/uni_modules/ucs-color";
 
 /**
  * 切换深色主题模式
- * @param osTheme [light,dark] 模式主题
+ * @param osTheme 主题模式，可选值：'light'（浅色模式）| 'dark'（深色模式）
+ * @returns void
+ * @description 切换应用的主题模式，并更新相关颜色配置
  */
 export const setOsTheme = (osTheme : string) => {
 	defaultConfig.osTheme = osTheme;
@@ -22,7 +24,9 @@ export const setOsTheme = (osTheme : string) => {
 
 /**
  * 动态设置主题颜色
- * @param color hex颜色值
+ * @param color hex颜色值，例如：'#604CFC'
+ * @returns void
+ * @description 动态设置主题的主要颜色，并更新相关颜色配置
  */
 export const setOsColorPrimary = (color : string) => {
 	defaultConfig.osColor['primary'] = color;
@@ -36,6 +40,7 @@ export const setOsColorPrimary = (color : string) => {
  * @param lightColor 浅色模式颜色
  * @param darkColor 深色模式颜色
  * @returns string 颜色值
+ * @description 根据当前主题模式返回对应的颜色值
  */
 export const getLightDarkColor = (lightColor : string, darkColor : string) : string => {
 	return defaultConfig.osTheme == "dark" ? darkColor : lightColor
@@ -44,8 +49,9 @@ export const getLightDarkColor = (lightColor : string, darkColor : string) : str
 /**
  * 根据浅色和深色模式下获取不同颜色
  * @param color hex颜色值
- * @param index 生成颜色值的等级
+ * @param index 生成颜色值的等级，通常为1-10之间的数值
  * @returns string 颜色值
+ * @description 根据当前主题模式和指定等级生成对应的颜色值
  */
 export const getGenerateIndex = (color : string, index : number) : string => {
 	return generateIndex(color, index, defaultConfig.osTheme)

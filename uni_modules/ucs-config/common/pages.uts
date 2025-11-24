@@ -2,6 +2,8 @@ import pagesJson from "@/pages.json";
 
 /**
  * 获取tabbar路径数组
+ * @returns string[] tabbar页面路径数组
+ * @description 解析pages.json中的tabBar配置，提取所有tabbar页面的路径
  */
 const getTabbarListPath = () : string[] => {
 	const tabbarList : string[] = [];
@@ -18,6 +20,8 @@ const getTabbarListPath = () : string[] => {
 
 /**
  * 获取转化后路径下的配置
+ * @returns UTSJSONObject 页面配置对象
+ * @description 根据pages.json配置生成各页面的样式配置，包括导航栏、tabbar等信息
  */
 const getPagesStyle = () : UTSJSONObject => {
 	const windowInfo = uni.getWindowInfo();
@@ -71,13 +75,17 @@ const pagesStyle = getPagesStyle();
 
 /**
  * 根据path路径地址拿到pages配置信息
- * @param {string} path 页面路径
+ * @param path 页面路径
+ * @returns UTSJSONObject 页面配置信息
+ * @description 根据指定页面路径获取该页面的配置信息
  */
 export const getCurrentPagesStyle = (path : string) : UTSJSONObject => {
 	return pagesStyle[path] as UTSJSONObject
 }
 /**
  * 获取当前页面路径
+ * @returns UTSJSONObject 包含页面索引和路径的对象
+ * @description 获取当前页面的路由信息，包括页面索引和路径
  */
 export const getCurrentPagesRoute = () : UTSJSONObject => {
 	const pages = getCurrentPages();
@@ -89,6 +97,8 @@ export const getCurrentPagesRoute = () : UTSJSONObject => {
 }
 /**
  * 获取框架内根据pages style 自定义的部分内容
+ * @returns UTSJSONObject 自定义页面样式配置
+ * @description 获取当前页面的自定义样式配置，如导航栏高度、安全区域等
  */
 export const getCurrentPagesUcsStyle = () : UTSJSONObject => {
 	const pagesRoute = getCurrentPagesRoute();

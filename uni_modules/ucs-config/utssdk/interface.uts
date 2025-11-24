@@ -1,10 +1,21 @@
+/**
+ * 默认配置类型定义
+ */
 export type defaultConfigType = {
+	/** 应用主题模式 */
 	osTheme : string;
+	/** 应用语言 */
 	osLanguage : string;
+	/** 全局字体大小调整值 */
 	osFontSize : number;
+	/** 应用颜色配置 */
 	osColor : UTSJSONObject;
+	/** UCS Design 框架内置语言包 */
 	osUcsLanguage : UTSJSONObject;
+	/** 国际化语言包 */
 	osI18nLanguage : UTSJSONObject;
+	/** 网络请求配置 */
 	osRequest : UTSJSONObject;
+	/** 管理后台相关配置 */
 	osAdmin : UTSJSONObject;
 };

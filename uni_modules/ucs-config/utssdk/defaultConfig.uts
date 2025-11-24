@@ -7,52 +7,84 @@ import en from "../language/en.uts";
 
 
 let defaultConfig : defaultConfigType = reactive<defaultConfigType>({
+	/** 应用主题模式，可选值：'light'（浅色模式）| 'dark'（深色模式） */
 	osTheme: "light",
+	/** 应用语言，可选值：'zh-Hans'（简体中文）| 'zh-Hant'（繁体中文）| 'en'（英文） */
 	osLanguage: "zh-Hans",
+	/** 全局字体大小调整值 */
 	osFontSize: 0,
+	/** 应用颜色配置 */
 	osColor: {
+		/** 主色调 */
 		primary: "#604CFC",
+		/** 成功状态色 */
 		success: "#07C160",
+		/** 警告状态色 */
 		warning: "#EDA20C",
+		/** 危险状态色 */
 		danger: "#D9514C",
 		// 其它颜色
+		/** 红色 */
 		red: "#F53F3F",
+		/** 橙红色 */
 		orangered: "#F77234",
+		/** 橙色 */
 		orange: "#FF7D00",
+		/** 金色 */
 		gold: "#F7BA1E",
+		/** 黄色 */
 		yellow: "#FADC19",
+		/** 青柠色 */
 		lime: "#9FDB1D",
+		/** 绿色 */
 		green: "#00B42A",
+		/** 青色 */
 		cyan: "#14C9C9",
+		/** 蓝色 */
 		blue: "#3491FA",
+		/** 极客蓝 */
 		arcoblue: "#165DFF",
+		/** 紫色 */
 		purple: "#722ED1",
+		/** 粉紫色 */
 		pinkpurple: "#D91AD9",
+		/** 品红色 */
 		magenta: "#F5319D"
 	},
+	/** UCS Design 框架内置语言包 */
 	osUcsLanguage: {
 		"zh-Hans": zhHans,
 		"zh-Hant": zhHant,
 		"en": en
 	},
+	/** 国际化语言包 */
 	osI18nLanguage: {
 		"zh-Hans": {},
 		"zh-Hant": {},
 		"en": {}
 	},
+	/** 网络请求配置 */
 	osRequest: {
 		// 测试环境
 		development: "",
 		// 正式环境
 		production: "",
+		/** 请求头 */
 		header: {},
+		/** 请求超时时间（毫秒） */
 		requestTimeout: 60000,
+		/** 上传文件超时时间（毫秒） */
 		uploadFileTimeout: 120000,
+		/** 下载文件超时时间（毫秒） */
 		downloadFileTimeout: 120000,
+		/** 是否携带凭证信息 */
 		withCredentials: false,
+		/** 是否优先使用IPv4 */
 		firstIpv4: false,
+		/** 是否启用分块传输 */
 		enableChunked: false
 	},
+	/** 管理后台相关配置 */
 	osAdmin: {
 
 	}

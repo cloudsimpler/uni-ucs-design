@@ -1,14 +1,25 @@
-// 核心文件
+/**
+ * ucs-config 配置模块入口文件
+ * 提供统一的配置管理功能
+ */
+
+/** 核心配置功能 */
 export * from "./common/core.uts";
-// 请求库
+
+/** 网络请求配置 */
 export * from "./common/request.uts";
-// 国际化语言
+
+/** 国际化语言配置 */
 export * from "./common/language.uts";
-// 主题
+
+/** 主题配置 */
 export * from "./common/theme.uts";
-// 颜色
+
+/** 颜色配置 */
 export * from "./common/colors.uts";
-// 字号
+
+/** 字号配置 */
 export * from "./common/fontSize.uts";
-// pagesJson
+
+/** 页面配置 */
 export * from "./common/pages.uts";

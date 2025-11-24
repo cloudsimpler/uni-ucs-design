@@ -1,15 +1,18 @@
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
 /**
  * 设置需要加大或减小部分的字体大小
- * @param {Number} size 加大或者减小的字号
+ * @param size 调整的字号大小，正数表示增大，负数表示减小
+ * @returns void
+ * @description 设置全局字体大小调整值，会影响所有使用getOsFontSize方法获取字体大小的地方
  */
 export const setOsFontSize = (size : number) : void => {
 	defaultConfig.osFontSize = size;
 }
 /**
  * 获取当前字体大小
- * @param {Number} size 当前文本的基础默认字体大小
- * @returns 设置的加大或减小的字号+默认字体大小
+ * @param size 当前文本的基础默认字体大小
+ * @returns number 调整后的字体大小 = 基础字体大小 + 全局调整值
+ * @description 根据基础字体大小和全局调整值计算出最终的字体大小
  */
 export const getOsFontSize = (size : number) : number => {
 	return defaultConfig.osFontSize + size

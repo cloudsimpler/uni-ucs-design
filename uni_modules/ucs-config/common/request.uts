@@ -1,6 +1,7 @@
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
 /**
  * 获取请求配置信息
- * @returns UTSJSONObject 配置信息
+ * @returns UTSJSONObject 请求配置信息
+ * @description 获取网络请求的相关配置，包括开发环境地址、生产环境地址、超时时间等
  */
 export const osRequestConfig = defaultConfig.osRequest;
