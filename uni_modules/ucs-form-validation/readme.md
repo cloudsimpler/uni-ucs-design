@@ -1,7 +1,7 @@
 <p align="center"><img alt="logo" src="https://ucs.cloudsimpler.com/logo/request.svg" width="123"></p>
 <h3 align="center">Validation 表单验证</h3>
 
-# 简述
+## 简述
 一个专为 uni-app/uni-app-x 设计的轻量级表单验证插件，支持多种常见验证规则和自定义验证器，帮助开发者快速实现表单数据校验功能。
 
 - **全面的验证规则**：内置20+种常用验证规则，满足大部分表单验证需求
