@@ -1,4 +1,4 @@
-<p align="center"><img alt="logo" src="https://ucs.cloudsimpler.com/logo/request.svg" width="123"></p>
+<p align="center"><img alt="logo" src="https://ucs.cloudsimpler.com/logo/form-validation.svg" width="123"></p>
 <h3 align="center">Validation 表单验证</h3>
 
 ## 简述
@@ -11,7 +11,7 @@
 - **易用性强**：API设计简洁明了，学习成本低
 
 ## 官方文档
-官网地址：[https://ucs.cloudsimpler.com/library/ucs-request](https://ucs.cloudsimpler.com/library/ucs-request)
+官网地址：[https://ucs.cloudsimpler.com/library/ucs-form-validation](https://ucs.cloudsimpler.com/library/ucs-form-validation)
 
 ## 源码
 [![stars](https://img.shields.io/github/stars/cloudsimpler/uni-ucs-design?style=social)](https://github.com/cloudsimpler/uni-ucs-design)
