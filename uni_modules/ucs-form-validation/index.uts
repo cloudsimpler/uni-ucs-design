@@ -1,4 +1,9 @@
 /**
+ * 自定义验证器函数类型
+ */
+export type ValidatorFunction = (value : any) => boolean;
+
+/**
  * 正则
  */
 const regExp = (rule : UTSRegExp, value : string) : boolean => {
@@ -99,6 +104,13 @@ const checkResult = (ruleName : string, ruleValue : any, value : any) : boolean 
 		case "notEq":
 			// 不等于某值
 			return (ruleValue as number) != parseFloat(value as string);
+		case "validator":
+			// 自定义验证器
+			const validatorFunc = ruleValue as ValidatorFunction | null;
+			if (validatorFunc != null) {
+				return validatorFunc(value);
+			}
+			return true;
 		default:
 			// 不属于以上验证类型均进行放行
 			return true;
