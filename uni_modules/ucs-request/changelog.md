@@ -1,8 +1,8 @@
-## 1.0.4（2025-10-17）
+## 1.0.5（2025-11-26）
 - 【官方文档】[ucs-request 请求库](https://ucs.cloudsimpler.com/library/ucs-request)
 - 【版本兼容】uni-app / uni-app-x
 - 【开发版本】HBuilderX - 4.66+
-- 【更新内容】重写请求库
+- 【更新内容】请求库重构
 ## 1.0.4（2025-09-09）
 - 【官方文档】[ucs-request 请求库](https://ucs.cloudsimpler.com/library/ucs-request)
 - 【版本兼容】uni-app / uni-app-x
