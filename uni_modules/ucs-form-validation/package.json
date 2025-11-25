@@ -1,16 +1,17 @@
 {
-	"id": "ucs-validate",
-	"displayName": "ucs-validate",
+	"id": "ucs-form-validation",
+	"displayName": "ucs-form-validation 表单验证",
 	"version": "1.0.0",
-	"description": "ucs-validate",
+	"description": "一个专为 uni-app/uni-app-x 设计的轻量级表单验证插件，支持多种常见验证规则和自定义验证器，帮助开发者快速实现表单数据校验功能",
 	"keywords": [
-        "ucs-validate"
+        "validate",
+        "表单验证"
     ],
-	"repository": "",
+	"repository": "https://gitee.com/cloudsimpler/uni-ucs-design/tree/master/uni_modules/ucs-form-validation",
 	"engines": {
 		"HBuilderX": "^3.1.0",
-		"uni-app": "^3.1.0",
-		"uni-app-x": "^3.1.0"
+		"uni-app": "^4.84",
+		"uni-app-x": "^4.84"
 	},
 	"dcloudext": {
 		"type": "sdk-js",
@@ -26,69 +27,69 @@
 			"qq": ""
 		},
 		"declaration": {
-			"ads": "",
-			"data": "",
-			"permissions": ""
+			"ads": "无",
+			"data": "插件不采集任何数据",
+			"permissions": "无"
 		},
 		"npmurl": "",
-		"darkmode": "-",
-		"i18n": "-",
-		"widescreen": "-"
+		"darkmode": "x",
+		"i18n": "x",
+		"widescreen": "x"
 	},
 	"uni_modules": {
 		"dependencies": [],
 		"encrypt": [],
 		"platforms": {
 			"cloud": {
-				"tcb": "-",
-				"aliyun": "-",
-				"alipay": "-"
+				"tcb": "x",
+				"aliyun": "x",
+				"alipay": "x"
 			},
 			"client": {
 				"uni-app": {
 					"vue": {
-						"vue2": "-",
-						"vue3": "-"
+						"vue2": "x",
+						"vue3": "√"
 					},
 					"web": {
-						"safari": "-",
-						"chrome": "-"
+						"safari": "√",
+						"chrome": "√"
 					},
 					"app": {
-						"vue": "-",
-						"nvue": "-",
-						"android": "-",
-						"ios": "-",
-						"harmony": "-"
+						"vue": "√",
+						"nvue": "√",
+						"android": "√",
+						"ios": "√",
+						"harmony": "√"
 					},
 					"mp": {
-						"weixin": "-",
-						"alipay": "-",
-						"toutiao": "-",
-						"baidu": "-",
-						"kuaishou": "-",
-						"jd": "-",
-						"harmony": "-",
-						"qq": "-",
-						"lark": "-"
+						"weixin": "√",
+						"alipay": "√",
+						"toutiao": "√",
+						"baidu": "√",
+						"kuaishou": "√",
+						"jd": "√",
+						"harmony": "√",
+						"qq": "√",
+						"lark": "√"
 					},
 					"quickapp": {
-						"huawei": "-",
-						"union": "-"
+						"huawei": "√",
+						"union": "√"
 					}
 				},
 				"uni-app-x": {
 					"web": {
-						"safari": "-",
-						"chrome": "-"
+						"safari": "√",
+						"chrome": "√"
 					},
 					"app": {
-						"android": "-",
-						"ios": "-",
-						"harmony": "-"
+						"android": "√",
+						"ios": "√",
+						"harmony": "√"
 					},
 					"mp": {
-						"weixin": "-"
+						"weixin": "√"
 					}
 				}
 			}
