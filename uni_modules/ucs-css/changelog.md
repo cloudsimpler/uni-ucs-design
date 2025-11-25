@@ -1,3 +1,8 @@
+## 1.0.6（2025-11-26）
+- 【官方文档】[ucs-css 原子化样式](https://ucs.cloudsimpler.com/library/ucs-css)
+- 【版本兼容】uni-app / uni-app-x
+- 【开发版本】HBuilderX - 4.24+
+- 【更新内容】完善样式
 ## 1.0.5（2025-08-22）
 - 【官方文档】[ucs-css 原子化样式](https://ucs.cloudsimpler.com/library/ucs-css)
 - 【版本兼容】uni-app / uni-app-x
