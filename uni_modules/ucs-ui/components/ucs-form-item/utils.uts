@@ -1,7 +1,7 @@
 import { getCurrentInstance } from 'vue';
 
-export const uuid = () : number | null => {
+export const getFormId = () : string | null => {
 	const instance = getCurrentInstance();
 	const parentProps = instance?.parent?.props;
-	return parentProps?.get("uuid") as number | null
+	return parentProps?.get("formId") as string | null
 };

@@ -33,7 +33,7 @@
 	 * @example <ucs-text :size="16" color="success">水调歌头</ucs-text>
 	 */
 	import { computed } from "vue";
-	import { getOsColor, getOsFontSize } from "@/uni_modules/ucs-config";
+	import { getOsColor, getOsFontSize,getOsLeadingSize } from "@/uni_modules/ucs-config";
 
 	const emits = defineEmits(['click']);
 
@@ -137,7 +137,7 @@
 
 		// 字行高
 		if (props.leading != 0) {
-			style['lineHeight'] = `${props.leading}px`;
+			style['lineHeight'] = `${getOsLeadingSize(props.leading)}px`;
 		};
 
 		// 加粗

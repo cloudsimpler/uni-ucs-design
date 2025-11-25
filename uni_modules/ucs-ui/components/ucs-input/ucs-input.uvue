@@ -1,18 +1,12 @@
 <template>
-	<input :placeholder="props.placeholder" 
-			@input="inputChange" 
-			:value="props.modelValue" 
-			:disabled="props.disabled"
-			:cursor-color="getOsColor('primary')" 
-			:placeholder-style="{color:getOsColor('grey')}" 
-			:style="[styleComputed]"
-			:type="props.type" />
+	<input :placeholder="props.placeholder" @input="inputChange" :value="props.modelValue" :disabled="props.disabled"
+		:cursor-color="getOsColor('primary')" :placeholder-style="{color:getOsColor('grey')}" :style="[styleComputed]"
+		:type="props.type" />
 </template>
 
 <script setup>
-	import { getOsColor } from "@/uni_modules/ucs-config/index";
-	import { computed } from "vue";
-	import { getCurrentInstance, inject } from 'vue';
+	import { getOsColor, getOsFontSize, getOsLeadingSize } from "@/uni_modules/ucs-config";
+	import { getCurrentInstance, inject, computed } from 'vue';
 
 	const instance = getCurrentInstance();
 	const parentProps = instance?.parent?.props;
@@ -40,7 +34,7 @@
 			default: "grey-12"
 		},
 		size: {
-			type: [String, Number],
+			type: Number,
 			default: 15
 		},
 		align: {
@@ -48,39 +42,39 @@
 			default: "left"
 		},
 		height: {
-			type: [String, Number],
-			default: 55
+			type: Number,
+			default: getOsLeadingSize(55)
 		}
 	});
-
-	const uuid = parentProps?.get("uuid") as number | null;
+	// ucs-form-item组件值
+	const formItemId = parentProps?.get("formItemId") as string | null;
 	const formItemProp = parentProps?.get("prop") as string | null;
 	const formItemHeight = parentProps?.get("height") as number | null;
 	const formItemColumn = parentProps?.get("column") as boolean | null;
 	const isVerify = inject("ucsFormItemIsVerify", () : boolean => { return false; }) as (() => boolean) | null;
-
+	// 输入时触发
 	const inputChange = (event : UniInputEvent) => {
 		const value = (event.target as UniInputElementImpl).value;
-
-		if (isVerify?.() == true && uuid != null && formItemProp != null) {
+		if (isVerify?.() == true && formItemId != null && formItemProp != null) {
 			let tempValue : UTSJSONObject = {};
 			tempValue.set(formItemProp, value)
-			uni.$emit(`${uuid}`, tempValue);
+			uni.$emit(`${formItemId}`, tempValue);
 		};
 
 		emits('update:modelValue', value);
 	};
 
 	const styleComputed = computed(() : UTSJSONObject => {
+
 		let style = {
 			color: `${getOsColor(props.disabled ? 'grey-8' : props.color)}`,
-			fontSize: `${props.size}px`,
+			fontSize: `${getOsFontSize(props.size)}px`,
 			textAlign: `${props.align}`,
 			height: `${formItemHeight ?? props.height}px`
 		};
 
-		if (formItemColumn != null) {
-			style.set("textAlign", formItemColumn ? 'left' : 'right');
+		if (formItemColumn != null && formItemColumn == false) {
+			style.set("textAlign", "right");
 		};
 
 		return style;

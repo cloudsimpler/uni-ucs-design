@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-	import { validation as formValidation, validationResultType } from "@/uni_modules/ucs-form-validation";
+	import { validation as formValidation, ValidationResultType } from "@/uni_modules/ucs-form-validation";
 	import { onUnmounted } from "vue";
 	const props = defineProps({
 		model: {
@@ -14,14 +14,14 @@
 			type: Object,
 			default: {}
 		},
-		uuid: {
-			type: Number,
-			default: Date.now()
+		formId: {
+			type: String,
+			default: `${Date.now()}`
 		}
 	});
 
-	const validation = () : validationResultType => {
-		uni.$emit(`${props.uuid}`, {
+	const validation = () : ValidationResultType => {
+		uni.$emit(`${props.formId}`, {
 			"__ucsModel": props.model,
 			"__ucsRules": props.rules
 		});
@@ -33,7 +33,7 @@
 	})
 
 	onUnmounted(() => {
-		uni.$off(`${props.uuid}`);
+		uni.$off(`${props.formId}`);
 	})
 </script>
 

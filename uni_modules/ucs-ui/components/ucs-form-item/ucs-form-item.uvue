@@ -2,9 +2,9 @@
 	<view class="__ucs-form-item" :style="[getOsBackground('grey-1')]" v-if="props.display">
 		<view class="V_zGQU" :style="[props.border?getOsBorder('bottom','1px','solid','grey-3'):{}]">
 			<view class="zPeF_g" :class="[props.column?'col':'row']">
-				<view class="joQc_K">
-					<ucs-text v-if="props.required" class="F_fbIs" color="danger">*</ucs-text>
+				<view class="joQc_K" :style="styleComputed">
 					<ucs-text :size="15">{{props.label}}</ucs-text>
+					<ucs-text v-if="props.required" class="F_fbIs" color="danger">*</ucs-text>
 				</view>
 				<view class="o_QXSc" :style="{minHeight: `${props.height}`}">
 					<slot></slot>
@@ -18,11 +18,11 @@
 	</view>
 </template>
 
-<script setup>
-	import { getOsBackground, getOsBorder } from "@/uni_modules/ucs-config/index";
-	import { validationSingle, validationSingleResultType } from "@/uni_modules/ucs-form-validation";
-	import { uuid } from './getCurrentInstance.uts';
-	import { ref, provide } from 'vue';
+<script lang="uts" setup>
+	import { getOsBackground, getOsBorder, getOsLeadingSize } from "@/uni_modules/ucs-config/index";
+	import { validationSingle, ValidationSingleResultType } from "@/uni_modules/ucs-form-validation";
+	import { getFormId } from './utils.uts';
+	import { ref, provide, computed } from 'vue';
 
 	const props = defineProps({
 		prop: {
@@ -33,6 +33,10 @@
 			type: String,
 			default: ""
 		},
+		labelWidth: {
+			type: Number,
+			default: 0
+		},
 		rules: {
 			type: Array,
 			default: () => {
@@ -40,8 +44,8 @@
 			}
 		},
 		height: {
-			type: [String, Number],
-			default: 55
+			type: Number,
+			default: getOsLeadingSize(55)
 		},
 		border: {
 			type: Boolean,
@@ -59,15 +63,15 @@
 			type: Boolean,
 			default: true
 		},
-		uuid: {
-			type: Number,
+		formItemId: {
+			type: String,
 			default: () => {
-				return uuid()
+				return getFormId()
 			}
 		}
 	});
 	// 验证信息
-	const validationSingleResult = ref<validationSingleResultType>({
+	const validationSingleResult = ref<ValidationSingleResultType>({
 		result: true,
 		error: []
 	});
@@ -78,8 +82,8 @@
 	// 验证规则
 	let itemRules : UTSJSONObject[] = [];
 	// 存在则进行验证
-	if (uuid() != null) {
-		uni.$on(`${uuid()}`, (params : UTSJSONObject) => {
+	if (getFormId() != null) {
+		uni.$on(`${getFormId()}`, (params : UTSJSONObject) => {
 			if (props.prop != "") {
 				const itemValue = params.getAny(`__ucsModel.${props.prop}`) ?? params.getAny(`${props.prop}`);
 				itemRules = params.getAny(`__ucsRules.${props.prop}`) as UTSJSONObject[] | null ?? itemRules;
@@ -92,6 +96,16 @@
 			};
 		});
 	};
+
+	const styleComputed = computed(() : UTSJSONObject => {
+		let style = {};
+
+		if (props.labelWidth != 0 && props.column == false) {
+			style['minWidth'] = `${props.labelWidth}px`
+		};
+
+		return style;
+	});
 </script>
 
 <style lang="scss" scoped>
@@ -127,7 +141,7 @@
 
 
 				.F_fbIs {
-					width: 12px;
+					margin-left: 4px;
 				}
 			}
 
