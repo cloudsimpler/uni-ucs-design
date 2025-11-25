@@ -17,3 +17,12 @@ export const setOsFontSize = (size : number) : void => {
 export const getOsFontSize = (size : number) : number => {
 	return defaultConfig.osFontSize + size
 }
+/**
+ * 获取当前字体行高
+ * @param size 当前文本的基础默认字体大小
+ * @returns number 调整后的行高 = 基础字体大小 + 全局调整值 * 2
+ * @description 根据基础字体大小和全局调整值计算出最终的字体行高
+ */
+export const getOsLeadingSize = (size : number) : number => {
+	return (defaultConfig.osFontSize * 2) + size
+}
