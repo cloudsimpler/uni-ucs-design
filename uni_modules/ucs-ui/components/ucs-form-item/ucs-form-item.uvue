@@ -1,16 +1,16 @@
 <template>
-	<view class="__ucs-form-item" :style="[getOsBackground('grey-1')]" v-if="props.display">
-		<view class="V_zGQU" :style="[props.border?getOsBorder('bottom','1px','solid','grey-3'):{}]">
-			<view class="zPeF_g" :class="[props.column?'col':'row']">
-				<view class="joQc_K" :style="styleComputed">
+	<view class="ucs-form-item" :style="[getOsBackground('grey-1')]" v-if="props.display">
+		<view class="ucs-form-item-container" :style="[props.border?getOsBorder('bottom','1px','solid','grey-3'):{}]">
+			<view class="ucs-form-item-content" :class="[props.column?'ucs-form-item-column':'ucs-form-item-row']">
+				<view class="ucs-form-item-label-container" :style="styleComputed">
 					<ucs-text :size="15">{{props.label}}</ucs-text>
-					<ucs-text v-if="props.required" class="F_fbIs" color="danger">*</ucs-text>
+					<ucs-text v-if="props.required" class="ucs-form-item-required" color="danger">*</ucs-text>
 				</view>
-				<view class="o_QXSc" :style="{minHeight: `${props.height}`}">
+				<view class="ucs-form-item-slot" :style="{minHeight: `${props.height}`}">
 					<slot></slot>
 				</view>
 			</view>
-			<view class="NEg_vd" v-if="validationSingleResult.error.length != 0">
+			<view class="ucs-form-item-error" v-if="validationSingleResult.error.length != 0">
 				<ucs-text :size="13" :leading="20" color="danger"
 					v-for="(item,index) in validationSingleResult.error">{{item}}</ucs-text>
 			</view>
@@ -109,43 +109,43 @@
 </script>
 
 <style lang="scss" scoped>
-	.__ucs-form-item {
-		.V_zGQU {
+	.ucs-form-item {
+		.ucs-form-item-container {
 			margin: 0 16px;
 
-			.NEg_vd {
+			.ucs-form-item-error {
 				display: flex;
 				flex-direction: column;
 				align-items: flex-end;
 				padding-bottom: 6px;
 			}
 
-			.zPeF_g {
+			.ucs-form-item-content {
 				display: flex;
 
-				&.row {
+				&.ucs-form-item-row {
 					flex-direction: row;
 					align-items: center;
 				}
 
-				&.col {
+				&.ucs-form-item-column {
 					flex-direction: column;
 					padding-top: 12px;
 				}
 			}
 
-			.joQc_K {
+			.ucs-form-item-label-container {
 				display: flex;
 				flex-direction: row;
 				margin-right: 12px;
 
 
-				.F_fbIs {
+				.ucs-form-item-required {
 					margin-left: 4px;
 				}
 			}
 
-			.o_QXSc {
+			.ucs-form-item-slot {
 				flex: 1;
 			}
 		}
