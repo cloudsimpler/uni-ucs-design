@@ -4,6 +4,70 @@
 export type ValidatorFunction = (value : any) => boolean;
 
 /**
+ * 验证规则项接口
+ */
+export type ValidationRuleItem = {
+	// 必填项
+	required ?: boolean;
+	// 数值验证
+	number ?: boolean;
+	// 整数验证
+	integer ?: boolean;
+	// 浮点数验证
+	float ?: boolean;
+	// 中文验证
+	chn ?: boolean;
+	// 中文和数字
+	chnNum ?: boolean;
+	// 中文或数字
+	chnOrNum ?: boolean;
+	// 字母和下划线
+	alphaLine ?: boolean;
+	// 固定电话
+	landline ?: boolean;
+	// 手机号
+	mobile ?: boolean;
+	// 字母和数字
+	alphaNum ?: boolean;
+	// 邮政编码
+	zipCode ?: boolean;
+	// 邮箱
+	email ?: boolean;
+	// 身份证
+	idCard ?: boolean;
+	// 正则表达式
+	regExp ?: UTSRegExp;
+	// 最小长度
+	min ?: number;
+	// 最大长度
+	max ?: number;
+	// 长度范围
+	length ?: number[];
+	// 不在范围内
+	notbetween ?: number[];
+	// 在数组内
+	in ?: string[];
+	// 不在数组内
+	notIn ?: string[];
+	// 大于
+	gt ?: number;
+	// 大于等于
+	egt ?: number;
+	// 小于等于
+	elt ?: number;
+	// 小于
+	lt ?: number;
+	// 等于
+	eq ?: number;
+	// 不等于
+	notEq ?: number;
+	// 自定义验证器
+	validator ?: ValidatorFunction;
+	// 错误消息
+	message ?: string;
+};
+
+/**
  * 正则
  */
 const regExp = (rule : UTSRegExp, value : string) : boolean => {
@@ -36,9 +100,9 @@ const checkResult = (ruleName : string, ruleValue : any, value : any) : boolean 
 			// 包含汉字或者数字
 			return !(ruleValue as boolean) || regExp(/^[\u4e00}-\u9fa5]+|[0-9]+$/u, value as string);
 		case "alphaLine":
-			// 英文和下划线，首尾不能是下划线、且不能只是下划线
-			const val = value as string;
-			return !(ruleValue as boolean) || (val.slice(0, 1) != '_' && val.slice(-1) != '_' && regExp(/^[A-Za-z\_]+$/, val));
+			// 英文和下划线,首尾不能是下划线、且不能只是下划线
+			const alphaLineVal = value as string;
+			return !(ruleValue as boolean) || (alphaLineVal.slice(0, 1) != '_' && alphaLineVal.slice(-1) != '_' && regExp(/^[A-Za-z\_]+$/, alphaLineVal));
 		case "landline":
 			// 固定电话号
 			return !(ruleValue as boolean) || regExp(/^(0\d{2,3}-?)?\d{7,8}(-\d{1,6})?$/, value as string);
@@ -62,30 +126,30 @@ const checkResult = (ruleName : string, ruleValue : any, value : any) : boolean 
 			return regExp(ruleValue as UTSRegExp, value as string);
 		case "min":
 			// 长度不能小于
-			const val = value as string;
-			return (ruleValue as number) <= val.length;
+			const minVal = value as string;
+			return (ruleValue as number) <= minVal.length;
 		case "max":
 			// 长度不能大于
-			const val = value as string;
-			return (ruleValue as number) >= val.length;
+			const maxVal = value as string;
+			return (ruleValue as number) >= maxVal.length;
 		case "length":
 			// 长度范围内
-			const val = value as string;
-			const ruleVal = ruleValue as number[];
-			return val.length >= ruleVal[0] && val.length <= ruleVal[1];
+			const lengthVal = value as string;
+			const lengthRuleVal = ruleValue as number[];
+			return lengthVal.length >= lengthRuleVal[0] && lengthVal.length <= lengthRuleVal[1];
 		case "notbetween":
 			// 不在范围之间
-			const val = value as string;
-			const ruleVal = ruleValue as number[];
-			return val.length < ruleVal[0] || val.length > ruleVal[1];
+			const notBetweenVal = value as string;
+			const notBetweenRuleVal = ruleValue as number[];
+			return notBetweenVal.length < notBetweenRuleVal[0] || notBetweenVal.length > notBetweenRuleVal[1];
 		case "in":
 			// 数据范围内
-			const ruleVal = ruleValue as string[];
-			return ruleVal.includes(value as string);
+			const inRuleVal = ruleValue as string[];
+			return inRuleVal.includes(value as string);
 		case "notIn":
 			// 数组不在范围内
-			const ruleVal = ruleValue as string[];
-			return !ruleVal.includes(value as string);
+			const notInRuleVal = ruleValue as string[];
+			return !notInRuleVal.includes(value as string);
 		case "gt":
 			// 大于某值
 			return (ruleValue as number) < parseFloat(value as string);
@@ -117,14 +181,22 @@ const checkResult = (ruleName : string, ruleValue : any, value : any) : boolean 
 	}
 }
 
-// 错误信息集
-export type validationSingleResultType = {
+/**
+ * 单字段验证结果类型
+ */
+export type ValidationSingleResultType = {
 	result : boolean;
 	error : string[];
 };
 
-export const validationSingle = (value : any, rule : UTSJSONObject[]) : validationSingleResultType => {
-	const validationResult : validationSingleResultType = {
+/**
+ * 单字段验证函数
+ * @param value 需要验证的值
+ * @param rule 验证规则数组
+ * @returns 验证结果
+ */
+export const validationSingle = (value : any, rule : UTSJSONObject[]) : ValidationSingleResultType => {
+	const validationResult : ValidationSingleResultType = {
 		result: true,
 		error: []
 	};
@@ -147,16 +219,23 @@ export const validationSingle = (value : any, rule : UTSJSONObject[]) : validati
 	return validationResult;
 };
 
-// 错误信息集
-export type validationResultType = {
+/**
+ * 完整表单验证结果类型
+ */
+export type ValidationResultType = {
 	result : boolean;
 	error : string[];
 	detail : UTSJSONObject;
 };
 
-export const validation = (formData : UTSJSONObject, rules : UTSJSONObject) : validationResultType => {
-
-	const validationResult : validationResultType = {
+/**
+ * 完整表单验证函数
+ * @param formData 表单数据对象
+ * @param rules 验证规则对象
+ * @returns 验证结果
+ */
+export const validation = (formData : UTSJSONObject, rules : UTSJSONObject) : ValidationResultType => {
+	const validationResult : ValidationResultType = {
 		result: true,
 		error: [],
 		detail: {}
