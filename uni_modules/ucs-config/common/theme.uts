@@ -1,6 +1,6 @@
 import { defaultColors, darkGrey, lightGrey } from "../utssdk/defaultColors.uts";
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
-import { generateObject, generateIndex } from "@/uni_modules/ucs-color";
+import { generateObject, generateIndex } from "../plugin/ucs-color";
 
 /**
  * 切换深色主题模式
