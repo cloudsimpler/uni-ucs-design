@@ -4,22 +4,22 @@
  */
 
 /** 核心配置功能 */
-export * from "./common/core.uts";
+export * from "./common/core";
 
 /** 网络请求配置 */
-export * from "./common/request.uts";
+export * from "./common/request";
 
 /** 国际化语言配置 */
-export * from "./common/language.uts";
+export * from "./common/language";
 
 /** 主题配置 */
-export * from "./common/theme.uts";
+export * from "./common/theme";
 
 /** 颜色配置 */
-export * from "./common/colors.uts";
+export * from "./common/colors";
 
 /** 字号配置 */
-export * from "./common/fontSize.uts";
+export * from "./common/fontSize";
 
 /** 页面配置 */
-export * from "./common/pages.uts";
+export * from "./common/pages";
