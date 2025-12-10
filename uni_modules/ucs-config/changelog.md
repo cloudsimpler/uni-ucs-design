@@ -1,3 +1,8 @@
+## 1.0.7（2025-12-10）
+- 【官方文档】[UCS Design 全局配置](https://ucs.cloudsimpler.com/library/ucs-config)
+- 【版本兼容】 Vue3【uni-app / uni-app-x】
+- 【开发版本】HBuilderX - 4.24+
+- 【更新内容】调整ucs-color引入方式
 ## 1.0.6（2025-11-26）
 - 【官方文档】[UCS Design 全局配置](https://ucs.cloudsimpler.com/library/ucs-config)
 - 【版本兼容】 Vue3【uni-app / uni-app-x】

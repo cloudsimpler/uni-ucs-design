@@ -1,4 +1,0 @@
-export * from "./utssdk/color.uts";
-export * from "./utssdk/generate.uts";
-export * from "./utssdk/palette.uts";
-export * from "./utssdk/palette-dark.uts";

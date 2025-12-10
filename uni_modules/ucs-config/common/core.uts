@@ -2,7 +2,7 @@ import { defaultConfigType } from "../utssdk/interface.uts";
 import { defaultConfig } from "../utssdk/defaultConfig.uts";
 import { defaultColors, darkGrey, lightGrey, darkGray, lightGray } from "../utssdk/defaultColors.uts";
 // @ts-ignore
-import { generateObject } from "../plugin/ucs-color";
+import { generateObject } from "@/uni_modules/ucs-color";
 
 // 声明函数
 let deepMergeObject : ((first : UTSJSONObject, second : UTSJSONObject) => UTSJSONObject) | null = null;
