@@ -1,0 +1,140 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="_ucs-layout-module" :style="{backgroundColor:getOsColor(props.backgroundColor)}">
+	<!-- #endif -->
+	<!-- #ifndef APP -->
+	<view class="_ucs-layout-module" :style="{backgroundColor:getOsColor(props.backgroundColor)}">
+	<!-- #endif -->
+	
+		
+		<view class="_ucs-layout-header" :class="{'_ucs-layout-header-change':headerHeight!=0}">
+			<slot name="header" />
+		</view>
+		<view :style="{paddingTop:`${headerHeight}px`,paddingBottom:`${footerHeight}px`}">
+			<view :style="{minHeight:`${windowHeight- headerHeight - sginHeight- footerHeight}px`}">
+				<slot name="default" />
+			</view>
+			<view class="_ucs-layout-sgin" :style="{opacity: sginHeight}">
+				<slot name="sign" />
+			</view>
+		</view>
+		<view class="_ucs-layout-footer">
+			<slot name="footer" />
+			<ucs-safe-area :backgroundColor="safeAreaColor" v-if="props.isSafeArea" />
+		</view>
+		
+		
+	<!-- #ifndef APP -->
+	</view>
+	<!-- #endif -->
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+	import { nextTick } from "vue";
+	const props = defineProps({
+		backgroundColor: {
+			type: String,
+			default: "transparent"
+		},
+		isSafeArea: {
+			type: Boolean,
+			default: true
+		},
+		safeAreaColor: {
+			type: String,
+			default: "transparent"
+		}
+	});
+
+	import { ref, getCurrentInstance, watch } from "vue";
+	import { defaultConfig } from "@/uni_modules/ucs-config/utssdk/defaultConfig.uts";
+	import { getOsColor } from "@/uni_modules/ucs-config/index";
+
+	const instance = getCurrentInstance();
+	const recordQuantity = 6;
+	const numberChange = ref<number>(0);
+	const windowHeight = ref<number>(0);
+	const headerHeight = ref<number>(0);
+	const sginHeight = ref<number>(0);
+	const footerHeight = ref<number>(0);
+
+	// 元素节点查询
+	const boundingClientRect = () => {
+		// header
+		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-layout-header').boundingClientRect().exec((ret) => {
+			headerHeight.value = (ret[0] as NodeInfo).height as number;
+		});
+		// sgin
+		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-layout-sgin').boundingClientRect().exec((ret) => {
+			sginHeight.value = (ret[0] as NodeInfo).height as number;
+		});
+		// footer
+		uni.createSelectorQuery().in(instance?.proxy).select('._ucs-layout-footer').boundingClientRect().exec((ret) => {
+			footerHeight.value = (ret[0] as NodeInfo).height as number;
+		});
+	};
+
+	// 字体大小改变
+	watch(() : number => defaultConfig.osFontSize, () => {
+		boundingClientRect();
+	});
+
+	// 为了处理各端延迟获取不正确问题
+	watch(() : number => numberChange.value, () => {
+		nextTick(() => {
+			uni.createSelectorQuery().in(instance?.proxy).select('._ucs-layout-module').boundingClientRect().exec((ret) => {
+				if (ret.length != 0) {
+					const windowHeightTemp = (ret[0] as NodeInfo).height as number;
+					windowHeight.value = windowHeightTemp - 0.1;
+					// 查询header、sgin、footer节点信息
+					boundingClientRect();
+				};
+				// 查询次数
+				if (recordQuantity >= numberChange.value) {
+					setTimeout(() => {
+						numberChange.value += 1;
+					}, 50);
+				};
+			});
+		})
+	}, {
+		immediate: true
+	});
+	
+	// 暴露方法
+	defineExpose({
+		boundingClientRect
+	});
+</script>
+
+<style lang="scss" scoped>
+	._ucs-layout-module {
+		// #ifdef APP
+		flex: 1;
+		// #endif
+		// #ifndef APP
+		min-height: 100%;
+		// #endif
+	}
+
+	._ucs-layout-sgin {
+		transition: opacity 0.3s ease;
+	}
+
+	._ucs-layout-header-change {
+		position: fixed;
+		top: var(--window-top);
+		width: 100%;
+		z-index: 3;
+	}
+
+	._ucs-layout-footer {
+		position: fixed;
+		bottom: 0px;
+		width: 100%;
+		z-index: 3;
+	}
+</style>
