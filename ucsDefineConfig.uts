@@ -1,5 +1,24 @@
 import { defineConfig } from "@/uni_modules/ucs-config";
-
+import { http } from "@/uni_modules/ucs-request";
 defineConfig({
-	
+	osFontSize: 0,
+	// 配置项
+	osRequest: {
+		development: "",
+		production: "",
+		header: {
+			
+		}
+	}
 });
+
+
+http.useSuccessRequestInterceptor(async (response) => {
+	console.log(response)
+	return response;
+})
+
+http.useFailRequestInterceptor(async (fail) => {
+	console.log(fail)
+	return fail;
+})

@@ -1,73 +1,17 @@
 <template>
-	<ucs-layout safeAreaColor="grey-1" :footer-height="50">
-		<template v-slot:header>
-			<ucs-navigation-bar :title="tabbarIndex == 0?'组件':'配置'"></ucs-navigation-bar>
-		</template>
-		<scroll-view class="h-full" v-show="tabbarIndex == 0">
-			<ucs-date-time></ucs-date-time>
-			<!-- <button @tap="onTap3(true)">弹出层</button>
-			<ucs-popup :isShow="show" @change="onChange">
-				<view style="width: 200px;height: 300px;background-color: red;" @tap="onTap3(false)">
-					
-				</view>
-			</ucs-popup>
-			<view style="height: 1000px;">
-				
-			</view> -->
-		</scroll-view>
-		<scroll-view class="h-full" v-show="tabbarIndex == 1">
-			<button @tap="onTap">切换主题</button>
-			<button @tap="onTap1">切换主题颜色</button>
-			<button @tap="onTap2">设置字体大小</button>
-		</scroll-view>
-		<!-- 底部导航栏 -->
+	<ucs-layout>
 		<template v-slot:footer>
-			<view class="flex-row py-sm" :style="[getOsBackground('grey-1')]">
-				<view class="flex-1 flex-column justify-items" @tap="onTabbarIndex(0)">
-					<ucs-icon-application-one :theme="tabbarIndex == 0? 'filled':'outline'"
-						:fill="tabbarIndex == 0 ?[getOsColor('primary')]:[getOsColor('grey-12')]" :size="22" />
-					<ucs-text class="pt-xs" :color="tabbarIndex == 0?'primary':'grey-12'" :size="11">组件</ucs-text>
-				</view>
-				<view class="flex-1 flex-column justify-items" @tap="onTabbarIndex(1)">
-					<ucs-icon-platte :theme="tabbarIndex == 1? 'filled':'outline'"
-						:fill="tabbarIndex == 1 ?[getOsColor('primary')]:[getOsColor('grey-12')]" :size="22" />
-					<ucs-text class="pt-xs" :color="tabbarIndex == 1?'primary':'grey-12'" :size="11">配置</ucs-text>
-				</view>
-			</view>
+			<ucs-text color="primary">测试</ucs-text>
 		</template>
 	</ucs-layout>
 </template>
 
 <script setup>
-	import { getOsBackground, setOsTheme, getOsColor, setOsColorPrimary, setOsFontSize } from "@/uni_modules/ucs-config";
-
-	let tabbarIndex = ref(0);
-
-	const onTabbarIndex = (index : number) => {
-		tabbarIndex.value = index
-	}
-
-	const onTap = () => {
-		setOsTheme('dark')
-	}
-	const onTap1 = () => {
-		setOsColorPrimary('#F53F3F')
-	}
-	const onTap2 = () => {
-		setOsFontSize(10)
-	}
+	import { isNull } from "@/uni_modules/ucs-api";
 	
-	let show = ref(false)
-
-	const onTap3 = (e:boolean) => {
-		show.value = e
-	}
-	
-	const onChange = (e:boolean)=>{
-		show.value = e;
-	}
+	console.log(isNull(null))
 </script>
 
-<style lang="scss">
+<style>
 
 </style>

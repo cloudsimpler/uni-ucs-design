@@ -1,0 +1,8 @@
+/**
+ * =======================
+ * 判断类
+ * =======================
+ */
+export const isNull = (str : any | null) => { 
+	// return [null, 'null', '', undefined, 'undefined'].includes(str)
+}

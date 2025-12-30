@@ -4,7 +4,7 @@
  * @param {UTSJSONObject} p2 json数据
  * @return {UTSJSONObject} p1,p2合并后的新json数据
  */
-export const getJsonMerge = (p1 : UTSJSONObject, p2 : UTSJSONObject) : UTSJSONObject => {
+export const getMergeJson = (p1 : UTSJSONObject, p2 : UTSJSONObject) : UTSJSONObject => {
 	// #ifdef UNI-APP-X
 	return UTSJSONObject.assign(p1, p2);
 	// #endif

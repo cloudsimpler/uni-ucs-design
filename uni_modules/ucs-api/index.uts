@@ -1,3 +1,4 @@
-export * from "./utssdk/deep.uts";
-export * from "./utssdk/color.uts";
-export * from "./utssdk/merge.uts";
+export * from "./utssdk/deep";
+export * from "./utssdk/color";
+export * from "./utssdk/merge";
+export * from "./utssdk/judge";
