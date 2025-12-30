@@ -14,9 +14,11 @@ const mergeGlobalParams = (p1 : UcsRequestOptions, p2 : UcsDefaultRequestOptions
 	// 合并header配置，请求时的配置优先于默认配置
 	// #ifdef UNI-APP-X
 	p1.header = UTSJSONObject.assign(p2.header ?? {}, p1.header ?? {});
+	p1.data = UTSJSONObject.assign(p2.data as UTSJSONObject | null ?? {}, p1.data as UTSJSONObject | null ?? {});
 	// #endif
 	// #ifndef UNI-APP-X
 	p1.header = Object.assign(p2.header ?? {}, p1.header ?? {});
+	p1.data = Object.assign(p2.data ?? {}, p1.data ?? {});
 	// #endif
 	p1.requestTimeout = p1.requestTimeout ?? p2.requestTimeout;
 	p1.uploadFileTimeout = p1.uploadFileTimeout ?? p2.uploadFileTimeout;

@@ -39,6 +39,7 @@ export type UcsDefaultRequestOptions = {
 	development ?: string | null;
 	production ?: string | null;
 	header ?: UTSJSONObject | null;
+	data ?: any | null;
 	requestTimeout ?: number | null;
 	uploadFileTimeout ?: number | null;
 	downloadFileTimeout ?: number | null;
