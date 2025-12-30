@@ -1,15 +1,11 @@
 <template>
 	<ucs-layout>
-		<template v-slot:footer>
-			<ucs-text color="primary">测试</ucs-text>
-		</template>
+		
 	</ucs-layout>
 </template>
 
 <script setup>
-	import { isNull } from "@/uni_modules/ucs-api";
 	
-	console.log(isNull(null))
 </script>
 
 <style>
