@@ -1,0 +1,36 @@
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const { runtime, renderer } = require('./helpers/runtime.cjs');
+(async () => {
+  const r = runtime(), { vue } = r;
+  const Progress = (await r.importFile(path.resolve(__dirname, '../components/ucs-progress/ucs-progress.vue'))).default;
+  const core = await r.importFile(path.resolve(__dirname, '../index.js'));
+  const { getProgressSource } = await r.importFile(path.resolve(__dirname, '../components/ucs-progress/svg.js'));
+  const { renderer: rr, node } = renderer(); const props = vue.reactive({}), ref = vue.ref();
+  const app = rr.createApp({ render: () => vue.h(Progress, { ...props, ref }, { default: ({ percent }) => vue.h('text', String(percent)) }) });
+  const host = node('root'); app.mount(host); const s = ref.value.$.setupState;
+  assert.equal(s.fillStyle.width, '0%'); assert.equal(s.trackStyle.height, '4px');
+  assert.equal(host.children[0].children.length, 1); assert.equal(s.trackStyle.backgroundColor, core.getThemeColor('gray-3'));
+  props.percent = 42.5; await r.flush(); assert.equal(host.children[0].children[0].props.style.width, '42.5%');
+  props.percent = -10; await r.flush(); assert.equal(s.progress, 0);
+  props.percent = 150; await r.flush(); assert.equal(s.progress, 100);
+  for (const percent of [NaN, Infinity, -Infinity]) { props.percent = percent; await r.flush(); assert.equal(s.progress, 0); }
+  props.type = 'circle'; props.percent = 25; await r.flush();
+  const findText = n => n.type === 'text' ? n.text : n.children.map(findText).join('');
+  assert.equal(s.circleStyle.width, '80px'); assert.equal(findText(host), '25');
+  const decode = src => Buffer.from(src.split(',')[1], 'base64').toString('utf8');
+  let svg = decode(s.circleSource); assert.match(svg, /stroke-dasharray=/); assert.match(svg, /rotate\(-90 50 50\)/);
+  assert.equal((decode(getProgressSource(0, 80, 4, 'red', 'gray')).match(/<circle /g) || []).length, 1);
+  svg = decode(getProgressSource(100, 80, 4, 'red', 'gray')); assert.equal(svg.includes('stroke-dasharray'), false); assert.equal((svg.match(/<circle /g) || []).length, 2);
+  assert.equal(getProgressSource(50, 80, 4, 'red', 'gray'), getProgressSource(50, 160, 8, 'red', 'gray'));
+  assert.match(decode(getProgressSource(50, 80, 4, 'a"<&', 'gray')), /a&quot;&lt;&amp;/);
+  props.size = 20; props.strokeWidth = 100; await r.flush(); assert.match(decode(s.circleSource), /stroke-width="50"/);
+  props.size = NaN; props.strokeWidth = 0; await r.flush(); assert.equal(s.circleStyle.width, '80px'); assert.equal(s.stroke, 4);
+  const before = s.circleSource; core.setThemeMode('dark'); await r.flush(); assert.notEqual(s.circleSource, before);
+  props.color = ['primary-6', '#123456']; props.trackColor = ['gray-3', '#654321']; await r.flush();
+  assert.match(decode(s.circleSource), /#123456/); assert.match(decode(s.circleSource), /#654321/);
+  core.updateConfig(r.data({ typographyOffset: 10 })); await r.flush(); assert.equal(s.circleStyle.width, '80px'); assert.equal(s.stroke, 4);
+  props.type = 'invalid'; await r.flush(); assert.equal(host.children[0].children.length, 1);
+  assert.equal(r.timers.size, 0); app.unmount(); assert.equal(r.timers.size, 0);
+  console.log('PASS progress: line/circle rendering, slot, boundaries, SVG endpoints/escaping, theme changes and fixed dimensions');
+})().catch(error => { console.error(error); process.exitCode = 1; });

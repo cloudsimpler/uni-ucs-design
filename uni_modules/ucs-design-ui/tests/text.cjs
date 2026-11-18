@@ -1,0 +1,114 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const vue = require('vue');
+const { parse, compileScript, compileTemplate } = require('@vue/compiler-sfc');
+const { preprocess } = require('@dcloudio/uni-cli-shared/lib/preprocess');
+const filename = path.resolve(__dirname, '../components/ucs-text/ucs-text.vue');
+const source = fs.readFileSync(filename, 'utf8');
+async function loadComponent(macros) {
+  const processed = preprocess(source, { UNI_APP_X: false, APP: false, VUE3_VAPOR: false, ...macros }, { type: 'js' });
+  const { descriptor, errors } = parse(processed, { filename });
+  assert.deepEqual(errors, []);
+  const script = compileScript(descriptor, { id: 'ucs-text-test' });
+  const template = compileTemplate({ source: descriptor.template.content, filename, id: 'ucs-text-test', compilerOptions: { bindingMetadata: script.bindings } });
+  assert.deepEqual(template.errors, []);
+  const cache = new Map();
+  const vueModule = new vm.SyntheticModule(Object.keys(vue), function () {
+    for (const key of Object.keys(vue)) this.setExport(key, vue[key]);
+  });
+  function load(file, text) {
+    if (!cache.has(file)) cache.set(file, new vm.SourceTextModule(text ?? fs.readFileSync(file, 'utf8'), { identifier: file }));
+    return cache.get(file);
+  }
+  const entry = load(filename, script.content);
+  await entry.link((specifier, parent) => specifier === 'vue' ? vueModule : load(path.resolve(path.dirname(parent.identifier), specifier)));
+  await entry.evaluate();
+  const component = entry.namespace.default;
+  const props = vue.reactive(Object.fromEntries(Object.entries(component.props).map(([name, definition]) => [name, typeof definition.default === 'function' ? definition.default() : definition.default])));
+  const events = [];
+  const state = component.setup(props, { expose() {}, emit: (...event) => events.push(event) });
+  const core = cache.get(path.resolve(__dirname, '../core/config.js')).namespace;
+  return { component, props, state, core, events };
+}
+(async () => {
+  const { component, props, state, core, events } = await loadComponent({ WEB: true });
+  assert.equal(component.options.virtualHost, true);
+  assert.equal(state.resolvedMaxLines.value, -1);
+  for (const maxLines of [0, 0.5, -1, NaN, Infinity]) {
+    props.maxLines = maxLines;
+    assert.equal(state.resolvedMaxLines.value, -1);
+    assert.equal(state.textStyle.value.overflow, undefined);
+  }
+  props.maxLines = 0;
+  assert.equal(state.textStyle.value.fontSize, '14px');
+  assert.equal(state.textStyle.value.lineHeight, '21px');
+  assert.equal(state.textStyle.value.display, undefined);
+  core.updateConfig({ typographyOffset: 2 });
+  assert.equal(state.textStyle.value.fontSize, '16px');
+  assert.equal(state.textStyle.value.lineHeight, '24px');
+  props.size = 20;
+  props.lineHeight = 30;
+  assert.equal(state.textStyle.value.lineHeight, '33px');
+  core.setThemeMode('dark');
+  assert.equal(state.textStyle.value.color, core.getThemeColor('gray-10'));
+  props.color = ['#123456', 'primary-6'];
+  assert.equal(state.textStyle.value.color, core.getThemeColor('primary-6'));
+  core.setThemeColor('primary', '#1890FF');
+  assert.equal(state.textStyle.value.color, core.getThemeColor('primary-6'));
+  core.setThemeMode('light');
+  assert.equal(state.textStyle.value.color, '#123456');
+  props.color = ['rebeccapurple'];
+  core.setThemeMode('dark');
+  assert.equal(state.textStyle.value.color, 'rebeccapurple');
+  for (const color of ['', null, []]) {
+    props.color = color;
+    assert.throws(() => state.textStyle.value, TypeError);
+  }
+  props.color = ['#123456', null];
+  core.setThemeMode('light');
+  assert.equal(state.textStyle.value.color, '#123456');
+  core.setThemeMode('dark');
+  assert.equal(state.textStyle.value.color, '#123456');
+  props.color = 'primary-99';
+  assert.equal(state.textStyle.value.color, 'primary-99');
+  props.color = ['primary-6', '#FFFFFF'];
+  assert.equal(state.textStyle.value.color, '#FFFFFF');
+  props.width = 0;
+  assert.equal(state.textStyle.value.width, '0px');
+  props.width = '100%';
+  assert.equal(state.textStyle.value.width, '100%');
+  props.maxLines = 2.9;
+  assert.equal(state.resolvedMaxLines.value, 2);
+  assert.equal(state.textStyle.value.WebkitLineClamp, 2);
+  props.wrap = false;
+  assert.equal(state.resolvedMaxLines.value, 1);
+  assert.equal(state.textStyle.value.whiteSpace, 'nowrap');
+  assert.equal(state.textStyle.value.WebkitLineClamp, undefined);
+  props.wrap = true;
+  props.maxLines = 0;
+  props.width = '';
+  assert.equal(state.resolvedMaxLines.value, -1);
+  assert.equal(state.textStyle.value.overflow, undefined);
+  assert.equal(state.textStyle.value.display, undefined);
+  props.size = NaN;
+  props.lineHeight = Infinity;
+  props.width = null;
+  props.fontFamily = null;
+  assert.equal(state.textStyle.value.fontSize, '16px');
+  assert.equal(state.textStyle.value.lineHeight, '24px');
+  const tap = {};
+  state.onTap(tap);
+  state.onLongPress(tap);
+  assert.deepEqual(events, [['tap', tap], ['click', tap], ['longpress', tap]]);
+  const vapor = await loadComponent({ UNI_APP_X: true, APP: true, VUE3_VAPOR: true });
+  assert.equal(vapor.state.resolvedMaxLines.value, -1);
+  vapor.props.maxLines = 3;
+  assert.equal(vapor.state.resolvedMaxLines.value, 3);
+  assert.equal(vapor.state.textStyle.value.WebkitLineClamp, undefined);
+  const legacy = await loadComponent({ UNI_APP_X: true, APP: true });
+  legacy.props.maxLines = 3;
+  assert.equal(legacy.state.textStyle.value.lines, 3);
+  console.log('PASS SFC compilation, live typography/theme, CSS colors, width, truncation, invalid-value fallbacks, events and native conditional branches');
+})().catch(error => { console.error(error); process.exitCode = 1; });

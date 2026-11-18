@@ -1,4 +1,0 @@
-export * from "./utssdk/deep";
-export * from "./utssdk/color";
-export * from "./utssdk/merge";
-export * from "./utssdk/judge";

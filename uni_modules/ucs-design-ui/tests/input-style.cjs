@@ -1,0 +1,40 @@
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const { runtime, renderer } = require('./helpers/runtime.cjs');
+(async () => {
+  const r = runtime(), { vue } = r;
+  const { useInputStyle } = await r.importFile(path.resolve(__dirname, '../index.js'));
+  const core = await r.importFile(path.resolve(__dirname, '../index.js'));
+  const styles = useInputStyle();
+  assert.equal(styles.inputStyle.value.fontSize, '14px');
+  assert.equal(styles.inputStyle.value.lineHeight, '21px');
+  assert.equal(styles.inputStyle.value.height, undefined);
+  assert(styles.placeholderStyle.value.includes('font-size:14px'));
+  const { renderer: hostRenderer, node } = renderer();
+  const host = node('root');
+  const app = hostRenderer.createApp({ render: () => vue.h('input', {
+    style: styles.inputStyle.value, 'placeholder-style': styles.placeholderStyle.value
+  }) });
+  app.mount(host);
+  core.updateConfig(r.data({ typographyOffset: 4 })); await r.flush();
+  assert.equal(host.children[0].props.style.fontSize, '18px');
+  assert.equal(host.children[0].props.style.lineHeight, '27px');
+  assert(host.children[0].props['placeholder-style'].includes('font-size:18px'));
+  core.setThemeMode('dark'); await r.flush();
+  assert.equal(host.children[0].props.style.color, core.getThemeColor('gray-10'));
+  const config = vue.reactive({ size: 20, lineHeight: 30, color: ['#123456', '#ABCDEF'] });
+  const dynamic = useInputStyle(config);
+  assert.equal(dynamic.inputStyle.value.fontSize, '24px');
+  assert.equal(dynamic.inputStyle.value.lineHeight, '36px');
+  assert.equal(dynamic.inputStyle.value.color, '#ABCDEF');
+  config.size = 16; assert.equal(dynamic.inputStyle.value.fontSize, '20px');
+  const options = vue.ref({ size: 10 });
+  const refStyle = useInputStyle(options), getterStyle = useInputStyle(() => options.value);
+  options.value = { size: 12 };
+  assert.equal(refStyle.inputStyle.value.fontSize, '16px');
+  assert.equal(getterStyle.inputStyle.value.fontSize, '16px');
+  core.updateConfig(r.data({ typographyOffset: 0 })); core.setThemeMode('light');
+  for (const size of [0, -1, Infinity, NaN]) assert.equal(useInputStyle({ size }).inputStyle.value.fontSize, '14px');
+  app.unmount();
+  console.log('PASS input styles: default 14px, rendered offset/theme updates, proportional line height, reactive/ref/getter config and size fallback');
+})().catch(error => { console.error(error); process.exitCode = 1; });

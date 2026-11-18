@@ -1,7 +1,0 @@
-import { getCurrentInstance } from 'vue';
-
-export const getFormId = () : string | null => {
-	const instance = getCurrentInstance();
-	const parentProps = instance?.parent?.props;
-	return parentProps?.get("formId") as string | null
-};

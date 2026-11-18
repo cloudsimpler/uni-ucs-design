@@ -1,9 +1,10 @@
 # 以下文件将被 Git 忽略
-unpackage/cache
-unpackage/debug
-unpackage/dist
-unpackage/release
+unpackage/
+.DS_Store
+.hbuilderx/
+.hbuilderv/
 node_modules
 dist
-.hbuilderx
 .vite
+.local/
+package-lock.json

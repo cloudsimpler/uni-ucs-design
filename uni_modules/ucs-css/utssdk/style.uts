@@ -1,1 +1,0 @@
-export * from "@/uni_modules/ucs-config/common/colors.uts";

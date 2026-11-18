@@ -1,0 +1,9 @@
+{
+  "name": "ucs-pages-json",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "type": "commonjs",
+  "engines": { "node": ">=18" },
+  "dependencies": { "@babel/parser": "7.29.0" }
+}
