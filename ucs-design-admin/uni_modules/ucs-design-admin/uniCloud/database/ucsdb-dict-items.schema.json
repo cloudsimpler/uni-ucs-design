@@ -1,0 +1,42 @@
+{
+  "bsonType": "object",
+  "required": [
+    "dict_id",
+    "label",
+    "value",
+    "enabled",
+    "sort"
+  ],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "dict_id": {
+      "bsonType": "string"
+    },
+    "label": {
+      "bsonType": "string"
+    },
+    "value": {
+      "bsonType": "string"
+    },
+    "color": {
+      "bsonType": "string"
+    },
+    "enabled": {
+      "bsonType": "bool"
+    },
+    "sort": {
+      "bsonType": "int"
+    },
+    "create_date": {
+      "bsonType": "timestamp"
+    },
+    "update_date": {
+      "bsonType": "timestamp"
+    }
+  }
+}

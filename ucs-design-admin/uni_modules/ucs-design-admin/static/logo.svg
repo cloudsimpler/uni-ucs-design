@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+	<title>UCS Admin</title>
+	<defs>
+		<linearGradient id="brand" x1="8" y1="4" x2="56" y2="64" gradientUnits="userSpaceOnUse">
+			<stop stop-color="#409EFF" />
+			<stop offset="1" stop-color="#337ECC" />
+		</linearGradient>
+	</defs>
+	<rect x="2" y="2" width="60" height="60" rx="16" fill="url(#brand)" />
+	<path d="M19 19V36C19 43.18 24.82 49 32 49C39.18 49 45 43.18 45 36V33" stroke="white" stroke-width="8" stroke-linecap="round" />
+	<rect x="39" y="15" width="12" height="12" rx="3" fill="#A0CFFF" />
+</svg>

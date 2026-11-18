@@ -1,0 +1,28 @@
+[
+  {
+    "IndexName": "permission_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "permission_id",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  },
+  {
+    "IndexName": "menu_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "menu_id",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  }
+]

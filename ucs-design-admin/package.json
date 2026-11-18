@@ -1,0 +1,10 @@
+{
+	"scripts": {
+		"test": "node --test tests"
+	},
+	"dependencies": {
+		"dayjs": "1.11.13",
+		"element-plus": "^2.14.5",
+		"@element-plus/icons-vue": "^2.3.2"
+	}
+}

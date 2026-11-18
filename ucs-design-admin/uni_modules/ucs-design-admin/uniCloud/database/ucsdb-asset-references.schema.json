@@ -1,0 +1,36 @@
+{
+  "bsonType": "object",
+  "required": [
+    "asset_id",
+    "business_type",
+    "business_id",
+    "field"
+  ],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "asset_id": {
+      "bsonType": "string",
+      "description": "素材 ID"
+    },
+    "business_type": {
+      "bsonType": "string",
+      "description": "业务类型"
+    },
+    "business_id": {
+      "bsonType": "string",
+      "description": "业务记录 ID"
+    },
+    "field": {
+      "bsonType": "string",
+      "description": "使用字段"
+    },
+    "create_date": {
+      "bsonType": "timestamp"
+    }
+  }
+}

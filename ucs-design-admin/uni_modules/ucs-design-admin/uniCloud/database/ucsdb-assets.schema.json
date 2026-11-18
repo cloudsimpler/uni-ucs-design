@@ -1,0 +1,68 @@
+{
+  "bsonType": "object",
+  "required": [
+    "name",
+    "state",
+    "cloud_path"
+  ],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "width": { "bsonType": "int", "description": "图片宽度，单位像素", "minimum": 1, "maximum": 1000000 },
+    "height": { "bsonType": "int", "description": "图片高度，单位像素", "minimum": 1, "maximum": 1000000 },
+    "cover_file_id": {
+      "bsonType": "string",
+      "description": "上传视频时自动截取的封面文件标识；无封面时为空"
+    },
+    "name": {
+      "bsonType": "string",
+      "description": "素材名称"
+    },
+    "file_id": {
+      "bsonType": "string",
+      "description": "云存储永久文件标识，不保存临时访问地址"
+    },
+    "cloud_path": {
+      "bsonType": "string",
+      "description": "服务端生成的上传路径"
+    },
+    "group_id": {
+      "bsonType": "string",
+      "description": "分组 ID，空字符串为未分组"
+    },
+    "type": {
+      "bsonType": "string",
+      "description": "image/video/audio/document"
+    },
+    "mime": {
+      "bsonType": "string",
+      "description": "文件 MIME 类型"
+    },
+    "ext": {
+      "bsonType": "string",
+      "description": "文件扩展名"
+    },
+    "state": {
+      "bsonType": "string",
+      "description": "uploading/ready"
+    },
+    "creator_id": {
+      "bsonType": "string",
+      "description": "上传人 ID"
+    },
+    "size": {
+      "bsonType": "long",
+      "description": "文件字节数"
+    },
+    "create_date": {
+      "bsonType": "timestamp"
+    },
+    "update_date": {
+      "bsonType": "timestamp"
+    }
+  }
+}

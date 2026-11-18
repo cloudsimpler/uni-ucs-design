@@ -1,0 +1,65 @@
+{
+	"bsonType": "object",
+	"description": "权限表",
+	"required": ["menu_id", "permission_id", "permission_name"],
+	"permission": {
+		"read": "'READ_UNI_ID_PERMISSIONS' in auth.permission",
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"menu_id": {
+			"bsonType": "string",
+			"description": "所属页面的 menu_id，必填且必须指向页面，不能归属目录",
+			"minLength": 1,
+			"foreignKey": "opendb-admin-menus.menu_id",
+			"trim": "both"
+		},
+		"sort": {
+			"bsonType": "int",
+			"description": "菜单下的权限排序",
+			"minimum": 0
+		},
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"comment": {
+			"bsonType": "string",
+			"component": {
+				"name": "textarea"
+			},
+			"description": "备注",
+			"label": "备注",
+			"title": "备注",
+			"trim": "both"
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"permission_id": {
+			"bsonType": "string",
+			"component": {
+				"name": "input"
+			},
+			"description": "权限唯一标识，不可修改，不允许重复",
+			"label": "权限标识",
+			"title": "权限ID",
+			"trim": "both"
+		},
+		"permission_name": {
+			"bsonType": "string",
+			"component": {
+				"name": "input"
+			},
+			"description": "权限名称",
+			"label": "权限名称",
+			"title": "权限名称",
+			"trim": "both"
+		}
+	}
+}

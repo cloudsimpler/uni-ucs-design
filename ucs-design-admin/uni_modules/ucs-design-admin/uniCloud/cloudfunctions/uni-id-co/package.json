@@ -1,0 +1,29 @@
+{
+    "name": "uni-id-co",
+    "version": "1.1.20",
+    "description": "",
+    "main": "index.js",
+    "keywords": [],
+    "author": "DCloud",
+    "dependencies": {
+        "uni-captcha": "file:../common/uni-captcha",
+        "uni-cloud-s2s": "file:../common/uni-cloud-s2s",
+        "uni-open-bridge-common": "file:../common/uni-open-bridge-common",
+        "uni-config-center": "file:../../../../uni-config-center/uniCloud/cloudfunctions/common/uni-config-center",
+        "uni-id-common": "file:../../../../uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
+    },
+    "extensions": {
+        "uni-cloud-redis": [],
+        "uni-cloud-sms": [],
+        "uni-cloud-verify": []
+    },
+    "cloudfunction-config": {
+        "keepRunningAfterReturn": false,
+        "frequencyLimitEnable": false,
+        "blackListEnable": false
+    },
+    "origin-plugin-dev-name": "uni-template-admin",
+    "origin-plugin-version": "3.0.0",
+    "plugin-dev-name": "uni-template-admin",
+    "plugin-version": "3.0.0"
+}

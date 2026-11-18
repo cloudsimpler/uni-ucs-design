@@ -1,0 +1,191 @@
+[
+  {
+    "menu_id": "home",
+    "name": "首页",
+    "icon": "House",
+    "url": "",
+    "sort": 1,
+    "parent_id": "",
+    "enable": true,
+    "create_date": 1602662469396,
+    "menu_type": 0,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "index",
+    "name": "主页面",
+    "icon": "HomeFilled",
+    "url": "/",
+    "sort": 1,
+    "parent_id": "home",
+    "enable": true,
+    "create_date": 1602662469396,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "test",
+    "name": "测试页面",
+    "icon": "Monitor",
+    "url": "/pages/noLogin/test/test",
+    "sort": 1,
+    "parent_id": "home",
+    "enable": true,
+    "create_date": 1602662469396,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "system_management",
+    "name": "系统管理",
+    "icon": "Setting",
+    "url": "",
+    "sort": 2,
+    "parent_id": "",
+    "enable": true,
+    "create_date": 1602662469396,
+    "menu_type": 0,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "system_user",
+    "name": "系统用户",
+    "icon": "User",
+    "url": "/uni_modules/ucs-design-admin/pages/system/user/user",
+    "sort": 21,
+    "parent_id": "system_management",
+    "enable": true,
+    "create_date": 1602662469398,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "system_customer",
+    "name": "社区用户",
+    "icon": "Avatar",
+    "url": "/uni_modules/ucs-design-admin/pages/system/customer/customer",
+    "sort": 22,
+    "parent_id": "system_management",
+    "enable": true,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "system_role",
+    "name": "角色管理",
+    "icon": "UserFilled",
+    "url": "/uni_modules/ucs-design-admin/pages/system/role/role",
+    "sort": 23,
+    "parent_id": "system_management",
+    "enable": true,
+    "create_date": 1602662469397,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "system_menu",
+    "name": "菜单管理",
+    "icon": "Menu",
+    "url": "/uni_modules/ucs-design-admin/pages/system/menu/menu",
+    "sort": 24,
+    "parent_id": "system_management",
+    "enable": true,
+    "create_date": 1602662469396,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "system_app",
+    "name": "应用管理",
+    "icon": "Grid",
+    "url": "/uni_modules/ucs-design-admin/pages/system/app/app",
+    "sort": 25,
+    "parent_id": "system_management",
+    "enable": true,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "system_asset",
+    "name": "素材管理",
+    "icon": "Folder",
+    "url": "/uni_modules/ucs-design-admin/pages/system/asset/asset",
+    "sort": 26,
+    "parent_id": "system_management",
+    "enable": true,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "system_dictionary",
+    "name": "数据字典",
+    "icon": "Collection",
+    "url": "/uni_modules/ucs-design-admin/pages/system/dictionary/dictionary",
+    "parent_id": "system_management",
+    "sort": 27,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "enable": true,
+
+    "app_url": "",
+    "app_icon": ""
+  },
+{
+  "menu_id": "system_department",
+  "name": "部门管理",
+  "icon": "OfficeBuilding",
+  "url": "/uni_modules/ucs-design-admin/pages/system/department/department",
+  "parent_id": "system_management",
+  "sort": 22,
+  "menu_type": 1,
+  "client_type": [
+    "pc"
+  ],
+  "enable": true,
+
+  "app_url": "",
+  "app_icon": ""
+}
+]

@@ -1,0 +1,1 @@
+[微信支付所需参数和证书生成教程](https://docs.qq.com/doc/DWUpGTW1kSUdpZGF5)

@@ -1,0 +1,255 @@
+[
+  {
+    "menu_id": "system_customer",
+    "permission_id": "UPDATE_CUSTOMER_STATUS",
+    "permission_name": "禁用/恢复社区用户",
+    "sort": 3
+  },
+  {
+    "menu_id": "system_customer",
+    "permission_id": "READ_CUSTOMER_LOG",
+    "permission_name": "查看社区用户登录日志",
+    "sort": 4
+  },
+  {
+    "menu_id": "system_customer",
+    "permission_id": "READ_UNI_ID_CUSTOMERS",
+    "permission_name": "查看社区用户",
+    "sort": 1
+  },
+  {
+    "menu_id": "system_customer",
+    "permission_id": "UPDATE_UNI_ID_CUSTOMERS",
+    "permission_name": "编辑社区用户",
+    "sort": 2
+  },
+  {
+    "menu_id": "system_user",
+    "permission_id": "DELETE_UNI_ID_USERS",
+    "permission_name": "删除系统用户",
+    "sort": 7
+  },
+  {
+    "menu_id": "system_user",
+    "permission_id": "READ_UNI_ID_USERS",
+    "permission_name": "查看系统用户",
+    "sort": 1
+  },
+  {
+    "menu_id": "system_user",
+    "permission_id": "CREATE_UNI_ID_USERS",
+    "permission_name": "新增系统用户",
+    "sort": 2
+  },
+  {
+    "menu_id": "system_user",
+    "permission_id": "UPDATE_UNI_ID_USERS",
+    "permission_name": "编辑系统用户",
+    "sort": 3
+  },
+  {
+    "menu_id": "system_role",
+    "permission_id": "READ_UNI_ID_ROLES",
+    "permission_name": "查看角色",
+    "sort": 1
+  },
+  {
+    "menu_id": "system_role",
+    "permission_id": "CREATE_UNI_ID_ROLES",
+    "permission_name": "新增角色",
+    "sort": 2
+  },
+  {
+    "menu_id": "system_role",
+    "permission_id": "UPDATE_UNI_ID_ROLES",
+    "permission_name": "编辑角色",
+    "sort": 3
+  },
+  {
+    "menu_id": "system_role",
+    "permission_id": "DELETE_UNI_ID_ROLES",
+    "permission_name": "删除角色",
+    "sort": 4
+  },
+  {
+    "menu_id": "system_menu",
+    "permission_id": "READ_UNI_ID_PERMISSIONS",
+    "permission_name": "查看权限",
+    "sort": 5
+  },
+  {
+    "menu_id": "system_menu",
+    "permission_id": "CREATE_UNI_ID_PERMISSIONS",
+    "permission_name": "新增权限",
+    "sort": 6
+  },
+  {
+    "menu_id": "system_menu",
+    "permission_id": "UPDATE_UNI_ID_PERMISSIONS",
+    "permission_name": "编辑权限",
+    "sort": 7
+  },
+  {
+    "menu_id": "system_menu",
+    "permission_id": "DELETE_UNI_ID_PERMISSIONS",
+    "permission_name": "删除权限",
+    "sort": 8
+  },
+  {
+    "menu_id": "system_menu",
+    "permission_id": "READ_OPENDB_ADMIN_MENUS",
+    "permission_name": "查看菜单",
+    "sort": 1
+  },
+  {
+    "menu_id": "system_menu",
+    "permission_id": "CREATE_OPENDB_ADMIN_MENUS",
+    "permission_name": "新增菜单",
+    "sort": 2
+  },
+  {
+    "menu_id": "system_menu",
+    "permission_id": "UPDATE_OPENDB_ADMIN_MENUS",
+    "permission_name": "编辑菜单",
+    "sort": 3
+  },
+  {
+    "menu_id": "system_menu",
+    "permission_id": "DELETE_OPENDB_ADMIN_MENUS",
+    "permission_name": "删除菜单",
+    "sort": 4
+  },
+  {
+    "menu_id": "system_user",
+    "permission_id": "RESET_PASSWORD_UNI_ID_USERS",
+    "permission_name": "重置系统用户密码",
+    "sort": 4
+  },
+  {
+    "menu_id": "system_user",
+    "permission_id": "READ_UNI_ID_LOG",
+    "permission_name": "查看登录日志",
+    "sort": 5
+  },
+  {
+    "menu_id": "system_app",
+    "permission_id": "READ_OPENDB_APP_LIST",
+    "permission_name": "查看应用",
+    "sort": 1
+  },
+  {
+    "menu_id": "system_app",
+    "permission_id": "CREATE_OPENDB_APP_LIST",
+    "permission_name": "新增应用",
+    "sort": 2
+  },
+  {
+    "menu_id": "system_app",
+    "permission_id": "UPDATE_OPENDB_APP_LIST",
+    "permission_name": "编辑应用",
+    "sort": 3
+  },
+  {
+    "menu_id": "system_app",
+    "permission_id": "DELETE_OPENDB_APP_LIST",
+    "permission_name": "删除应用",
+    "sort": 4
+  },
+  {
+    "permission_id": "READ_OPENDB_APP_VERSIONS",
+    "permission_name": "查看应用版本",
+    "menu_id": "system_app",
+    "sort": 5
+  },
+  {
+    "permission_id": "CREATE_OPENDB_APP_VERSIONS",
+    "permission_name": "新增应用版本",
+    "menu_id": "system_app",
+    "sort": 6
+  },
+  {
+    "permission_id": "UPDATE_OPENDB_APP_VERSIONS",
+    "permission_name": "编辑应用版本",
+    "menu_id": "system_app",
+    "sort": 7
+  },
+  {
+    "permission_id": "DELETE_OPENDB_APP_VERSIONS",
+    "permission_name": "删除应用版本",
+    "menu_id": "system_app",
+    "sort": 8
+  },
+  {
+    "permission_id": "PUBLISH_OPENDB_APP_VERSIONS",
+    "permission_name": "发布/下线应用版本",
+    "menu_id": "system_app",
+    "sort": 9
+  },
+  {
+    "permission_id": "READ_OPENDB_ASSETS",
+    "permission_name": "查看素材",
+    "menu_id": "system_asset",
+    "sort": 1
+  },
+  {
+    "permission_id": "CREATE_OPENDB_ASSETS",
+    "permission_name": "新增素材",
+    "menu_id": "system_asset",
+    "sort": 2
+  },
+  {
+    "permission_id": "UPDATE_OPENDB_ASSETS",
+    "permission_name": "编辑素材",
+    "menu_id": "system_asset",
+    "sort": 3
+  },
+  {
+    "permission_id": "DELETE_OPENDB_ASSETS",
+    "permission_name": "删除素材",
+    "menu_id": "system_asset",
+    "sort": 4
+  },
+  {
+    "menu_id": "system_dictionary",
+    "permission_id": "READ_UCSDB_DICT",
+    "permission_name": "查看数据字典",
+    "sort": 1
+  },
+  {
+    "menu_id": "system_dictionary",
+    "permission_id": "CREATE_UCSDB_DICT",
+    "permission_name": "新增数据字典",
+    "sort": 2
+  },
+  {
+    "menu_id": "system_dictionary",
+    "permission_id": "UPDATE_UCSDB_DICT",
+    "permission_name": "编辑数据字典",
+    "sort": 3
+  },
+  {"permission_id":"DELETE_UCSDB_DICT","permission_name":"删除数据字典","menu_id":"system_dictionary","sort":4},
+{
+  "menu_id": "system_department",
+  "permission_id": "READ_OPENDB_DEPARTMENT",
+  "permission_name": "查看部门",
+  "sort": 1
+},
+{
+  "menu_id": "system_department",
+  "permission_id": "CREATE_OPENDB_DEPARTMENT",
+  "permission_name": "新增部门",
+  "sort": 2
+},
+{
+  "menu_id": "system_department",
+  "permission_id": "UPDATE_OPENDB_DEPARTMENT",
+  "permission_name": "编辑部门",
+  "sort": 3
+},
+{
+  "menu_id": "system_department",
+  "permission_id": "DELETE_OPENDB_DEPARTMENT",
+  "permission_name": "删除部门",
+  "sort": 4
+}
+]

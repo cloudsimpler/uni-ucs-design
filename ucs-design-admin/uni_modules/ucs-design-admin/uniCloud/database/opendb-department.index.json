@@ -1,0 +1,33 @@
+[
+  {
+    "IndexName": "name",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "name",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "parent_sort",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "parent_id",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "sort",
+          "Direction": "1",
+          "Type": "int"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  }
+]

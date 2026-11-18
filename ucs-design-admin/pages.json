@@ -1,0 +1,89 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/needLogin/index/index",
+			"style": {
+				"navigationBarTitleText": "首页"
+			}
+		},
+		{
+			"path": "pages/noLogin/test/test",
+			"style": {
+				"navigationBarTitleText": "测试页面"
+			}
+		},
+		{
+			"path": "uni_modules/ucs-design-admin/pages/system/user/user",
+			"style": {
+				"navigationBarTitleText": "系统用户"
+			}
+		},
+		{
+			"path": "uni_modules/ucs-design-admin/pages/system/customer/customer",
+			"style": { "navigationBarTitleText": "社区用户" }
+		},
+		{
+			"path": "uni_modules/ucs-design-admin/pages/system/permission/permission",
+			"style": {
+				"navigationBarTitleText": "权限管理"
+			}
+		},
+		{
+			"path": "uni_modules/ucs-design-admin/pages/system/role/role",
+			"style": {
+				"navigationBarTitleText": "角色管理"
+			}
+		},
+		{
+			"path": "uni_modules/ucs-design-admin/pages/system/menu/menu",
+			"style": {
+				"navigationBarTitleText": "菜单管理"
+			}
+		},
+		{
+			"path": "uni_modules/ucs-design-admin/pages/system/app/app",
+			"style": {
+				"navigationBarTitleText": "应用管理"
+			}
+		},
+		{
+			"path": "uni_modules/ucs-design-admin/pages/system/asset/asset",
+			"style": { "navigationBarTitleText": "素材管理" }
+		},
+		{ "path": "uni_modules/ucs-design-admin/pages/system/department/department", "style": { "navigationBarTitleText": "部门管理" } },
+		{ "path": "uni_modules/ucs-design-admin/pages/system/dictionary/dictionary", "style": { "navigationBarTitleText": "数据字典" } },
+		{
+			"path": "uni_modules/ucs-design-admin/pages/login/login",
+			"style": {
+				"topWindow": false,
+				"leftWindow": false,
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"topWindow": {
+		"path": "uni_modules/ucs-design-admin/windows/topWindow",
+		"style": {
+			"height": "56px"
+		}
+	},
+	"leftWindow": {
+		"path": "uni_modules/ucs-design-admin/windows/leftWindow",
+		"style": {
+			"width": "208px"
+		}
+	},
+	"uniIdRouter": {
+		"loginPage": "uni_modules/ucs-design-admin/pages/login/login",
+		"needLogin": ["pages/needLogin/.*", "uni_modules/ucs-design-admin/pages/system/developer/.*", "uni_modules/ucs-design-admin/pages/system/customer/.*"],
+		"resToLogin": true
+	}
+}

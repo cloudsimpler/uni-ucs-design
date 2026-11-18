@@ -1,0 +1,83 @@
+<template>
+  <main class="login-page">
+    <section class="welcome-panel" aria-label="平台介绍">
+      <img class="workspace-art" src="/uni_modules/ucs-design-admin/static/login-workspace.webp" alt="" />
+      <header class="brand">
+        <img class="brand-logo" src="/uni_modules/ucs-design-admin/static/logo.svg" alt="" />
+        <div><div class="brand-name">{{ manifestJson.name }}</div><p class="brand-caption">管理控制台</p></div>
+      </header>
+      <div class="welcome-copy">
+        <h1>让管理更简单<br /><span>让工作更专注</span></h1>
+        <p>连接团队与业务，开启高效有序的一天。</p>
+      </div>
+    </section>
+    <section class="signin-panel" aria-label="登录管理工作台">
+      <div class="signin-content"><account-login /></div>
+      <footer class="login-footer">© {{ currentYear }} {{ manifestJson.name }}</footer>
+    </section>
+  </main>
+</template>
+
+<script setup>
+import store from '../../common/store.js';
+import AccountLogin from './accountLogin.vue';
+import manifestJson from '/manifest.json';
+
+store.isLogin = false;
+uni.removeStorageSync('uni_id_token');
+uni.removeStorageSync('uni_id_token_expired');
+const currentYear = new Date().getFullYear();
+</script>
+
+<style lang="scss" scoped>
+.login-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.welcome-panel { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #edf5ff; }
+.workspace-art { position: absolute; inset: auto 0 0; width: 100%; height: 86%; object-fit: cover; object-position: center bottom; }
+.welcome-panel::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #edf5ff 0%, rgba(237, 245, 255, .96) 22%, rgba(237, 245, 255, .8) 40%, rgba(237, 245, 255, .15) 68%, rgba(237, 245, 255, 0) 100%); }
+.brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; padding: 44px 10.5% 0; }
+.brand-logo { width: 46px; height: 46px; flex-shrink: 0; }
+.brand-name { font-size: 22px; font-weight: 600; color: #1e2b40; letter-spacing: .5px; }
+.brand-caption { margin: 4px 0 0; color: #738399; font-size: 13px; letter-spacing: 2px; }
+.welcome-copy { position: relative; z-index: 1; margin: clamp(52px, 11vh, 120px) 10.5% 0; }
+.welcome-copy h1 { margin: 0; color: #233650; font-size: clamp(30px, 3.15vw, 48px); line-height: 1.5; letter-spacing: 1.5px; font-weight: 600; }
+.welcome-copy h1 span { color: var(--el-color-primary); }
+.welcome-copy p { margin: 22px 0 0; max-width: 340px; font-size: clamp(14px, 1.1vw, 16px); color: #6b809b; line-height: 1.9; }
+.signin-panel { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; box-sizing: border-box; min-width: 0; min-height: 0; padding: clamp(24px, 8vh, 96px) 48px 24px; overflow: auto; scrollbar-width: none; }
+/* 极矮窗口或软键盘弹出时仍可滚动访问表单，但不显示滚动条。 */
+.signin-panel::-webkit-scrollbar { display: none; }
+.signin-content { width: 100%; max-width: 464px; flex-shrink: 0; }
+.login-footer { flex-shrink: 0; margin-top: auto; padding-top: 24px; text-align: center; color: var(--el-text-color-secondary); font-size: 12px; line-height: 20px; }
+@media (max-width: 1100px) {
+  .brand { padding-left: 8%; padding-right: 8%; gap: 12px; }
+  .brand-name { font-size: 21px; }
+  .welcome-copy { margin-left: 8%; margin-right: 8%; }
+  .signin-panel { padding-left: 32px; padding-right: 32px; }
+}
+@media (min-width: 801px) and (max-height: 800px) {
+  .brand { padding-top: 32px; }
+  .welcome-copy { margin-top: 58px; }
+  .signin-panel { padding-top: 32px; }
+}
+@media (max-width: 800px) {
+  .login-page { display: flex; flex-direction: column; }
+  .welcome-panel { flex-shrink: 0; background: var(--el-bg-color); }
+  .workspace-art, .welcome-copy, .welcome-panel::after { display: none; }
+  .brand { padding: 24px 28px 0; }
+  .brand-name { color: var(--el-text-color-primary); font-size: 21px; }
+  .brand-logo { width: 44px; height: 44px; }
+  .brand-caption { font-size: 13px; }
+  .signin-panel { flex: 1; padding: 24px 28px 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .login-page :deep(*) { transition: none !important; } }
+</style>

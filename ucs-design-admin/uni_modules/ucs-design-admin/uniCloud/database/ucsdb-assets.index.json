@@ -1,0 +1,61 @@
+[
+  {
+    "IndexName": "state_create_date",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "state",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "create_date",
+          "Direction": "-1",
+          "Type": "long"
+        },
+        {
+          "Name": "_id",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "group_state_date",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "group_id",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "state",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "create_date",
+          "Direction": "-1",
+          "Type": "long"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "cloud_path",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "cloud_path",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  }
+]

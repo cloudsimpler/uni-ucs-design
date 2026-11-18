@@ -1,0 +1,43 @@
+[
+  {
+    "IndexName": "asset_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "asset_id",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "business_field",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "business_type",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "business_id",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "field",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "asset_id",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  }
+]

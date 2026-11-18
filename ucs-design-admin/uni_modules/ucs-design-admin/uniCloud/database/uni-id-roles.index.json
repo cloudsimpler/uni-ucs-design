@@ -1,0 +1,41 @@
+[
+  {
+    "IndexName": "role_id_",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "role_id",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  },
+  {
+    "IndexName": "menu_ids",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "menu_ids",
+          "Direction": "1",
+          "Type": "array"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "permission",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "permission",
+          "Direction": "1",
+          "Type": "array"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  }
+]

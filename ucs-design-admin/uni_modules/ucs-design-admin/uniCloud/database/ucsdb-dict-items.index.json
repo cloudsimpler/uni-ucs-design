@@ -1,0 +1,43 @@
+[
+  {
+    "IndexName": "dict_value",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "dict_id",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "value",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  },
+  {
+    "IndexName": "dict_sort",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "dict_id",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "sort",
+          "Direction": "1",
+          "Type": "int"
+        },
+        {
+          "Name": "_id",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  }
+]

@@ -1,0 +1,102 @@
+{
+	"bsonType": "object",
+	"description": "菜单表",
+	"required": ["name", "menu_id", "menu_type", "client_type"],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"menu_type": {
+			"bsonType": "int",
+			"description": "菜单类型：0 目录，1 页面",
+			"enum": [
+				{
+					"text": "目录",
+					"value": 0
+				},
+				{
+					"text": "页面",
+					"value": 1
+				}
+			],
+			"title": "菜单类型"
+		},
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"menu_id": {
+			"bsonType": "string",
+			"description": "菜单项的ID，不可重复",
+			"trim": "both"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "菜单名称",
+			"trim": "both"
+		},
+		"icon": {
+			"bsonType": "string",
+			"description": "PC端 Element Plus 图标名称",
+			"trim": "both"
+		},
+		"url": {
+			"bsonType": "string",
+			"description": "PC端页面路径，目录为空",
+			"trim": "both"
+		},
+		"sort": {
+			"bsonType": "int",
+			"description": "菜单序号（越大越靠后）"
+		},
+		"parent_id": {
+			"bsonType": "string",
+			"description": "父级菜单Id",
+			"parentKey": "menu_id"
+		},
+		"enable": {
+			"bsonType": "bool",
+			"description": "是否启用菜单，true启用、false禁用"
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "菜单创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"client_type": {
+			"bsonType": "array",
+			"title": "显示端",
+			"description": "菜单显示端，至少选择一个；子菜单显示端必须包含在父目录内",
+			"minItems": 1,
+			"maxItems": 2,
+			"uniqueItems": true,
+			"items": {
+				"bsonType": "string",
+				"enum": [
+					{
+						"text": "PC端",
+						"value": "pc"
+					},
+					{
+						"text": "App端",
+						"value": "app"
+					}
+				]
+			}
+		},
+		"app_url": {
+			"bsonType": "string",
+			"description": "App端页面路径，目录为空",
+			"trim": "both"
+		},
+		"app_icon": {
+			"bsonType": "string",
+			"description": "App端上传图标的永久文件ID或图片地址",
+			"trim": "both"
+		}
+	}
+}
