@@ -21,6 +21,7 @@ const {
 module.exports = async function (params = {}) {
   const schema = {
     applicationName: { type: 'string', required: false },
+    applicationType: { type: 'number', required: false },
     username: 'username',
     password: 'password',
     nickname: {
@@ -64,6 +65,7 @@ module.exports = async function (params = {}) {
   })
   return postRegister.call(this, {
     applicationName: params.applicationName,
+    applicationType: params.applicationType,
     user,
     extraData: {
       ...extraData,

@@ -4,11 +4,14 @@ const { ERROR } = require('../../common/error')
 const initialRootId = '000000000000000000000001'
 
 // Only initial administrator registration uses this atomic bootstrap.
-async function registerRootWithApp(db, user, clientInfo, applicationName) {
+async function registerRootWithApp(db, user, clientInfo, applicationName, applicationType = 0) {
   const appid = String(clientInfo.appId || '').trim()
   const name = String(applicationName || clientInfo.appName || appid).trim()
   if (!/^[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/.test(appid) || !name || name.length > 80) {
     throw { errCode: 'ADMIN_APPLICATION_INVALID', errMsg: '当前应用信息不完整，请检查应用 AppID 和名称配置' }
+  }
+  if (![0, 1].includes(applicationType)) {
+    throw { errCode: 'ADMIN_APPLICATION_INVALID', errMsg: '当前应用类型不正确' }
   }
 
   // Query before the transaction: uniCloud transactions use document operations.
@@ -24,7 +27,7 @@ async function registerRootWithApp(db, user, clientInfo, applicationName) {
       await transaction.collection('ucsdb-app-list').add({
         appid,
         name,
-        app_type: 0,
+        app_type: applicationType,
         ...createFields({ uid: result.id, name: actorName(user) })
       })
     }

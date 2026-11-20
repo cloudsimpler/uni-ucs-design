@@ -1,7 +1,7 @@
 <template>
   <contact-code-form v-if="inline" inline :channel="channel" :contact="contact" :code="code" :busy="busy" :cooldown="cooldown" :error="proof ? '' : error"
     @contact="contact = $event; code = ''; error = ''" @code="code = $event" @send="send" @verify="verify()" />
-  <el-dialog v-model="visible" :title="purpose === 'reset' ? '找回密码' : proof ? '选择登录账号' : '验证码登录'" width="min(92vw, 480px)" align-center
+  <el-dialog v-model="visible" class="auth-dialog" :title="purpose === 'reset' ? '找回密码' : proof ? '选择登录账号' : '验证码登录'" align-center
     :close-on-click-modal="false" :close-on-press-escape="!busy" :show-close="!busy" @closed="clear">
     <template v-if="!proof">
       <contact-code-form :channel="channel" :contact="contact" :code="code" :busy="busy" :cooldown="cooldown" :error="error"
@@ -24,7 +24,7 @@
         <el-form-item label="确认密码"><el-input v-model="confirm" type="password" show-password autocomplete="new-password" :disabled="busy" /></el-form-item>
       </el-form>
       <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
-      <el-button class="contact-primary" type="primary" :loading="busy" :disabled="!selectedUid" @click="finish">{{ purpose === 'reset' ? '确认重置' : '登录所选账号' }}</el-button>
+      <el-button class="auth-dialog-primary" type="primary" :loading="busy" :disabled="!selectedUid" @click="finish">{{ purpose === 'reset' ? '确认重置' : '登录所选账号' }}</el-button>
     </template>
   </el-dialog>
   <ucs-admin-captcha ref="captchaRef" :scene="captchaScene" @change="onCaptcha" />
@@ -41,6 +41,7 @@ import 'element-plus/es/components/form-item/style/css.mjs';
 import 'element-plus/es/components/input/style/css.mjs';
 import 'element-plus/es/components/tag/style/css.mjs';
 import 'element-plus/es/components/message/style/css.mjs';
+import './auth-dialog.css';
 
 import { ref, nextTick, onUnmounted, watch } from 'vue';
 import ContactCodeForm from './contactCodeForm.vue';
@@ -142,8 +143,8 @@ defineExpose({ open });
 </script>
 
 <style scoped>
-.contact-primary { width: 100%; margin-top: 20px; }
-.contact-hint { color: var(--el-text-color-secondary); font-size: 13px; line-height: 1.7; }
+.contact-hint { margin: 0; color: var(--el-text-color-secondary); font-size: 13px; line-height: 1.6; }
+.contact-code-form + .contact-hint { margin-top: 12px; }
 .account-choices { display: grid; gap: 12px; margin: 18px 0; }
 .account-choice { display: flex; align-items: center; gap: 12px; width: 100%; padding: 16px; border: 1px solid var(--el-border-color); border-radius: 8px; background: var(--el-bg-color); cursor: pointer; text-align: left; color: var(--el-text-color-primary); }
 .account-choice.selected { border-color: var(--el-color-primary); background: var(--el-color-primary-light-9); }

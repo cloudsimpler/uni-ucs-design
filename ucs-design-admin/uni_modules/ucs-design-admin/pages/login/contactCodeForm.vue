@@ -19,7 +19,7 @@
 		</el-form-item>
 		<div v-if="inline" class="contact-options"><span>{{ channel === 'mobile' ? '使用已绑定的手机号登录' : '使用已绑定的邮箱登录' }}</span></div>
 		<el-alert v-if="error" class="contact-error" :title="error" type="error" :closable="false" show-icon />
-		<el-button class="contact-primary" type="primary" native-type="submit" :loading="busy">{{ inline ? '登录' : '验证并继续' }}</el-button>
+		<el-button :class="inline ? 'contact-primary' : 'auth-dialog-primary'" type="primary" native-type="submit" :loading="busy">{{ inline ? '登录' : '验证并继续' }}</el-button>
 	</el-form>
 </template>
 
@@ -42,7 +42,7 @@ defineEmits(['verify', 'send', 'contact', 'code', 'channel']);
 .code-entry .el-input { min-width: 0; flex: 1; }
 .code-send { flex-shrink: 0; color: var(--el-color-primary); }
 .code-send.is-disabled { color: var(--el-text-color-placeholder); }
-.contact-primary { width: 100%; margin-top: 20px; }
+.contact-primary { width: 100%; }
 .contact-error { margin-bottom: 16px; }
 .is-inline :deep(.el-form-item) { margin-bottom: 28px; }
 .is-inline :deep(.el-form-item__label) { font-size: 14px; line-height: 22px; margin-bottom: 10px; color: var(--el-text-color-primary); }
@@ -50,7 +50,7 @@ defineEmits(['verify', 'send', 'contact', 'code', 'channel']);
 .is-inline :deep(.el-input__inner) { height: 46px; font-size: 14px; }
 .is-inline .code-send { height: 48px; border-radius: 5px; min-width: 120px; }
 .contact-options { min-height: 32px; margin: -6px 0 24px; display: flex; align-items: center; color: var(--el-text-color-secondary); font-size: 13px; }
-.is-inline .contact-primary { height: 48px; font-size: 16px; border-radius: 5px; margin-top: 0; }
+.is-inline .contact-primary { height: 48px; font-size: 16px; border-radius: 5px; }
 @media (max-height: 800px) {
  .is-inline :deep(.el-form-item) { margin-bottom: 22px; }
  .is-inline .contact-options { margin-bottom: 16px; }

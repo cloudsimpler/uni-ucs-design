@@ -199,7 +199,7 @@ async function postRegister (params = {}) {
   const record = { ...userRecord,
     create_date: registeredAt, update_date: registeredAt }
   const { id: uid } = await createNumberedUser(record, numberedRecord => this.getMethodName() === 'registerAdmin'
-    ? registerRootWithApp(uniCloud.database(), numberedRecord, this.getUniversalClientInfo(), params.applicationName)
+    ? registerRootWithApp(uniCloud.database(), numberedRecord, this.getUniversalClientInfo(), params.applicationName, params.applicationType)
     : userCollection.add(numberedRecord))
 
   const createTokenRes = await this.uniIdCommon.createToken({

@@ -1,0 +1,70 @@
+.el-dialog.auth-dialog {
+    --el-dialog-width: min(480px, calc(100vw - 32px));
+    --el-dialog-border-radius: 12px;
+    --el-dialog-padding-primary: 0px;
+    --el-component-size: 40px;
+    --auth-dialog-padding: 24px;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    overflow: hidden;
+}
+
+.auth-dialog .el-dialog__header {
+    margin: 0;
+    padding: 20px 56px 16px var(--auth-dialog-padding);
+    border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.auth-dialog .el-dialog__title {
+    color: var(--el-text-color-primary);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 26px;
+}
+
+.auth-dialog .el-dialog__headerbtn {
+    top: 14px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+}
+
+.auth-dialog .el-dialog__body {
+    min-height: 0;
+    padding: 20px var(--auth-dialog-padding) 24px;
+    overflow: auto;
+}
+
+.auth-dialog .el-form-item {
+    margin-bottom: 20px;
+}
+
+.auth-dialog .el-form-item .el-form-item__label {
+    margin-bottom: 8px;
+    color: var(--el-text-color-regular);
+    line-height: 20px;
+}
+
+.auth-dialog .el-button,
+.auth-dialog .el-radio-button__inner {
+    height: var(--el-component-size);
+}
+
+.auth-dialog .el-radio-button__inner {
+    display: inline-flex;
+    align-items: center;
+}
+
+.auth-dialog .el-button.auth-dialog-primary {
+    width: 100%;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    .el-dialog.auth-dialog {
+        --auth-dialog-padding: 16px;
+    }
+}
