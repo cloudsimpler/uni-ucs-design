@@ -12,6 +12,22 @@
     "delete": false
   },
   "properties": {
+    "tenant_id": {
+      "bsonType": "string",
+      "description": "所属租户 ID，引用租户表的 _id"
+    },
+    "creator_name": {
+      "bsonType": "string",
+      "description": "创建人姓名"
+    },
+    "updater_id": {
+      "bsonType": "string",
+      "description": "最后修改人账号 ID"
+    },
+    "updater_name": {
+      "bsonType": "string",
+      "description": "最后修改人姓名"
+    },
     "width": { "bsonType": "int", "description": "图片宽度，单位像素", "minimum": 1, "maximum": 1000000 },
     "height": { "bsonType": "int", "description": "图片高度，单位像素", "minimum": 1, "maximum": 1000000 },
     "cover_file_id": {

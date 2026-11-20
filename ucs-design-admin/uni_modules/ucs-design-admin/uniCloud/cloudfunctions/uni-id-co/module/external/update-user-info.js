@@ -3,7 +3,7 @@ const { userCollection, EXTERNAL_DIRECT_CONNECT_PROVIDER } = require('../../comm
 const { ERROR } = require('../../common/error')
 const { findUser } = require('../../lib/utils/account')
 const PasswordUtils = require('../../lib/utils/password')
-const { normalizeIdentifiers, identityKeys } = require('../../lib/utils/account-policy')
+const { normalizeIdentifiers } = require('../../lib/utils/account-policy')
 const { accountTypeOf } = require('../admin/account-types')
 
 /**
@@ -206,7 +206,6 @@ module.exports = async function (params = {}) {
     realData.identities = user.identities
   }
 
-  Object.assign(realData, identityKeys({ ...user, ...realData }))
   await require('../admin/root-admin').updateRootAware({ db: uniCloud.database(), uid: user._id, data: realData, current: user })
 
   return {

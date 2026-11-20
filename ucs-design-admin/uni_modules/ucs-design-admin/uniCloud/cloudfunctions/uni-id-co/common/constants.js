@@ -2,13 +2,13 @@ const db = uniCloud.database()
 const dbCmd = db.command
 const userCollectionName = 'uni-id-users'
 const userCollection = db.collection(userCollectionName)
-const verifyCollectionName = 'opendb-verify-codes'
+const verifyCollectionName = 'ucsdb-verify-codes'
 const verifyCollection = db.collection(verifyCollectionName)
 const deviceCollectionName = 'uni-id-device'
 const deviceCollection = db.collection(deviceCollectionName)
-const openDataCollectionName = 'opendb-open-data'
+const openDataCollectionName = 'ucsdb-open-data'
 const openDataCollection = db.collection(openDataCollectionName)
-const frvLogsCollectionName = 'opendb-frv-logs'
+const frvLogsCollectionName = 'ucsdb-frv-logs'
 const frvLogsCollection = db.collection(frvLogsCollectionName)
 
 const USER_IDENTIFIER = {

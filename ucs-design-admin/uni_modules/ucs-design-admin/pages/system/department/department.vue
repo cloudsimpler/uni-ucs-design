@@ -104,11 +104,11 @@ function edit(row, parent = '') {
  Object.assign(form, { _id: row?._id || '', name: row?.name || '', code: row?.code || '', parent_id: row?.parent_id || parent, manager_uid: row?.manager_uid || '', sort: row?.sort || 0, enabled: row?.enabled !== false, description: row?.description || '' });
  codeLocked.value = !!row?.code; managerName.value = row?.manager_name || (row?.manager_uid ? '原负责人（请核实）' : ''); visible.value = true;
 }
-const selectedManagerUsers = computed(() => form.manager_uid ? [{ _id: form.manager_uid, real_name: managerName.value }] : []);
+const selectedManagerUsers = computed(() => form.manager_uid ? [{ _id: form.manager_uid, nickname: managerName.value }] : []);
 const fetchManagers = params => call('searchDepartmentManagers', params);
 function openManagerPicker() { managerVisible.value = true; }
 function clearManager() { form.manager_uid = ''; managerName.value = ''; }
-function onManagerConfirm(user) { managerName.value = user.real_name || user.nickname || user.username || user._id; }
+function onManagerConfirm(user) { managerName.value = user.nickname || user.username || user._id; }
 async function save() {
  if(saving.value) return; if(!form.name.trim()) return ElMessage.warning('请输入部门名称'); if(!form.code.trim()) return ElMessage.warning('请输入部门编码'); saving.value = true;
  try { await call('saveDepartment', { ...form, parent_id: form.parent_id || '', manager_uid: form.manager_uid || '' }); ElMessage.success('保存成功'); visible.value = false; await load(); }

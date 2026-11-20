@@ -7,6 +7,8 @@ const text = (value, label, max, required = false) => {
 	if (typeof value !== 'string' || value.length > max || (required && !value.trim())) fail(`${label}格式不正确`);
 	return value.trim();
 };
+const { createFields, updateFields } = require('../../lib/utils/record-metadata');
+
 function createAccessAdmin(context) {
 	const { db, uid } = context;
 	const { all, actor, can, capabilities, requireRead, requirePermission } = accessContext(context);
@@ -34,7 +36,7 @@ function createAccessAdmin(context) {
 		};
 		const [rows, menus] = await Promise.all([
 			all(tables[kind], menuId === undefined ? {} : { menu_id: menuId }),
-			all('opendb-admin-menus')
+			all('ucsdb-admin-menus')
 		]);
 		return {
 			errCode: 0,
@@ -70,7 +72,7 @@ function createAccessAdmin(context) {
 			value.sort = params.sort ?? 0;
 			if (!Number.isInteger(value.sort) || value.sort < 0 || value.sort > 999999) fail('排序必须是 0 到 999999 的整数');
 			if (value.menu_id) {
-				const menu = (await all('opendb-admin-menus')).find((menu) => menu.menu_id === value.menu_id);
+				const menu = (await all('ucsdb-admin-menus')).find((menu) => menu.menu_id === value.menu_id);
 				if (!menu) fail('所属菜单不存在');
 				if (menu.menu_type !== MENU_TYPE.PAGE) fail('操作权限只能归属页面，不能归属目录');
 			}
@@ -94,7 +96,7 @@ function createAccessAdmin(context) {
 			value.menu_ids = [...new Set(menuIds)];
 			grantableMenus(auth, [...(old?.menu_ids || []), ...value.menu_ids]);
 			if (params.menu_ids !== undefined) {
-				const [menus, permissions] = await Promise.all([all('opendb-admin-menus'), all('uni-id-permissions')]);
+				const [menus, permissions] = await Promise.all([all('ucsdb-admin-menus'), all('uni-id-permissions')]);
 				const pages = new Set(menus.filter(menu => menu.menu_type === MENU_TYPE.PAGE).map(menu => menu.menu_id));
 				if (value.menu_ids.some(id => !pages.has(id))) fail('所选页面不存在或已改为目录，请刷新后重新选择');
 				if (permissions.some(item => value.permission.includes(item.permission_id) && item.menu_id && !value.menu_ids.includes(item.menu_id)))
@@ -102,10 +104,10 @@ function createAccessAdmin(context) {
 			}
 		}
 		let resultId = old?._id;
-		if (old) await db.collection(tables[kind]).doc(old._id).update(value);
+		if (old) await db.collection(tables[kind]).doc(old._id).update({ ...value, ...updateFields(auth) });
 		else {
 			try {
-				resultId = (await db.collection(tables[kind]).add({ ...value, create_date: Date.now() })).id;
+				resultId = (await db.collection(tables[kind]).add({ ...value, ...createFields(auth) })).id;
 			} catch (e) {
 				if (/duplicate|E11000/i.test(e.message || e.errMsg || '')) fail(label + '标识已存在');
 				throw e;
@@ -148,7 +150,7 @@ function createAccessAdmin(context) {
 		async getRoleAuthorization() {
 			const auth = await actor();
 			requireRead(auth, suffixes.role);
-			const [menus, permissions] = await Promise.all([all('opendb-admin-menus'), all('uni-id-permissions')]);
+			const [menus, permissions] = await Promise.all([all('ucsdb-admin-menus'), all('uni-id-permissions')]);
 			return {
 				errCode: 0, menus, permissions,
 				auth: { ...capabilities(auth, suffixes.role), isAdmin: auth.isAdmin, permission: auth.permissions, menu_ids: auth.menuIds }
@@ -165,7 +167,7 @@ function createAccessAdmin(context) {
 			if (!auth.isAdmin) fail('仅超级管理员可初始化系统菜单权限', 'ADMIN_ACCESS_FORBIDDEN');
 			const items = catalog.filter((item) => item.menu_id === menu_id);
 			if (!items.length) fail('此菜单没有预设权限，请手动新增');
-			const menu = (await all('opendb-admin-menus')).find((row) => row.menu_id === menu_id);
+			const menu = (await all('ucsdb-admin-menus')).find((row) => row.menu_id === menu_id);
 			if (!menu) fail('菜单不存在');
 			if (menu.menu_type !== MENU_TYPE.PAGE) fail('目录不能初始化操作权限，请选择页面');
 			const permissions = await all('uni-id-permissions');
@@ -173,13 +175,13 @@ function createAccessAdmin(context) {
 			for (const item of items) {
 				const old = permissions.find((row) => row.permission_id === item.permission_id);
 				if (!old) {
-					await db.collection('uni-id-permissions').add({ ...item, comment: '', create_date: Date.now() });
+					await db.collection('uni-id-permissions').add({ ...item, comment: '', ...createFields(auth) });
 					created++;
 				} else if (!old.menu_id)
 					await db
 						.collection('uni-id-permissions')
 						.doc(old._id)
-						.update({ menu_id, sort: old.sort ?? item.sort });
+						.update({ menu_id, sort: old.sort ?? item.sort, ...updateFields(auth) });
 			}
 			return { errCode: 0, created };
 		}

@@ -3,8 +3,8 @@
 const uniCaptcha = require('uni-captcha')
 //获取数据库对象
 const db = uniCloud.database();
-//获取数据表opendb-verify-codes对象
-const verifyCodes = db.collection('opendb-verify-codes')
+//获取数据表ucsdb-verify-codes对象
+const verifyCodes = db.collection('ucsdb-verify-codes')
 module.exports = {
 	async getImageCaptcha({
 		scene,

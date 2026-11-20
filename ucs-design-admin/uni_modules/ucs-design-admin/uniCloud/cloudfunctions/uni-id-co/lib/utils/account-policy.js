@@ -1,6 +1,5 @@
 const { accountTypeOf } = require('../../module/admin/account-types')
 const { isMatchUserApp } = require('../../common/utils')
-const { createHash, randomBytes } = require('crypto')
 // The invoked server method fixes the account scope; neither AppID nor request fields choose it.
 const adminMethods = new Set([
   'registerAdmin', 'adminLogin', 'adminLoginBySms', 'adminLoginByEmailCode',
@@ -29,18 +28,4 @@ const normalizeIdentifiers = params => {
   if (typeof result.mobile === 'string') result.mobile = result.mobile.trim()
   return result
 }
-const digest = value => createHash('sha256').update(value).digest('hex')
-// Every unique field is populated: optional identities must not depend on sparse indexes.
-const emptyKey = (user, field) => /^empty:[a-f0-9]{64}$/.test(user[field] || '')
-  ? user[field] : `empty:${user._id ? digest(String(user._id)) : randomBytes(32).toString('hex')}`
-const rootUniqueKey = user => user.is_root === true ? 'root' : emptyKey(user, 'root_unique')
-const identityKeys = (user) => {
-  const normalized = normalizeIdentifiers(user), result = {}
-  for (const key of ['username', 'mobile', 'email']) {
-    result[`${key}_unique`] = normalized[key]
-      ? `value:${digest(normalized[key])}`
-      : emptyKey(user, `${key}_unique`)
-  }
-  return result
-}
-module.exports = { accountEntry, allowedAccountTypes, canEnter, assertEntry, assertAppAuthorization, registrationType, assertRegistration, normalizeIdentifiers, identityKeys, rootUniqueKey }
+module.exports = { accountEntry, allowedAccountTypes, canEnter, assertEntry, assertAppAuthorization, registrationType, assertRegistration, normalizeIdentifiers }

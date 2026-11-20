@@ -4,13 +4,11 @@ const {
 const {
   ERROR
 } = require('../../common/error')
-const {
-  userCollection
-} = require('../../common/constants')
+const { userCollection } = require('../../common/constants')
 const PasswordUtils = require('../../lib/utils/password')
 const { createUserAdmin } = require('./user-admin')
 const { ACCOUNT_TYPE, managementType } = require('./account-types')
-const { normalizeIdentifiers, identityKeys, rootUniqueKey } = require('../../lib/utils/account-policy')
+const { normalizeIdentifiers } = require('../../lib/utils/account-policy')
 
 /**
  * 新增用户
@@ -27,6 +25,8 @@ const { normalizeIdentifiers, identityKeys, rootUniqueKey } = require('../../lib
  * @param {Number}  params.status         用户状态
  * @returns
  */
+const { createFields } = require('../../lib/utils/record-metadata')
+
 module.exports = async function (params = {}) {
   params = normalizeIdentifiers(params)
   const accountType = managementType(this)
@@ -34,7 +34,6 @@ module.exports = async function (params = {}) {
   const admin = createUserAdmin({ db: uniCloud.database(), uid: this.authInfo?.uid, appId: this.getUniversalClientInfo().appId, accountType })
   const authorized = await admin.authorize('create')
   const schema = {
-    real_name: { required: isEmployee, type: 'string' },
     avatar: { required: false, type: 'string' },
     gender: { required: true, type: 'number' },
     department_id: { required: false, type: 'array<string>' },
@@ -45,7 +44,7 @@ module.exports = async function (params = {}) {
       type: 'array<string>'
     }, // 指定允许登录的应用，空数组或不传表示不允许登录任何应用。
     nickname: {
-      required: !isEmployee,
+      required: true,
       type: 'nickname'
     },
     role: {
@@ -109,7 +108,6 @@ module.exports = async function (params = {}) {
     password
   })
   const data = {
-    real_name: params.real_name || '',
     account_type: [accountType],
     avatar: params.avatar || '',
     gender: params.gender ?? 0,
@@ -146,7 +144,7 @@ module.exports = async function (params = {}) {
   userRecord = { ...normalizeIdentifiers(userRecord), account_type: [accountType] }
   delete userRecord.is_root
   await require('../../lib/utils/user-number').createNumberedUser(
-    { ...userRecord, ...identityKeys(userRecord), root_unique: rootUniqueKey(userRecord) },
+    { ...userRecord, ...createFields(authorized, data.register_date) },
     record => userCollection.add(record)
   )
   return {

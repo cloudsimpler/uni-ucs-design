@@ -18,7 +18,7 @@ const {
 const PasswordUtils = require('./password')
 const { registerRootWithApp } = require('./register-root')
 const { createNumberedUser } = require('./user-number')
-const { assertRegistration, registrationType, identityKeys, normalizeIdentifiers, rootUniqueKey } = require('./account-policy')
+const { assertRegistration, registrationType, normalizeIdentifiers } = require('./account-policy')
 const { 
   merge
 } = require('../npm/index')
@@ -124,7 +124,8 @@ async function postRegister (params = {}) {
     client_ip: clientIP || ''
   }
 
-  user.register_date = Date.now()
+  const registeredAt = Date.now()
+  user.register_date = registeredAt
   user.dcloud_appid = [appId]
 
   if (user.username) {
@@ -195,7 +196,8 @@ async function postRegister (params = {}) {
     delete userRecord.is_root
     userRecord.role = []
   }
-  const record = { ...userRecord, ...identityKeys(userRecord), root_unique: rootUniqueKey(userRecord) }
+  const record = { ...userRecord,
+    create_date: registeredAt, update_date: registeredAt }
   const { id: uid } = await createNumberedUser(record, numberedRecord => this.getMethodName() === 'registerAdmin'
     ? registerRootWithApp(uniCloud.database(), numberedRecord, this.getUniversalClientInfo(), params.applicationName)
     : userCollection.add(numberedRecord))

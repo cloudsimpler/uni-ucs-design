@@ -18,7 +18,7 @@ const {
   merge
 } = require('../npm/index')
 const { accountTypeOf } = require('../../module/admin/account-types')
-const { identityKeys, normalizeIdentifiers } = require('./account-policy')
+const { normalizeIdentifiers } = require('./account-policy')
 
 /**
  *
@@ -61,10 +61,8 @@ async function postBind ({
   logType
 } = {}) {
   await preBind.call(this, { uid, bindAccount, logType })
-  const { data } = await userCollection.doc(uid).get()
-  const owner = Array.isArray(data) ? data[0] : data
   const value = normalizeIdentifiers(merge(bindAccount, extraData))
-  await userCollection.doc(uid).update({ ...value, ...identityKeys({ ...owner, ...value }) })
+  await userCollection.doc(uid).update(value)
   await this.middleware.uniIdLog({
     data: {
       user_id: uid

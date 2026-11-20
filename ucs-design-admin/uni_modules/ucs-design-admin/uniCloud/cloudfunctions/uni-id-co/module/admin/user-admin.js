@@ -7,6 +7,8 @@ const equalSet = (a = [], b = []) => JSON.stringify([...a].sort()) === JSON.stri
 // Historical accounts without dcloud_appid allow all apps; an empty array allows none.
 const equalApps = (a, b) => (Array.isArray(a) && Array.isArray(b) ? equalSet(a, b) : a === b)
 const allowsApp = (apps, appId) => apps == null || (Array.isArray(apps) && (apps.includes('*') || apps.includes(appId)))
+const { actorName, updateFields } = require('../../lib/utils/record-metadata')
+
 const fields = Object.fromEntries(
   [
     '_id',
@@ -15,7 +17,6 @@ const fields = Object.fromEntries(
     'account_type',
     'username',
     'nickname',
-    'real_name',
     'avatar',
     'gender',
     'department_id',
@@ -64,7 +65,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
     if (initializeRoot && isAdmin && !user.is_root) await initializeLegacyRoot(db, appId)
     const roles = !isAdmin && user.role?.length ? await (readRoles ? readRoles(user.role) : all('uni-id-roles', { role_id: cmd.in(user.role) })) : []
     const permissions = [...new Set(roles.flatMap(role => role.permission || []))]
-    const auth = { uid, isAdmin, permissions, apps: user.dcloud_appid, menuIds: [...new Set(roles.flatMap(role => role.menu_ids || []))],
+    const auth = { uid, name: actorName(user), isAdmin, permissions, apps: user.dcloud_appid, menuIds: [...new Set(roles.flatMap(role => role.menu_ids || []))],
       create: isAdmin || permissions.includes(`CREATE_${suffix}`),
       update: isAdmin || permissions.includes(`UPDATE_${suffix}`),
       delete: isAdmin || permissions.includes(`DELETE_${suffix}`),
@@ -85,7 +86,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
     if (params.account_type !== undefined) fail('账号类型由管理入口指定，不允许修改')
     if (customer) {
       if (!params.uid) fail('客户账号请通过客户端注册')
-      const allowed = ['uid', 'avatar', 'nickname', 'real_name', 'gender', 'mobile', 'email', 'tags', 'status']
+      const allowed = ['uid', 'avatar', 'nickname', 'gender', 'mobile', 'email', 'tags', 'status']
       if (Object.keys(params).some(key => !allowed.includes(key))) fail('客户管理仅支持修改基础资料和账号状态')
       if (params.status !== undefined && ![0, 1].includes(params.status)) fail('客户管理仅支持禁用或恢复正常')
       if (params.status !== undefined && old && ![0, 1].includes(old.status || 0)) fail('此账号状态不支持在客户管理中恢复')
@@ -100,12 +101,11 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
     if (customer && old && hasManagementIdentity(old) && !auth.isAdmin)
       fail('兼具后台身份的账号只能由超级管理员修改', 'USER_ADMIN_FORBIDDEN')
     if (params.status !== undefined && old?._id === uid) fail('不能禁用或恢复当前登录账号')
-    for (const [key, max] of Object.entries({ username: 80, nickname: 100, real_name: 100, mobile: 20, email: 100, password: 64 })) {
+    for (const [key, max] of Object.entries({ username: 80, nickname: 100, mobile: 20, email: 100, password: 64 })) {
       if (params[key] !== undefined && (typeof params[key] !== 'string' || params[key].length > max))
         fail('账号资料或密码长度不正确')
     }
-    if (accountType !== ACCOUNT_TYPE.EMPLOYEE && (!params.uid || params.nickname !== undefined) && !params.nickname?.trim()) fail('请输入昵称')
-    if (accountType === ACCOUNT_TYPE.EMPLOYEE && !params.uid && !params.real_name?.trim()) fail('请输入真实姓名')
+    if ((!params.uid || (accountType !== ACCOUNT_TYPE.EMPLOYEE && params.nickname !== undefined)) && !params.nickname?.trim()) fail('请输入昵称')
     if (!params.uid || accountType === ACCOUNT_TYPE.EMPLOYEE) {
       // Partial actions (avatar upload, password reset, status changes) omit profile fields.
       if ((!params.uid || params.gender !== undefined) && !(old?.is_root && params.gender === 0) && ![1, 2].includes(params.gender)) fail('请选择男或女')
@@ -141,13 +141,13 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
     if (params.department_id !== undefined) {
       if (params.department_id.length > 1) fail('所属部门只能选择一个')
       const ids = [...new Set(params.department_id)]
-      if (ids.length && (await all('opendb-department', { _id: cmd.in(ids) })).length !== ids.length)
+      if (ids.length && (await all('ucsdb-department', { _id: cmd.in(ids) })).length !== ids.length)
         fail('所选部门已不存在，请刷新后重新选择')
-      if (ids.length && !(old?.department_id || []).includes(ids[0]) && !require('./department-admin').effectiveEnabled(await all('opendb-department'), ids[0])) fail('所选部门或上级部门已停用')
+      if (ids.length && !(old?.department_id || []).includes(ids[0]) && !require('./department-admin').effectiveEnabled(await all('ucsdb-department'), ids[0])) fail('所选部门或上级部门已停用')
     }
     if (params.authorizedApp !== undefined) {
       const ids = [...new Set(params.authorizedApp.filter(id => id !== '*' && id !== appId && !(old?.dcloud_appid || []).includes(id)))];
-      if (ids.length && (await all('opendb-app-list', { appid: cmd.in(ids) })).length !== ids.length)
+      if (ids.length && (await all('ucsdb-app-list', { appid: cmd.in(ids) })).length !== ids.length)
         fail('所选应用已不存在，请刷新后重新选择');
     }
     if (!auth.isAdmin) {
@@ -183,7 +183,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
       if (typeof targetId !== 'string' || !targetId || targetId.length > 100) fail('用户 ID 不正确')
       await authorize('delete')
       if (targetId === uid) fail('不能删除当前登录的账号', 'USER_ADMIN_FORBIDDEN')
-      if (accountType === 0 && (await all('opendb-department', { manager_uid: targetId })).length) fail('该用户是部门负责人，请先更换负责人')
+      if (accountType === 0 && (await all('ucsdb-department', { manager_uid: targetId })).length) fail('该用户是部门负责人，请先更换负责人')
       // Resolve role document IDs before the transaction; re-read their contents inside it.
       // This avoids where/skip queries and nested root initialization in transactions.
       const [actorSnapshot, targetSnapshot] = await Promise.all([getUser(uid), getUser(targetId)])
@@ -222,7 +222,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
         }
         const remaining = accountTypeOf(user).filter(type => type !== accountType)
         if (remaining.length) {
-          const patch = { account_type: remaining }
+          const patch = { account_type: remaining, ...updateFields(auth) }
           if (!remaining.includes(0)) { patch.role = []; patch.department_id = [] }
           assertRootChange(user, patch)
           await transaction.collection('uni-id-users').doc(targetId).update(patch)
@@ -295,7 +295,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
         : { account_type: accountType }]
       if (keyword.trim()) {
         const regex = new RegExp(keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
-        const searchFields = customer ? ['user_no', 'mobile'] : ['username', 'real_name', 'mobile']
+        const searchFields = customer ? ['user_no', 'mobile'] : ['username', 'nickname', 'mobile']
         filters.push(cmd.or(searchFields.map((key) => ({ [key]: key === 'username' ? new RegExp(regex.source) : regex }))))
       }
       if (status !== '') {
@@ -304,7 +304,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
       }
       if (typeof department_id !== 'string' || department_id.length > 100) fail('部门筛选参数不正确')
       if (department_id && !customer) {
-        const departments = await all('opendb-department')
+        const departments = await all('ucsdb-department')
         if (!departments.some(row => row._id === department_id)) fail('所选部门不存在，请刷新')
         const ids = new Set([department_id]); let changed = true
         while (changed) { changed = false; for (const row of departments) if (ids.has(row.parent_id) && !ids.has(row._id)) { ids.add(row._id); changed = true } }
@@ -329,15 +329,15 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
       if (customer) {
         const [tags, apps] = await Promise.all([
           all('uni-id-tag', {}, { tagid: true, name: true }),
-          all('opendb-app-list', {}, { appid: true, name: true })
+          all('ucsdb-app-list', {}, { appid: true, name: true })
         ])
         return { errCode: 0, auth, roles: [], tags, apps, departments: [] }
       }
       const [roles, tags, apps, departments] = await Promise.all([
         all('uni-id-roles', {}, { role_id: true, role_name: true, permission: true, menu_ids: true }),
         all('uni-id-tag', {}, { tagid: true, name: true }),
-        all('opendb-app-list', {}, { appid: true, name: true }),
-        all('opendb-department', {}, { _id: true, name: true, parent_id: true, sort: true, enabled: true })
+        all('ucsdb-app-list', {}, { appid: true, name: true }),
+        all('ucsdb-department', {}, { _id: true, name: true, parent_id: true, sort: true, enabled: true })
       ])
       return {
         errCode: 0,

@@ -1,7 +1,8 @@
+const { actorName, createFields, updateFields } = require('../../lib/utils/record-metadata');
 const fail = (errMsg, errCode = 'MENU_ADMIN_INVALID') => {
 	throw { errCode, errMsg };
 };
-const table = 'opendb-admin-menus';
+const table = 'ucsdb-admin-menus';
 const MENU_TYPE = require('./menu-types');
 const { accountTypeOf, hasManagementIdentity, hasAccountType } = require('./account-types');
 const actions = ['read', 'create', 'update', 'delete'];
@@ -89,7 +90,7 @@ function createMenuAdmin({ db, uid, appId }) {
 		const roles = !isAdmin && user.role?.length ? await all('uni-id-roles', { role_id: db.command.in(user.role) }) : [];
 		const permissions = [...new Set(roles.flatMap((role) => role.permission || []))];
 		const auth = {
-			isAdmin,
+			uid, name: actorName(user), isAdmin,
 			menuIds: [...new Set(roles.flatMap((role) => role.menu_ids || []))],
 			permissions,
 			...Object.fromEntries(actions.map((key) => [key, isAdmin || permissions.includes(permissionFor(key))]))
@@ -262,10 +263,10 @@ function createMenuAdmin({ db, uid, appId }) {
 			};
 		},
 		async create(params) {
-			await authorize('create');
+			const auth = await authorize('create');
 			const value = await validate(params, await all(table));
 			try {
-				const { id } = await db.collection(table).add({ ...value, create_date: Date.now() });
+				const { id } = await db.collection(table).add({ ...value, ...createFields(auth) });
 				return { errCode: 0, id };
 			} catch (error) {
 				if (/duplicate|E11000/i.test(error.message || error.errMsg || '')) fail('菜单标识已存在');
@@ -273,11 +274,11 @@ function createMenuAdmin({ db, uid, appId }) {
 			}
 		},
 		async update(params = {}) {
-			await authorize('update');
+			const auth = await authorize('update');
 			const rows = await all(table);
 			const old = find(rows, params._id);
 			const value = await validate(params, rows, old);
-			const result = await db.collection(table).doc(old._id).update(value);
+			const result = await db.collection(table).doc(old._id).update({ ...value, ...updateFields(auth) });
 			if (result.updated === 0) {
 				// Some database adapters report zero modified rows for an unchanged form.
 				const { data } = await db.collection(table).doc(old._id).get();

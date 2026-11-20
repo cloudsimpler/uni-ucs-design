@@ -3,7 +3,7 @@ const { accountTypeOf, hasAccountType } = require('./account-types')
 const { findUser } = require('../../lib/utils/account')
 const { createHash } = require('crypto')
 const PasswordUtils = require('../../lib/utils/password')
-const accountSnapshot = user => createHash('sha256').update(JSON.stringify([user._id, user.mobile, user.email, accountTypeOf(user), user.status || 0, user.nickname, user.real_name, user.gender, user.role, user.dcloud_appid, user.department_id, Boolean(user.password)])).digest('hex')
+const accountSnapshot = user => createHash('sha256').update(JSON.stringify([user._id, user.mobile, user.email, accountTypeOf(user), user.status || 0, user.nickname, user.gender, user.role, user.dcloud_appid, user.department_id, Boolean(user.password)])).digest('hex')
 const { mutateIdentity } = require('../../lib/utils/identity-lifecycle')
 const fail = (errMsg) => { throw { errCode: 'ACCOUNT_IDENTITY_INVALID', errMsg } }
 const typeOfMethod = context => 0
@@ -27,14 +27,15 @@ async function findAccount(params = {}) {
   return { errCode: 0, found: true, alreadyEnrolled: hasAccountType(user, typeOfMethod(this)),
     canEnroll: (user.status || 0) === 0 && !hasAccountType(user, typeOfMethod(this)),
     snapshot: accountSnapshot(user), data: { _id: user._id, username: user.username || '', nickname: user.nickname || '',
-    real_name: user.real_name || '',
     has_password: Boolean(user.password),
     avatar: user.avatar || '', register_date: user.register_date, status: user.status || 0,
     gender: user.gender, mobile: user.mobile || '', account_type: accountTypeOf(user) } }
 }
 
+const { updateFields } = require('../../lib/utils/record-metadata')
+
 async function enroll(params = {}) {
-  if (Object.keys(params).some(key => !['uid', 'nickname', 'real_name', 'password', 'gender', 'role', 'department_id', 'snapshot'].includes(key))) fail('开通身份不允许修改账号凭据和共享资料')
+  if (Object.keys(params).some(key => !['uid', 'nickname', 'password', 'gender', 'role', 'department_id', 'snapshot'].includes(key))) fail('开通身份不允许修改账号凭据和共享资料')
   if (typeof params.uid !== 'string' || !params.uid || params.uid.length > 100) fail('账号参数无效')
   if (params.role !== undefined && (!Array.isArray(params.role) || params.role.some(id => typeof id !== 'string'))) fail('角色格式无效')
   const type = typeOfMethod(this), admin = service(this), auth = await admin.authorize('create')
@@ -45,14 +46,11 @@ async function enroll(params = {}) {
   if (!auth.isAdmin && (old.is_root || hasAccountType(old, 0))) fail('无权关联该账号')
   const role = [...new Set([...(old.role || []), ...(params.role || [])])]
   const nickname = old.nickname || params.nickname
-  for (const key of ['real_name']) {
-    if (old[key] && params[key] !== undefined && params[key] !== old[key]) fail('开通身份不能覆盖已有姓名')
-  }
-  const real_name = old.real_name || params.real_name
+  if (old.nickname && params.nickname !== undefined && params.nickname !== old.nickname) fail('开通身份不能覆盖已有昵称')
   const gender = [1, 2].includes(old.gender) ? old.gender : params.gender
   // Reuse role/menu grant bounds and employee profile validation without allowing
   // an enrollment request to overwrite the existing password or contact details.
-  await admin.validateChange({ username: old.username || '', nickname, real_name, gender, mobile: old.mobile || '',
+  await admin.validateChange({ username: old.username || '', nickname, gender, mobile: old.mobile || '',
     role, ...(params.department_id ? { department_id: params.department_id } : {}) }, undefined, auth)
   let passwordData
   if (old.password) {
@@ -68,10 +66,9 @@ async function enroll(params = {}) {
     if (JSON.stringify(current) !== JSON.stringify(old)) fail('账号资料已变化，请重新查询后开通')
     const latestActor = await admin.getUser(this.authInfo.uid)
     if (JSON.stringify(latestActor) !== JSON.stringify(actor)) fail('操作者授权已变化，请重新操作')
-    const patch = { account_type: [...accountTypeOf(current), type].sort(), role }
+    const patch = { account_type: [...accountTypeOf(current), type].sort(), role, ...updateFields(auth) }
     if (passwordData) Object.assign(patch, passwordData)
     if (!current.nickname && nickname) patch.nickname = nickname
-    if (!current.real_name && real_name) patch.real_name = real_name
     if (![1, 2].includes(current.gender)) patch.gender = gender
     if (type === 0 && params.department_id) patch.department_id = params.department_id
     return patch

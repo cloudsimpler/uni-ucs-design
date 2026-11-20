@@ -12,6 +12,22 @@
     "delete": false
   },
   "properties": {
+    "creator_name": {
+      "bsonType": "string",
+      "description": "创建人姓名"
+    },
+    "updater_id": {
+      "bsonType": "string",
+      "description": "最后修改人账号 ID"
+    },
+    "updater_name": {
+      "bsonType": "string",
+      "description": "最后修改人姓名"
+    },
+    "update_date": {
+      "bsonType": "timestamp",
+      "description": "最后修改时间"
+    },
     "_id": {
       "description": "ID，系统自动生成"
     },
@@ -60,7 +76,7 @@
       },
       "maxLength": 500
     },
-    "creator_uid": {
+    "creator_id": {
       "description": "创建者的user_id，创建者必然是用户，不随应用转让而改变",
       "bsonType": "string"
     },

@@ -40,7 +40,7 @@ const validator = {
  */
 class DatabaseCache {
   constructor({
-    collection = 'opendb-open-data'
+    collection = 'ucsdb-open-data'
   } = {}) {
     this.type = 'db'
     this.collection = db.collection(collection)

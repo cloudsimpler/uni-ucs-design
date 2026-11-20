@@ -1,5 +1,6 @@
 const { accessContext, fail } = require('./admin-access');
-const table = 'opendb-app-list';
+const { createFields, updateFields } = require('../../lib/utils/record-metadata');
+const table = 'ucsdb-app-list';
 const suffix = 'OPENDB_APP_LIST';
 const fields = ['appid', 'name', 'app_type', 'icon_url', 'description'];
 const publicApp = (row) => Object.fromEntries(['_id', ...fields, 'create_date'].map((key) => [key, row[key]]));
@@ -56,16 +57,16 @@ function createAppAdmin({ db, uid, appId }) {
 		},
 		async save(params = {}) {
 			if (!params || typeof params !== 'object' || Array.isArray(params)) fail('应用参数不正确');
-			await authorize(params._id ? 'update' : 'create');
+			const auth = await authorize(params._id ? 'update' : 'create');
 			const old = params._id ? await find(params._id) : null;
 			const value = await validate(params, old);
 			try {
 				if (old) {
-					const result = await db.collection(table).doc(old._id).update(value);
+					const result = await db.collection(table).doc(old._id).update({ ...value, ...updateFields(auth) });
 					if (result.updated === 0) await find(old._id);
 					return { errCode: 0, id: old._id };
 				}
-				const { id } = await db.collection(table).add({ ...value, create_date: Date.now() });
+				const { id } = await db.collection(table).add({ ...value, ...createFields(auth) });
 				return { errCode: 0, id };
 			} catch (error) {
 				if (/duplicate|E11000/i.test(error.message || error.errMsg || '')) fail('AppID 已存在');
@@ -78,7 +79,7 @@ function createAppAdmin({ db, uid, appId }) {
 			if (old.appid === appId) fail('不能删除当前后台应用');
 			if (await referenced('uni-id-users', { dcloud_appid: old.appid }))
 				fail('有用户已授权此应用，请先调整用户的应用授权');
-			if (await referenced('opendb-app-versions', { appid: old.appid })) fail('应用存在版本记录，不能删除');
+			if (await referenced('ucsdb-app-versions', { appid: old.appid })) fail('应用存在版本记录，不能删除');
 			const result = await db.collection(table).doc(old._id).remove();
 			if (result.deleted === 0) fail('应用已被删除，请刷新列表');
 			return { errCode: 0 };

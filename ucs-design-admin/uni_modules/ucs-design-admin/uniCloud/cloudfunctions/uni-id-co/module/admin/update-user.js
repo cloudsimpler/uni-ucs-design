@@ -11,7 +11,7 @@ const PasswordUtils = require('../../lib/utils/password')
 const { randomInt } = require('crypto')
 const { createUserAdmin } = require('./user-admin')
 const { ACCOUNT_TYPE, managementType, accountTypeOf } = require('./account-types')
-const { normalizeIdentifiers, identityKeys } = require('../../lib/utils/account-policy')
+const { normalizeIdentifiers } = require('../../lib/utils/account-policy')
 
 /**
  * 修改用户
@@ -29,6 +29,8 @@ const { normalizeIdentifiers, identityKeys } = require('../../lib/utils/account-
  * @param {Number}  params.status         用户状态
  * @returns
  */
+const { updateFields } = require('../../lib/utils/record-metadata')
+
 module.exports = async function (params = {}) {
   params = normalizeIdentifiers(params)
   const randomReset = ['resetDeveloperPassword', 'resetUserPassword'].includes(this.getMethodName())
@@ -50,7 +52,6 @@ module.exports = async function (params = {}) {
   }
   authorized ||= await admin.authorize(this.getMethodName() === 'setCustomerStatus' ? 'status' : params.password !== undefined && Object.keys(params).every(key => ['uid', 'password'].includes(key)) ? 'resetPassword' : 'update')
   const schema = {
-    real_name: { required: false, type: 'string' },
     avatar: { required: false, type: 'string' },
     gender: { required: false, type: 'number' },
     department_id: { required: false, type: 'array<string>' },
@@ -109,7 +110,6 @@ module.exports = async function (params = {}) {
 
   // 更新的用户数据字段
   const data = {
-    real_name: params.real_name,
     avatar: params.avatar,
     gender: params.gender,
     department_id: params.department_id,
@@ -165,10 +165,7 @@ module.exports = async function (params = {}) {
   if (email !== undefined && email !== old.email) realData.email_confirmed = email ? 1 : 0
   const sessionInvalidated = admin.sessionChanged(params, old)
   if (sessionInvalidated) realData.token = []
-  if (['username', 'mobile', 'email'].some(key => params[key] !== undefined)) {
-    Object.assign(realData, identityKeys({ ...old, ...realData }))
-  }
-  await require('./root-admin').updateRootAware({ db: uniCloud.database(), uid, data: realData, current: old })
+  await require('./root-admin').updateRootAware({ db: uniCloud.database(), uid, data: { ...realData, ...updateFields(authorized) }, current: old })
 
   return {
     errCode: 0,

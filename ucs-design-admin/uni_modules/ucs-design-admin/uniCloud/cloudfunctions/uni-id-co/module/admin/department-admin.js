@@ -1,6 +1,7 @@
 const { accessContext, fail } = require('./admin-access');
 const { hasManagementIdentity } = require('./account-types');
-const TABLE = 'opendb-department', SUFFIX = 'OPENDB_DEPARTMENT';
+const { createFields, updateFields } = require('../../lib/utils/record-metadata');
+const TABLE = 'ucsdb-department', SUFFIX = 'OPENDB_DEPARTMENT';
 const one = result => Array.isArray(result.data) ? result.data[0] : result.data;
 function effectiveEnabled(rows, id) {
  const byId = new Map(rows.map(row => [row._id, row])), seen = new Set();
@@ -18,15 +19,15 @@ function createDepartmentAdmin({ db, uid, appId }) {
  return {
   async install() {
    const auth = await ctx.actor(); if (!auth.isAdmin) fail('仅超级管理员可安装部门管理');
-   if (!one(await db.collection('opendb-admin-menus').where({ menu_id: 'system_management' }).limit(1).get())) fail('请先建立系统管理目录');
+   if (!one(await db.collection('ucsdb-admin-menus').where({ menu_id: 'system_management' }).limit(1).get())) fail('请先建立系统管理目录');
    let changed = false;
    const ensure = async (table, key, data) => {
     const query = () => db.collection(table).where({ [key]: data[key] }).limit(1).get();
     if (one(await query())) return;
-    try { await db.collection(table).add(data); changed = true; } catch (e) { if (!one(await query())) throw e; }
+    try { await db.collection(table).add({ ...data, ...createFields(auth) }); changed = true; } catch (e) { if (!one(await query())) throw e; }
    };
    for (const row of require('./permission-catalog').filter(row => row.menu_id === 'system_department')) await ensure('uni-id-permissions', 'permission_id', row);
-   await ensure('opendb-admin-menus', 'menu_id', { menu_id: 'system_department', name: '部门管理', icon: 'OfficeBuilding', url: '/uni_modules/ucs-design-admin/pages/system/department/department', parent_id: 'system_management', sort: 22, menu_type: 1, client_type: ['pc'], enable: true, app_url: '', app_icon: '' });
+   await ensure('ucsdb-admin-menus', 'menu_id', { menu_id: 'system_department', name: '部门管理', icon: 'OfficeBuilding', url: '/uni_modules/ucs-design-admin/pages/system/department/department', parent_id: 'system_management', sort: 22, menu_type: 1, client_type: ['pc'], enable: true, app_url: '', app_icon: '' });
    return { errCode: 0, changed };
   },
   async list() {
@@ -34,7 +35,7 @@ function createDepartmentAdmin({ db, uid, appId }) {
    const rows = await ctx.all(TABLE);
    const ids = [...new Set(rows.map(row => row.manager_uid).filter(Boolean))];
    const managers = ids.length ? await ctx.all('uni-id-users', { _id: db.command.in(ids) }) : [];
-   return { errCode: 0, auth: ctx.capabilities(auth, SUFFIX), data: rows.map(row => ({ ...row, enabled: row.enabled !== false, effective_enabled: effectiveEnabled(rows, row._id), manager_name: (() => { const user = managers.find(user => user._id === row.manager_uid); return user ? user.real_name || user.nickname || user.username || '' : ''; })() })) };
+   return { errCode: 0, auth: ctx.capabilities(auth, SUFFIX), data: rows.map(row => ({ ...row, enabled: row.enabled !== false, effective_enabled: effectiveEnabled(rows, row._id), manager_name: (() => { const user = managers.find(user => user._id === row.manager_uid); return user ? user.nickname || user.username || '' : ''; })() })) };
   },
   async managers({ keyword = '', current = 1, size = 20 } = {}) {
    const auth = await authorize('read');
@@ -46,11 +47,11 @@ function createDepartmentAdmin({ db, uid, appId }) {
     db.command.or([{ status: 0 }, { status: db.command.exists(false) }]),
     db.command.or([{ account_type: 0 }, { account_type: db.command.exists(false) }])
    ];
-   if (keyword) filters.push(db.command.or([{ real_name: regex }, { username: new RegExp(regex.source) }, { mobile: regex }]));
+   if (keyword) filters.push(db.command.or([{ nickname: regex }, { username: new RegExp(regex.source) }, { mobile: regex }]));
    const query = () => db.collection('uni-id-users').where(db.command.and(filters));
    const { total } = await query().count();
    current = Math.min(current, Math.max(1, Math.ceil(total / size)));
-   const { data } = await query().field({ _id: true, real_name: true, nickname: true, username: true, gender: true, role: true, mobile: true, department_id: true }).orderBy('_id', 'asc').skip((current - 1) * size).limit(size).get();
+   const { data } = await query().field({ _id: true, nickname: true, username: true, gender: true, role: true, mobile: true, department_id: true }).orderBy('_id', 'asc').skip((current - 1) * size).limit(size).get();
    const roleIds = [...new Set(data.flatMap(user => user.role || []))].filter(id => id !== 'admin');
    const roles = roleIds.length ? await ctx.all('uni-id-roles', { role_id: db.command.in(roleIds) }) : [];
    const names = new Map(roles.map(role => [role.role_id, role.role_name || role.role_id]));
@@ -61,7 +62,7 @@ function createDepartmentAdmin({ db, uid, appId }) {
    return { errCode: 0, data: data.map(user => ({ ...user, department_names: (user.department_id || []).map(id => departmentNames.get(id)).filter(Boolean), role_names: (user.role || []).map(id => names.get(id) || id) })), total, current };
   },
   async save(params = {}) {
-   await authorize(params._id ? 'update' : 'create');
+   const auth = await authorize(params._id ? 'update' : 'create');
    const rows = await ctx.all(TABLE), old = params._id ? rows.find(row => row._id === params._id) : null;
    if (params._id && !old) fail('部门不存在，请刷新');
    const name = text(params.name, 50), parent_id = text(params.parent_id || ''), code = text(params.code || '', 80), manager_uid = text(params.manager_uid || '');
@@ -85,16 +86,17 @@ function createDepartmentAdmin({ db, uid, appId }) {
     const user = one(await db.collection('uni-id-users').doc(manager_uid).get());
     if (!user || !hasManagementIdentity(user) || (user.status || 0) !== 0) fail('负责人必须是正常状态的系统用户');
    }
-   const data = { name, parent_id, code, manager_uid, level, sort: params.sort, enabled: params.enabled, description, update_date: Date.now() };
+   const data = { name, parent_id, code, manager_uid, level, sort: params.sort, enabled: params.enabled, description };
    if (old) {
-    await db.collection(TABLE).doc(old._id).update(data);
+    const metadata = updateFields(auth);
+    await db.collection(TABLE).doc(old._id).update({ ...data, ...metadata });
     // Recalculate descendant levels after reparenting; relations remain based on parent_id.
     const updateChildren = async (parent, depth, seen = new Set()) => {
      if (seen.has(parent)) return; seen.add(parent);
-     for (const child of rows.filter(row => row.parent_id === parent)) { await db.collection(TABLE).doc(child._id).update({ level: depth + 1 }); await updateChildren(child._id, depth + 1, seen); }
+     for (const child of rows.filter(row => row.parent_id === parent)) { await db.collection(TABLE).doc(child._id).update({ level: depth + 1, ...metadata }); await updateChildren(child._id, depth + 1, seen); }
     };
     await updateChildren(old._id, level);
-   } else await db.collection(TABLE).add({ ...data, create_date: Date.now() });
+   } else await db.collection(TABLE).add({ ...data, ...createFields(auth) });
    return { errCode: 0 };
   },
   async remove({ _id } = {}) {

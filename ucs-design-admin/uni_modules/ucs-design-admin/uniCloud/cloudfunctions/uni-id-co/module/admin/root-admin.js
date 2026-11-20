@@ -1,8 +1,7 @@
 const { hasAccountType } = require('./account-types')
 const fail = (errMsg) => { throw { errCode: 'USER_ADMIN_FORBIDDEN', errMsg } }
-const rootFields = ['is_root', 'root_unique']
 function rejectRootInput(params) {
-  if (rootFields.some(key => Object.prototype.hasOwnProperty.call(params, key))) fail('初始管理员标记只能由系统设置')
+  if (Object.hasOwn(params, 'is_root')) fail('初始管理员标记只能由系统设置')
 }
 function assertRootChange(user, patch) {
   rejectRootInput(patch)
@@ -35,7 +34,7 @@ async function initializeLegacyRoot(db, appId) {
     if (!user || user.username !== 'admin' || !hasAccountType(user, 0) || !user.role?.includes('admin') ||
       (user.status || 0) !== 0 || (user.dcloud_appid != null && !user.dcloud_appid.includes('*') && !user.dcloud_appid.includes(appId)))
       fail('指定的初始管理员必须是可正常登录后台的系统超级管理员')
-    await collection.doc(user._id).update({ is_root: true, root_unique: 'root' })
+    await collection.doc(user._id).update({ is_root: true })
     await transaction.commit()
     return { ...user, is_root: true }
   } catch (error) {

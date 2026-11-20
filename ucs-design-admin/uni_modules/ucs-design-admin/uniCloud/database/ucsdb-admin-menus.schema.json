@@ -9,6 +9,26 @@
 		"delete": false
 	},
 	"properties": {
+		"creator_id": {
+			"bsonType": "string",
+			"description": "创建人账号 ID"
+		},
+		"creator_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
+		"updater_id": {
+			"bsonType": "string",
+			"description": "最后修改人账号 ID"
+		},
+		"updater_name": {
+			"bsonType": "string",
+			"description": "最后修改人姓名"
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "最后修改时间"
+		},
 		"menu_type": {
 			"bsonType": "int",
 			"description": "菜单类型：0 目录，1 页面",

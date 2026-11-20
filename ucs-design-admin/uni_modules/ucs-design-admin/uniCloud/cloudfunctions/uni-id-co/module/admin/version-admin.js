@@ -1,6 +1,6 @@
 const { accessContext, fail } = require('./admin-access');
 const { createHash } = require('crypto');
-const table = 'opendb-app-versions';
+const table = 'ucsdb-app-versions';
 const suffix = 'OPENDB_APP_VERSIONS';
 const urlSource = (row) =>
 	row.url_source || (/\/app-packages\/\d+-[a-z0-9]+\.(apk|wgt)(?:\?|$)/i.test(row.url || '') ? 'upload' : 'manual');
@@ -18,6 +18,8 @@ const compareVersion = (a, b) => {
 		if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0);
 	return 0;
 };
+const { createFields, updateFields } = require('../../lib/utils/record-metadata');
+
 function createVersionAdmin({ db, uid, appId }) {
 	const ctx = accessContext({ db, uid, appId });
 	const authorize = async (action) => {
@@ -27,7 +29,7 @@ function createVersionAdmin({ db, uid, appId }) {
 	};
 	const app = async (appid) => {
 		if (typeof appid !== 'string' || !appid || appid.length > 100) fail('请选择应用');
-		const { data } = await db.collection('opendb-app-list').where({ appid }).limit(1).get();
+		const { data } = await db.collection('ucsdb-app-list').where({ appid }).limit(1).get();
 		if (!data.length) fail('应用不存在或已被删除');
 		return data[0];
 	};
@@ -122,7 +124,7 @@ function createVersionAdmin({ db, uid, appId }) {
 			};
 		},
 		async save(params = {}) {
-			await authorize(params._id ? 'UPDATE' : 'CREATE');
+			const auth = await authorize(params._id ? 'UPDATE' : 'CREATE');
 			const application = await app(params.appid);
 			const old = params._id ? await find(params.appid, params._id) : null;
 			if (old?.stable_publish) fail('请先下线版本再编辑');
@@ -144,7 +146,7 @@ function createVersionAdmin({ db, uid, appId }) {
 				const result = await db
 					.collection(table)
 					.where({ _id: old._id, appid: params.appid, stable_publish: db.command.neq(true) })
-					.update({ ...value, name: application.name });
+					.update({ ...value, name: application.name, ...updateFields(auth) });
 				if (!result.updated) {
 					const current = await find(params.appid, old._id);
 					if (current.stable_publish) fail('版本已发布，请刷新后重试');
@@ -163,7 +165,7 @@ function createVersionAdmin({ db, uid, appId }) {
 					name: application.name,
 					stable_publish: false,
 					create_env: 'upgrade-center',
-					create_date: Date.now()
+					...createFields(auth)
 				});
 			} catch (e) {
 				if (/duplicate|E11000/i.test(e.message || e.errMsg || '')) fail('该平台和包类型下版本号已存在');
@@ -172,7 +174,7 @@ function createVersionAdmin({ db, uid, appId }) {
 			return { errCode: 0, id };
 		},
 		async publish(params = {}) {
-			await authorize('PUBLISH');
+			const auth = await authorize('PUBLISH');
 			const application = await app(params.appid);
 			const old = await find(params.appid, params._id);
 			if (typeof params.published !== 'boolean') fail('发布状态不正确');
@@ -196,11 +198,11 @@ function createVersionAdmin({ db, uid, appId }) {
 						.filter((key) => old[key] !== undefined)
 						.map((key) => [key, old[key]])
 				);
-				const result = await db.collection(table).where(reviewed).update({ stable_publish: true });
+				const result = await db.collection(table).where(reviewed).update({ stable_publish: true, ...updateFields(auth) });
 				if (!result.updated && !(await find(params.appid, old._id)).stable_publish)
 					fail('版本已变更，请刷新后重新发布');
 			} else {
-				await db.collection(table).where({ _id: old._id, appid: params.appid }).update({ stable_publish: false });
+				await db.collection(table).where({ _id: old._id, appid: params.appid }).update({ stable_publish: false, ...updateFields(auth) });
 			}
 			return { errCode: 0 };
 		},

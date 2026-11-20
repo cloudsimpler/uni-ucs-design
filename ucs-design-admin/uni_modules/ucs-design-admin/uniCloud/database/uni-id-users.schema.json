@@ -11,6 +11,34 @@
 		"delete": false
 	},
 	"properties": {
+		"tenant_id": {
+			"bsonType": "string",
+			"description": "所属租户 ID，引用租户表的 _id"
+		},
+		"creator_id": {
+			"bsonType": "string",
+			"description": "创建人账号 ID"
+		},
+		"creator_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间"
+		},
+		"updater_id": {
+			"bsonType": "string",
+			"description": "最后修改人账号 ID"
+		},
+		"updater_name": {
+			"bsonType": "string",
+			"description": "最后修改人姓名"
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "最后修改时间"
+		},
 		"user_no": {
 			"bsonType": "string",
 			"title": "UID",
@@ -21,53 +49,11 @@
 				"write": false
 			}
 		},
-		"real_name": {
-			"bsonType": "string",
-			"title": "真实姓名",
-			"description": "后台录入的真实姓名，不代表已通过实名认证",
-			"maxLength": 100,
-			"permission": {
-				"read": false,
-				"write": false
-			}
-		},
 		"is_root": {
 			"bsonType": "bool",
 			"description": "初始超级管理员，仅此账号存 true，普通账号不存此字段",
 			"permission": {
 				"read": true,
-				"write": false
-			}
-		},
-		"root_unique": {
-			"bsonType": "string",
-			"description": "初始管理员固定为 root，普通账号为独立占位键；兼容三云普通唯一索引",
-			"permission": {
-				"read": false,
-				"write": false
-			}
-		},
-		"username_unique": {
-			"bsonType": "string",
-			"description": "服务端生成的全局账号唯一键",
-			"permission": {
-				"read": false,
-				"write": false
-			}
-		},
-		"mobile_unique": {
-			"bsonType": "string",
-			"description": "服务端生成的全局手机号唯一键",
-			"permission": {
-				"read": false,
-				"write": false
-			}
-		},
-		"email_unique": {
-			"bsonType": "string",
-			"description": "服务端生成的全局邮箱唯一键",
-			"permission": {
-				"read": false,
 				"write": false
 			}
 		},
@@ -141,7 +127,7 @@
 		"dcloud_appid": {
 			"bsonType": "array",
 			"description": "允许登录的客户端的appid列表",
-			"foreignKey": "opendb-app-list.appid",
+			"foreignKey": "ucsdb-app-list.appid",
 			"permission": {
 				"read": "'READ_UNI_ID_USERS' in auth.permission",
 				"write": "'CREATE_UNI_ID_USERS' in auth.permission || 'UPDATE_UNI_ID_USERS' in auth.permission"
@@ -151,7 +137,7 @@
 			"bsonType": "array",
 			"description": "部门ID",
 			"enum": {
-				"collection": "opendb-department",
+				"collection": "ucsdb-department",
 				"field": "_id as value, name as text",
 				"orderby": "name asc"
 			},

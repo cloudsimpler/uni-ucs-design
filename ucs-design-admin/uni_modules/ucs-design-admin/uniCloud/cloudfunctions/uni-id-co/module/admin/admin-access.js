@@ -1,3 +1,4 @@
+const { actorName } = require('../../lib/utils/record-metadata');
 const fail = (errMsg, errCode = 'ADMIN_ACCESS_INVALID') => {
 	throw { errCode, errMsg };
 };
@@ -27,7 +28,7 @@ function accessContext({ db, uid, appId }) {
 		const roles = !isAdmin && user.role?.length ? await all('uni-id-roles', { role_id: db.command.in(user.role) }) : [];
 		const permissions = [...new Set(roles.flatMap((role) => role.permission || []))];
 		const menuIds = [...new Set(roles.flatMap((role) => role.menu_ids || []))];
-		return { uid, isAdmin, permissions, menuIds, apps, role: user.role || [] };
+		return { uid, name: actorName(user), isAdmin, permissions, menuIds, apps, role: user.role || [] };
 	};
 	const can = (auth, id) => auth.isAdmin || auth.permissions.includes(id);
 	const requirePermission = (auth, id) => {

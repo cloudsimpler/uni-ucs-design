@@ -1,12 +1,12 @@
 <template>
  <el-dialog v-model="dialogVisible" :title="title" width="1040px" align-center append-to-body class="admin-form-dialog" :close-on-click-modal="false">
-  <el-form inline class="manager-search" @submit.prevent="queryManagers"><el-form-item><el-input v-model="managerKeyword" :prefix-icon="Search" placeholder="姓名、账号、手机号" maxlength="80" clearable @clear="queryManagers" /></el-form-item><el-form-item><el-button type="primary" native-type="submit" :loading="managerLoading">查询</el-button><el-button @click="resetManagers">重置</el-button></el-form-item></el-form>
+  <el-form inline class="manager-search" @submit.prevent="queryManagers"><el-form-item><el-input v-model="managerKeyword" :prefix-icon="Search" placeholder="昵称、账号、手机号" maxlength="80" clearable @clear="queryManagers" /></el-form-item><el-form-item><el-button type="primary" native-type="submit" :loading="managerLoading">查询</el-button><el-button @click="resetManagers">重置</el-button></el-form-item></el-form>
   <el-alert v-if="managerError" :title="managerError" type="error" :closable="false" />
   <el-table :data="managers" v-loading="managerLoading" row-key="_id" height="340px" class="manager-table" :row-class-name="rowClass" @row-click="selectManager">
    <template #empty><el-empty :image-size="70" :description="managerError ? '加载失败，请重试' : '暂无符合条件的系统用户'" /></template>
    <el-table-column label="选择" width="70" align="center"><template #default="{ row }"><span @click.stop><el-checkbox v-if="multiple" :model-value="isSelected(row)" :disabled="isDisabled(row) || managerLoading" :aria-label="'选择' + managerLabel(row)" @change="selectManager(row)" /><el-radio v-else :model-value="selected[0]?._id || ''" :value="row._id" :disabled="isDisabled(row) || managerLoading" :aria-label="'选择' + managerLabel(row)" @change="selectManager(row)"><span /></el-radio></span></template></el-table-column>
    <el-table-column label="账号" min-width="140" show-overflow-tooltip><template #default="{ row }">{{ row.username || '—' }}</template></el-table-column>
-   <el-table-column label="真实姓名" min-width="120" show-overflow-tooltip><template #default="{ row }">{{ row.real_name || '—' }}</template></el-table-column>
+   <el-table-column label="昵称" min-width="120" show-overflow-tooltip><template #default="{ row }">{{ row.nickname || '—' }}</template></el-table-column>
    <el-table-column label="性别" width="75" align="center"><template #default="{ row }">{{ row.gender === 1 ? '男' : row.gender === 2 ? '女' : '—' }}</template></el-table-column>
    <el-table-column label="部门" min-width="140" show-overflow-tooltip><template #default="{ row }">{{ row.department_names?.join('、') || '—' }}</template></el-table-column>
    <el-table-column label="角色" min-width="170"><template #default="{ row }"><div v-if="row.role_names?.length" class="manager-roles"><el-tag v-for="(name, index) in row.role_names" :key="index" size="small">{{ name }}</el-tag></div><span v-else>未分配</span></template></el-table-column>
@@ -49,7 +49,7 @@ const emit = defineEmits(['update:modelValue', 'update:visible', 'confirm']);
 const dialogVisible = computed({ get: () => props.visible, set: value => emit('update:visible', value) });
 const managers = ref([]), managerLoading = ref(false), managerError = ref(''), managerKeyword = ref(''), managerApplied = ref(''), managerPage = ref(1), managerSize = ref(20), managerTotal = ref(0), selected = ref([]);
 let managerRequest = 0;
-const managerLabel = user => user.real_name || user.nickname || user.username || user._id;
+const managerLabel = user => user.nickname || user.username || user._id;
 const isDisabled = row => props.disabledIds.includes(row._id);
 const isSelected = row => selected.value.some(user => user._id === row._id);
 const rowClass = ({ row }) => isDisabled(row) ? 'manager-row-disabled' : isSelected(row) ? 'manager-row-selected' : '';

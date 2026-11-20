@@ -1,60 +1,8 @@
 [
   {
-    "IndexName": "user_no_unique",
+    "IndexName": "user_no",
     "MgoKeySchema": {
       "MgoIndexKeys": [{ "Name": "user_no", "Direction": "1", "Type": "varchar" }],
-      "MgoIsUnique": true
-    }
-  },
-  {
-    "IndexName": "root_unique",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "root_unique",
-          "Direction": "1",
-          "Type": "varchar"
-        }
-      ],
-      "MgoIsUnique": true
-    }
-  },
-  {
-    "IndexName": "username_unique",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "username_unique",
-          "Direction": "1",
-          "Type": "varchar"
-        }
-      ],
-      "MgoIsUnique": true
-    }
-  },
-  {
-    "IndexName": "mobile_unique",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "mobile_unique",
-          "Direction": "1",
-          "Type": "varchar"
-        }
-      ],
-      "MgoIsUnique": true
-    }
-  },
-  {
-    "IndexName": "email_unique",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "email_unique",
-          "Direction": "1",
-          "Type": "varchar"
-        }
-      ],
       "MgoIsUnique": true
     }
   },

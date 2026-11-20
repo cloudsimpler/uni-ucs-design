@@ -30,7 +30,7 @@ async function setOpendbDevice ({
   const now = Date.now()
 
   const db = uniCloud.database()
-  const opendbDeviceCollection = db.collection('opendb-device')
+  const opendbDeviceCollection = db.collection('ucsdb-device')
   const getDeviceRes = await opendbDeviceCollection.where({
     device_id: deviceId
   }).get()

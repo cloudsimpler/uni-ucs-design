@@ -12,6 +12,30 @@
 		"delete": false
 	},
 	"properties": {
+		"tenant_id": {
+			"bsonType": "string",
+			"description": "所属租户 ID，引用租户表的 _id"
+		},
+		"creator_id": {
+			"bsonType": "string",
+			"description": "创建人账号 ID"
+		},
+		"creator_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
+		"updater_id": {
+			"bsonType": "string",
+			"description": "最后修改人账号 ID"
+		},
+		"updater_name": {
+			"bsonType": "string",
+			"description": "最后修改人姓名"
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "最后修改时间"
+		},
 		"_id": {
 			"description": "存储文档 ID，系统自动生成"
 		},
@@ -43,7 +67,7 @@
 			"bsonType": "array",
 			"defaultValue": [],
 			"items": { "bsonType": "string" },
-			"foreignKey": "opendb-admin-menus.menu_id",
+			"foreignKey": "ucsdb-admin-menus.menu_id",
 			"description": "角色获授权的页面 menu_id 列表，目录由下级页面自动展示"
 		},
 		"role_id": {

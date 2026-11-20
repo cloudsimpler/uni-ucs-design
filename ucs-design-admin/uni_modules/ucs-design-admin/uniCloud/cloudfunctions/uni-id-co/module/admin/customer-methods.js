@@ -1,3 +1,4 @@
+const { updateFields } = require('../../lib/utils/record-metadata')
 const updateUser = require('./update-user')
 const { createUserAdmin } = require('./user-admin')
 const { accountTypeOf, sameAccountTypes } = require('./account-types')
@@ -16,7 +17,8 @@ async function setCustomerStatus(params = {}) {
     if (!sameAccountTypes(accountTypeOf(user), params.expectedAccountTypes))
       throw { errCode: 'ACCOUNT_IDENTITY_CHANGED', errMsg: '账号身份已变化，请刷新并重新确认' }
     await admin.validateChange({ uid: params.uid, status: params.status }, user, auth)
-    return { status: params.status, token: [], valid_token_date: Date.now() }
+    const now = Date.now()
+    return { status: params.status, token: [], valid_token_date: now, ...updateFields(auth, now) }
   })
   return { errCode: 0 }
 }
@@ -36,6 +38,6 @@ module.exports = {
   listCustomers: require('./list-users'),
   getCustomerOptions: require('./get-user-options'),
   getCustomerDetail: require('./get-user-detail'),
-  updateCustomer: update(['uid', 'avatar', 'nickname', 'real_name', 'gender', 'mobile', 'email', 'tags']),
+  updateCustomer: update(['uid', 'avatar', 'nickname', 'gender', 'mobile', 'email', 'tags']),
   setCustomerStatus
 }

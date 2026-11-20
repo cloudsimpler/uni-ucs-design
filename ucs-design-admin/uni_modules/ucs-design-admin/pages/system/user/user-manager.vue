@@ -14,7 +14,7 @@
 					<el-input
 						v-model="filters.keyword"
                         aria-label="关键词" :prefix-icon="Search"
-						:placeholder="developer ? '请输入账号' : isEmployee ? '账号、姓名或手机号' : '请输入UID或手机号'"
+						:placeholder="developer ? '请输入账号' : isEmployee ? '账号、昵称或手机号' : '请输入UID或手机号'"
 						maxlength="80"
 						clearable
 						@clear="search"
@@ -255,8 +255,7 @@
             </div>
             <template v-if="!editingId && enrollmentAccount && enrollmentCanEnroll">
                 <el-form-item label="手机号"><el-input v-model="form.mobile" disabled /></el-form-item>
-                <el-form-item v-if="developer || enrollmentAccount.nickname" label="昵称" :required="developer"><el-input v-model.trim="enrollmentProfile.nickname" placeholder="请输入昵称" :disabled="!developer || !!enrollmentAccount.nickname" maxlength="100" /></el-form-item>
-                <el-form-item v-if="isEmployee" label="真实姓名" required><el-input v-model.trim="enrollmentProfile.real_name" placeholder="请输入真实姓名" :disabled="!!enrollmentAccount.real_name" maxlength="100" /></el-form-item>
+                <el-form-item label="昵称" required><el-input v-model.trim="enrollmentProfile.nickname" placeholder="请输入昵称" :disabled="!!enrollmentAccount.nickname" maxlength="100" /></el-form-item>
                 <template v-if="enrollmentAccount.has_password !== true">
                     <el-form-item label="初始密码" prop="password" :rules="passwordRules"><el-input v-model="form.password" placeholder="请输入初始密码" type="password" show-password maxlength="64" autocomplete="new-password" /></el-form-item>
                     <el-form-item label="确认密码" prop="confirm" :rules="[{ required: true, message: '请再次输入密码' }, { validator: confirmInitialPassword }]"><el-input v-model="form.confirm" placeholder="请再次输入密码" type="password" show-password maxlength="64" autocomplete="new-password" /></el-form-item>
@@ -289,16 +288,12 @@
 						/>
 					</el-form-item>
 					<el-form-item
-						v-if="!isEmployee || editingId"
 						label="昵称"
 						prop="nickname"
-						:rules="[{ required: !isEmployee, whitespace: true, message: '请输入昵称' }, { validator: validateNickname }]"
+						:rules="[{ required: !isEmployee || !editingId, whitespace: true, message: '请输入昵称' }, { validator: validateNickname }]"
 					>
 						<el-input v-model.trim="form.nickname" placeholder="请输入昵称" maxlength="100" />
 					</el-form-item>
-					<el-form-item v-if="isEmployee" label="真实姓名" prop="real_name" :rules="[{ required: !editingId, whitespace: true, message: '请输入真实姓名' }]">
-                        <el-input v-model.trim="form.real_name" placeholder="请输入真实姓名" maxlength="100" />
-                    </el-form-item>
 					<template v-if="!editingId">
 						<el-form-item class="user-field-full" label="初始密码" prop="password" :rules="passwordRules">
 							<el-input
@@ -650,7 +645,7 @@ const departmentTree = computed(() => {
  return roots;
 });
 const formatDate = (value) => (value && dayjs(value).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '—');
-const accountDisplayName = (row) => (!props.developer && !props.customer && row.real_name) || row.nickname || row.username || (!props.developer && !props.customer ? '未设置姓名' : '未设置昵称');
+const accountDisplayName = (row) => row.nickname || row.username || '未设置昵称';
 const message = (e) => e?.errMsg || e?.message || '操作失败，请稍后重试';
 const call = async (method, params) => {
 	const result = await api[props.customer ? customerMethods[method] || method : props.developer ? developerMethods[method] || method : method](params);
@@ -720,14 +715,14 @@ onBeforeUnmount(() => {
 const enrollmentMobile = ref(''), enrollmentAccount = ref(null), enrollmentError = ref(''), enrollmentBusy = ref(false);
 const enrollmentChecked = ref(false), enrollmentCanEnroll = ref(false), enrollmentAlready = ref(false), enrollmentSnapshot = ref('');
 let enrollmentRequest = 0;
-const enrollmentProfile = reactive({ nickname: '', real_name: '', gender: undefined, role: [], department_id: '' });
+const enrollmentProfile = reactive({ nickname: '', gender: undefined, role: [], department_id: '' });
 const invalidateEnrollment = () => {
     enrollmentRequest++;
     enrollmentChecked.value = false; enrollmentAccount.value = null; enrollmentError.value = '';
     enrollmentCanEnroll.value = false; enrollmentAlready.value = false; enrollmentSnapshot.value = '';
     formError.value = ''; form.value.mobile = '';
     form.value.password = ''; form.value.confirm = '';
-    Object.assign(enrollmentProfile, { nickname: '', real_name: '', gender: undefined, role: [], department_id: '' });
+    Object.assign(enrollmentProfile, { nickname: '', gender: undefined, role: [], department_id: '' });
 };
 const skipMobileCheck = () => {
     if (!props.developer || enrollmentMobile.value || enrollmentBusy.value) return;
@@ -746,7 +741,7 @@ const findEnrollmentAccount = async () => {
         enrollmentAccount.value = data; enrollmentChecked.value = true;
         enrollmentCanEnroll.value = result.canEnroll === true; enrollmentAlready.value = result.alreadyEnrolled === true;
         enrollmentSnapshot.value = result.snapshot || ''; form.value.mobile = mobile;
-        Object.assign(enrollmentProfile, { nickname: data?.nickname || '', real_name: data?.real_name || '' });
+        Object.assign(enrollmentProfile, { nickname: data?.nickname || '' });
     } catch (error) { if (!disposed && id === enrollmentRequest) enrollmentError.value = message(error); }
     finally { enrollmentBusy.value = false; }
 };
@@ -756,9 +751,8 @@ const viewMatchedAccount = () => {
 };
 const submitEnrollment = async () => {
     if (enrollmentBusy.value || saving.value || !enrollmentAccount.value || !enrollmentCanEnroll.value || !canCreate.value) return;
-    if (props.developer && !enrollmentAccount.value.nickname && !enrollmentProfile.nickname.trim()) { enrollmentError.value = '请输入昵称'; return; }
+    if (!enrollmentAccount.value.nickname && !enrollmentProfile.nickname.trim()) { enrollmentError.value = '请输入昵称'; return; }
     if (![1, 2].includes(enrollmentAccount.value.gender) && ![1, 2].includes(enrollmentProfile.gender)) { enrollmentError.value = '请选择男或女'; return; }
-    if (!props.developer && !enrollmentProfile.real_name.trim()) { enrollmentError.value = '请输入真实姓名'; return; }
     const needsPassword = enrollmentAccount.value.has_password !== true;
     if (needsPassword) {
         if (!form.value.password || form.value.password.length < 6 || form.value.password.length > 64) { enrollmentError.value = '请输入 6–64 位密码'; return; }
@@ -767,7 +761,7 @@ const submitEnrollment = async () => {
     enrollmentBusy.value = true; enrollmentError.value = '';
     try {
         await call(props.developer ? 'enrollDeveloper' : 'enrollEmployee', { uid: enrollmentAccount.value._id, snapshot: enrollmentSnapshot.value,
-            ...(props.developer ? { nickname: enrollmentAccount.value.nickname ? '' : enrollmentProfile.nickname } : { real_name: enrollmentProfile.real_name }), gender: enrollmentProfile.gender, role: enrollmentProfile.role,
+            ...(!enrollmentAccount.value.nickname && { nickname: enrollmentProfile.nickname }), gender: enrollmentProfile.gender, role: enrollmentProfile.role,
             ...(needsPassword ? { password: form.value.password } : {}),
             ...(!props.developer ? { department_id: enrollmentProfile.department_id ? [enrollmentProfile.department_id] : [] } : {}) });
         form.value.password = ''; form.value.confirm = '';
@@ -942,7 +936,6 @@ const openEditor = async (row, detail = false, focusRole = false) => {
 		form.value = {
 			username: row?.username || '',
 			nickname: row?.nickname || '',
-            real_name: row?.real_name || '',
 			avatar: row?.avatar || '',
 			avatarPreview: row?.avatarPreview || '',
 			gender: requiresProfile.value ? ([1, 2].includes(row?.gender) ? row.gender : undefined) : (row?.gender ?? 0),
@@ -1009,7 +1002,6 @@ const saveUser = async () => {
 
         if (props.developer) delete params.mobile;
         if (original.value.is_root) { delete params.mobile; delete params.email; }
-        if (!props.developer && !props.customer) params.real_name = form.value.real_name;
 		if (!editingId.value || avatar !== (original.value.avatar || '')) params.avatar = avatar;
 		if (username && !props.customer) params.username = username;
 		// 保留历史账号未限制应用的存储方式，避免仅修改资料时意外变更授权。

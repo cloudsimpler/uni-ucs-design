@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { accessContext, fail } = require('./admin-access');
+const { actorName, createFields, updateFields } = require('../../lib/utils/record-metadata');
 const ASSETS = 'ucsdb-assets', GROUPS = 'ucsdb-asset-groups', REFERENCES = 'ucsdb-asset-references';
 const formats = {
  jpg: ['image', 'image/jpeg'], jpeg: ['image', 'image/jpeg'], png: ['image', 'image/png'], webp: ['image', 'image/webp'], gif: ['image', 'image/gif'],
@@ -34,8 +35,8 @@ function createAssetAdmin({ db, uid, appId, storage }) {
    const row = await find(ASSETS, _id);
    if (row.state !== 'ready') fail('素材暂不可删除');
    const checks = [
-    [REFERENCES, { asset_id: _id }], ['opendb-app-list', { icon_url: row.file_id }],
-    ['opendb-admin-menus', { app_icon: row.file_id }], ['uni-id-users', { 'avatar_file.url': row.file_id }],
+    [REFERENCES, { asset_id: _id }], ['ucsdb-app-list', { icon_url: row.file_id }],
+    ['ucsdb-admin-menus', { app_icon: row.file_id }], ['uni-id-users', { 'avatar_file.url': row.file_id }],
     ['uni-id-users', { avatar: row.file_id }]
    ];
    for (const [table, where] of checks) if (one(await db.collection(table).where(where).field({ _id: true }).limit(1).get())) fail('素材正在使用中，请先解除引用');
@@ -47,25 +48,25 @@ function createAssetAdmin({ db, uid, appId, storage }) {
   async install() {
    const auth = await ctx.actor();
    if (!auth.isAdmin) fail('仅超级管理员可安装素材菜单', 'ADMIN_ACCESS_FORBIDDEN');
-   const menus = db.collection('opendb-admin-menus');
+   const menus = db.collection('ucsdb-admin-menus');
    const parent = one(await menus.where({ menu_id: 'system_management' }).limit(1).get());
    if (!parent || parent.menu_type !== 0) fail('请先建立系统管理目录');
    let changed = false;
    const insertMissing = async (table, key, record) => {
     if (one(await db.collection(table).where({ [key]: record[key] }).limit(1).get())) return;
-    try { await db.collection(table).add(record); changed = true; }
+    try { await db.collection(table).add({ ...record, ...createFields(auth) }); changed = true; }
     catch (error) {
      // 同时打开多个窗口时，唯一索引使安装保持幂等；其他错误继续上抛。
      if (!one(await db.collection(table).where({ [key]: record[key] }).limit(1).get())) throw error;
     }
    };
    for (const permission of require('./permission-catalog').filter(item => item.menu_id === 'system_asset')) {
-    await insertMissing('uni-id-permissions', 'permission_id', { ...permission, create_date: Date.now() });
+    await insertMissing('uni-id-permissions', 'permission_id', { ...permission });
    }
-   await insertMissing('opendb-admin-menus', 'menu_id', {
+   await insertMissing('ucsdb-admin-menus', 'menu_id', {
     menu_id: 'system_asset', name: '素材管理', parent_id: 'system_management', menu_type: 1,
     client_type: ['pc'], url: '/uni_modules/ucs-design-admin/pages/system/asset/asset', icon: 'Folder',
-    app_url: '', app_icon: '', sort: 26, enable: true, create_date: Date.now()
+    app_url: '', app_icon: '', sort: 26, enable: true
    });
    return { errCode: 0, changed };
   },
@@ -82,12 +83,12 @@ function createAssetAdmin({ db, uid, appId, storage }) {
    page = Math.min(page, Math.max(1, Math.ceil(total / pageSize)));
    const { data } = await query().orderBy('create_date', 'desc').orderBy('_id', 'asc').skip((page - 1) * pageSize).limit(pageSize).get();
    // Only resolve uploaders on this page, with one projected query.
-   const creatorIds = [...new Set(data.map(row => row.creator_id).filter(Boolean))];
+   const creatorIds = [...new Set(data.filter(row => !row.creator_name).map(row => row.creator_id).filter(Boolean))];
    const creators = creatorIds.length ? (await db.collection('uni-id-users')
-    .where({ _id: db.command.in(creatorIds) }).field({ _id: true, real_name: true, nickname: true })
+    .where({ _id: db.command.in(creatorIds) }).field({ _id: true, nickname: true, username: true })
     .limit(creatorIds.length).get()).data : [];
-   const creatorNames = new Map(creators.map(user => [user._id, user.real_name?.trim() || user.nickname?.trim() || '']));
-   for (const row of data) row.creator_name = creatorNames.get(row.creator_id) || '';
+   const creatorNames = new Map(creators.map(user => [user._id, actorName(user)]));
+   for (const row of data) row.creator_name ||= creatorNames.get(row.creator_id) || '';
    return { errCode: 0, data, total, page, pageSize, auth: ctx.capabilities(auth, 'OPENDB_ASSETS') };
   },
   async references({ _id, page = 1, pageSize = 20 } = {}) {
@@ -103,12 +104,12 @@ function createAssetAdmin({ db, uid, appId, storage }) {
   },
   async groups() { await authorize('read'); return { errCode: 0, data: await ctx.all(GROUPS) }; },
   async saveGroup({ _id, name } = {}) {
-   await authorize('update'); name = text(name, 40); if (!name) fail('请输入分组名称');
+   const auth = await authorize('update'); name = text(name, 40); if (!name) fail('请输入分组名称');
    if (_id) await find(GROUPS, _id);
    const duplicate = one(await db.collection(GROUPS).where({ name }).limit(1).get());
    if (duplicate && duplicate._id !== _id) fail('分组名称已存在');
-   if (_id) await db.collection(GROUPS).doc(_id).update({ name });
-   else { const result = await db.collection(GROUPS).add({ name, create_date: Date.now(), creator_id: uid }); _id = result.id; }
+   if (_id) await db.collection(GROUPS).doc(_id).update({ name, ...updateFields(auth) });
+   else { const result = await db.collection(GROUPS).add({ name, ...createFields(auth) }); _id = result.id; }
    return { errCode: 0, id: _id };
   },
   async deleteGroup({ _id } = {}) {
@@ -119,18 +120,18 @@ function createAssetAdmin({ db, uid, appId, storage }) {
    await db.collection(GROUPS).doc(_id).remove(); return { errCode: 0 };
   },
   async prepare({ name, size, group_id = '' } = {}) {
-   await authorize('create'); name = text(name, 200);
+   const auth = await authorize('create'); name = text(name, 200);
    const ext = name.split('.').pop().toLowerCase(), format = formats[ext];
    if (!format) fail('不支持此文件格式');
    if (!Number.isSafeInteger(size) || size <= 0 || size > 200 * 1024 * 1024) fail('文件大小需在 0 至 200 MB 之间');
    await group(group_id);
    const cloud_path = `assets/${crypto.randomBytes(24).toString('hex')}.${ext}`;
    const { id } = await db.collection(ASSETS).add({ name, size, group_id, type: format[0], mime: format[1], ext, cloud_path,
-    file_id: '', state: 'uploading', creator_id: uid, create_date: Date.now(), update_date: Date.now() });
+    file_id: '', state: 'uploading', ...createFields(auth) });
    return { errCode: 0, id, cloudPath: cloud_path, type: format[0], ...(format[0] === 'video' ? { coverPath: cloud_path + '.cover.jpg' } : {}) };
   },
   async complete({ _id, file_id, cover_file_id = '', width, height } = {}) {
-   await authorize('create'); const row = await find(ASSETS, _id);
+   const auth = await authorize('create'); const row = await find(ASSETS, _id);
    if (row.creator_id !== uid) fail('上传记录已失效');
    if (row.state === 'ready' && row.file_id === file_id && (row.cover_file_id || '') === cover_file_id) return { errCode: 0 };
    if (row.state !== 'uploading') fail('上传记录已失效');
@@ -145,7 +146,7 @@ function createAssetAdmin({ db, uid, appId, storage }) {
     Object.assign(dimensions, { width, height });
    }
    await group(row.group_id);
-   await db.collection(ASSETS).doc(_id).update({ file_id, cover_file_id, ...dimensions, state: 'ready', update_date: Date.now() });
+   await db.collection(ASSETS).doc(_id).update({ file_id, cover_file_id, ...dimensions, state: 'ready', ...updateFields(auth) });
    return { errCode: 0 };
   },
   async cancel({ _id } = {}) {
@@ -154,12 +155,12 @@ function createAssetAdmin({ db, uid, appId, storage }) {
    await db.collection(ASSETS).doc(_id).remove(); return { errCode: 0 };
   },
   async save({ _id, name, group_id } = {}) {
-   await authorize('update'); const row = await find(ASSETS, _id);
+   const auth = await authorize('update'); const row = await find(ASSETS, _id);
    if (row.state !== 'ready') fail('素材暂不可编辑');
    name = text(name, 200); if (!name) fail('请输入素材名称');
    if (typeof group_id !== 'string' || !group_id.trim()) fail('请选择已有的素材分组');
    await group(group_id);
-   await db.collection(ASSETS).doc(_id).update({ name, group_id, update_date: Date.now() });
+   await db.collection(ASSETS).doc(_id).update({ name, group_id, ...updateFields(auth) });
    return { errCode: 0 };
   },
   async remove({ _id } = {}) { await authorize('delete'); return removeOne(_id); },
