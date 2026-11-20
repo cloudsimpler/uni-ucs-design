@@ -31,7 +31,7 @@
 			<el-table-column prop="comment" label="描述" min-width="220" align="center" show-overflow-tooltip />
 			<el-table-column label="操作" width="250" align="center" fixed="right">
 				<template #default="{ row }">
-					<view class="role-actions">
+					<div class="role-actions">
 						<span v-if="row.role_id === 'admin'" class="muted">系统内置</span>
 						<template v-else>
 							<el-button
@@ -61,7 +61,7 @@
 								查看
 							</el-button>
 						</template>
-					</view>
+					</div>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -103,7 +103,7 @@
 				</el-form-item>
 			</template>
 			<el-form-item v-else label-width="0">
-				<view class="permission-field">
+				<div class="permission-field">
 					<text class="hint">
 						勾选目录或页面仅授予页面访问；操作权限需单独勾选。取消页面会同时取消其操作权限。
 					</text>
@@ -131,7 +131,7 @@
 						</template>
 					</el-tree>
 					<el-button v-if="treeError" :disabled="treeLoading" @click="loadAuthorization">加载失败，点击重试</el-button>
-				</view>
+				</div>
 			</el-form-item>
 		</el-form>
 		<template #footer>

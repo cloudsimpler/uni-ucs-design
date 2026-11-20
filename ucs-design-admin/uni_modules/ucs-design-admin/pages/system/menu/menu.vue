@@ -32,7 +32,7 @@
 			</el-button>
 			<el-button :icon="Refresh" :loading="loading" :disabled="busy" aria-label="刷新菜单" @click="load" />
 		</template>
-		<view class="menu-content">
+		<div class="menu-content">
 			<el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
 			<el-alert
 				v-if="hasInvalidType"
@@ -76,7 +76,7 @@
 				</el-table-column>
 				<el-table-column label="显示端" width="140" align="center">
 					<template #default="{ row }">
-						<view class="client-tags">
+						<div class="client-tags">
 							<el-tag
 								v-for="client in menuClients(row)"
 								:key="client"
@@ -85,7 +85,7 @@
 							>
 								{{ client === 'pc' ? 'PC' : 'App' }}
 							</el-tag>
-						</view>
+						</div>
 					</template>
 				</el-table-column>
 				<el-table-column prop="sort" label="排序" width="80" align="center" />
@@ -102,7 +102,7 @@
 				</el-table-column>
 				<el-table-column label="操作" :width="auth.managePermissions ? 300 : 240" align="center" fixed="right">
 					<template #default="{ row }">
-						<view class="menu-actions">
+						<div class="menu-actions">
 							<el-button
 								v-if="auth.managePermissions && row.menu_type === MENU_TYPE.PAGE"
 								type="warning"
@@ -146,14 +146,14 @@
 								删除
 							</el-button>
 							<span v-if="!auth.create && !auth.update && !auth.delete" class="muted">只读</span>
-						</view>
+						</div>
 					</template>
 				</el-table-column>
 			</el-table>
-			<view class="menu-note">
+			<div class="menu-note">
 				排序值越小越靠前；停用目录会隐藏其下级菜单。删除菜单前，需先处理其下级菜单和所属权限。
-			</view>
-		</view>
+			</div>
+		</div>
 	</ucs-admin-layout>
 	<el-dialog
 		v-model="permissionVisible"
@@ -195,7 +195,7 @@
 				<el-input v-model="form.name" placeholder="请输入菜单名称" maxlength="50" show-word-limit />
 			</el-form-item>
 			<el-form-item label="菜单类型" prop="menu_type">
-				<view class="field">
+				<div class="field">
 					<el-radio-group v-model="form.menu_type" @change="changeType">
 						<el-radio-button
 							v-for="item in MENU_TYPE_OPTIONS"
@@ -221,13 +221,13 @@
 					<text v-if="form.menu_type === MENU_TYPE.DIRECTORY && originalUrl" class="hint">
 						保存后将清空原页面路径。
 					</text>
-				</view>
+				</div>
 			</el-form-item>
 			<el-form-item label="菜单标识" prop="menu_id">
-				<view class="field">
+				<div class="field">
 					<el-input v-model="form.menu_id" :disabled="editing" placeholder="如 system_user" maxlength="100" />
 					<text class="hint">唯一标识，创建后不可修改。</text>
-				</view>
+				</div>
 			</el-form-item>
 			<el-form-item label="显示端" prop="client_type">
 				<el-checkbox-group v-model="form.client_type">
@@ -269,7 +269,7 @@
 				prop="url"
 				required
 			>
-				<view class="field">
+				<div class="field">
 					<el-select
 						v-model="form.url"
 						placeholder="请选择或输入页面路径"
@@ -286,11 +286,11 @@
 						/>
 					</el-select>
 					<text class="hint">选择已注册页面或填写以 / 开头的站内路径。</text>
-				</view>
+				</div>
 			</el-form-item>
 			<el-form-item v-if="form.client_type.includes('app')" label="App端图标">
-				<view class="field">
-					<view class="app-icon-upload">
+				<div class="field">
+					<div class="app-icon-upload">
 						<el-upload
 							class="app-icon-uploader"
 							ref="appIconUploadRef"
@@ -302,7 +302,7 @@
 							:on-success="clearIconUploadFiles"
 							:on-error="iconUploadFailed"
 						>
-							<view
+							<div
 								class="app-icon-trigger"
 								:class="{ 'is-uploading': iconUploading }"
 								:aria-label="form.app_icon ? '更换图标' : '上传图标'"
@@ -311,20 +311,20 @@
 								<el-image v-if="form.app_icon" :src="appIconPreview" fit="contain" class="app-icon-preview">
 									<template #error><span class="hint">预览不可用</span></template>
 								</el-image>
-								<view v-else class="app-icon-placeholder">
+								<div v-else class="app-icon-placeholder">
 									<el-icon :size="24"><Plus /></el-icon>
 									<text>上传图标</text>
-								</view>
-								<view v-if="iconUploading" class="app-icon-mask">
+								</div>
+								<div v-if="iconUploading" class="app-icon-mask">
 									<el-icon class="is-loading"><Loading /></el-icon>
 									<text>上传中</text>
-								</view>
-								<view v-else-if="form.app_icon" class="app-icon-replace">更换图标</view>
-							</view>
+								</div>
+								<div v-else-if="form.app_icon" class="app-icon-replace">更换图标</div>
+							</div>
 						</el-upload>
-					</view>
+					</div>
 					<text class="hint">支持 JPG、PNG、WebP，保存菜单后生效。</text>
-				</view>
+				</div>
 			</el-form-item>
 			<el-form-item
 				v-if="form.menu_type === MENU_TYPE.PAGE && form.client_type.includes('app')"

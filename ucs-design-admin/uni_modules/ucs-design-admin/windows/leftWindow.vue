@@ -1,14 +1,14 @@
 <template>
-	<view class="admin-sidebar" :class="{ 'is-collapsed': store.isCollapsed }" :style="{ width: sidebarWidth }">
+	<div class="admin-sidebar" :class="{ 'is-collapsed': store.isCollapsed }" :style="{ width: sidebarWidth }">
 		<el-scrollbar class="sidebar-scrollbar">
-			<view v-if="loading" class="sidebar-state" role="status" aria-label="正在加载菜单">
+			<div v-if="loading" class="sidebar-state" role="status" aria-label="正在加载菜单">
 				<el-skeleton :rows="store.isCollapsed ? 3 : 6" animated />
-			</view>
-			<view v-else-if="loadError" class="sidebar-state" role="alert">
+			</div>
+			<div v-else-if="loadError" class="sidebar-state" role="alert">
 				<el-icon class="state-icon"><Warning /></el-icon>
 				<text v-if="!store.isCollapsed" class="state-description">{{ loadError }}</text>
 				<el-button text type="primary" size="small" @click="getCurrentMenus">重试</el-button>
-			</view>
+			</div>
 			<el-menu
 				v-else-if="menus.length"
 				ref="menuRef"
@@ -21,20 +21,20 @@
 			>
 				<leftWindowMenu :data="menus" />
 			</el-menu>
-			<view v-else class="sidebar-state">
+			<div v-else class="sidebar-state">
 				<el-icon class="state-icon"><FolderOpened /></el-icon>
 				<text v-if="!store.isCollapsed" class="state-description">暂无可用菜单</text>
-			</view>
+			</div>
 		</el-scrollbar>
-		<view class="sidebar-footer">
+		<div class="sidebar-footer">
 			<el-tooltip :content="'当前版本 v' + manifestJson.versionName" :disabled="!store.isCollapsed" placement="right">
-				<view class="version-info">
+				<div class="version-info">
 					<el-icon><Monitor /></el-icon>
 					<text v-if="!store.isCollapsed">系统版本 {{ manifestJson.versionName }}</text>
-				</view>
+				</div>
 			</el-tooltip>
-		</view>
-	</view>
+		</div>
+	</div>
 </template>
 
 <script setup>

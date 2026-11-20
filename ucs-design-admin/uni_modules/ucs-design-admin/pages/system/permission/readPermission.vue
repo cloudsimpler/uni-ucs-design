@@ -1,8 +1,8 @@
 <!-- 查询权限 -->
 <template>
-	<view>
+	<div>
 		
-	</view>
+	</div>
 </template>
 
 <script setup>

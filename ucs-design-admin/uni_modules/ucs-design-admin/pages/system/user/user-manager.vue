@@ -38,7 +38,7 @@
 				</el-form-item>
 			</el-form>
 		</template>
-		<view class="user-content">
+		<div class="user-content">
 			<el-alert v-if="error" :title="error" type="error" show-icon :closable="false" class="user-alert" />
 			<el-alert
 				v-if="optionsError"
@@ -48,7 +48,7 @@
 				:closable="false"
 				class="user-alert"
 			/>
-			<view class="user-table">
+			<div class="user-table">
 				<el-table
 					ref="tableRef"
 					v-loading="loading"
@@ -71,23 +71,23 @@
 					/>
 					<el-table-column prop="username" :label="developer ? '账号' : accountLabel" min-width="184">
 						<template #default="{ row }">
-							<view class="user-identity is-left">
+							<div class="user-identity is-left">
 								<el-avatar :size="34" :src="row.avatarPreview">
 									{{ accountDisplayName(row).slice(0, 1).toUpperCase() }}
 								</el-avatar>
-								<view class="user-identity-text">
-									<view class="user-name">
+								<div class="user-identity-text">
+									<div class="user-name">
 										<text class="user-nickname" :title="accountDisplayName(row)">
 											{{ accountDisplayName(row) }}
 										</text>
 										<el-tag v-if="row._id === auth?.uid" size="small" type="info">本人</el-tag>
-									</view>
-									<view class="user-account-line">
+									</div>
+									<div class="user-account-line">
 										<text class="user-secondary user-account" :title="row.username || '第三方登录用户'">{{ row.username || '第三方登录用户' }}</text>
 										<el-tag v-if="row.is_root" size="small" type="warning">初始管理员</el-tag>
-									</view>
-								</view>
-							</view>
+									</div>
+								</div>
+							</div>
 						</template>
 					</el-table-column>
 					<el-table-column v-if="customer" prop="user_no" label="UID" min-width="140">
@@ -98,10 +98,10 @@
 					</el-table-column>
 					<el-table-column v-if="!customer" label="角色" min-width="120">
 						<template #default="{ row }">
-							<view class="user-tags">
+							<div class="user-tags">
 								<el-tag v-for="id in row.role" :key="id" size="small">{{ roleName(id) }}</el-tag>
 								<text v-if="!row.role?.length" class="user-secondary">未分配</text>
-							</view>
+							</div>
 						</template>
 					</el-table-column>
 					<el-table-column label="状态" width="88">
@@ -116,16 +116,16 @@
 					</el-table-column>
 					<el-table-column label="最后登录" min-width="168">
 						<template #default="{ row }">
-							<view>{{ formatDate(row.last_login_date) }}</view>
+							<div>{{ formatDate(row.last_login_date) }}</div>
 							<text class="user-secondary">{{ row.last_login_ip || '—' }}</text>
 						</template>
 					</el-table-column>
 					<el-table-column label="标签" min-width="90">
 						<template #default="{ row }">
-							<view class="user-tags">
+							<div class="user-tags">
 								<el-tag v-for="id in row.tags" :key="id" size="small" type="info">{{ tagName(id) }}</el-tag>
 								<text v-if="!row.tags?.length" class="user-secondary">—</text>
-							</view>
+							</div>
 						</template>
 					</el-table-column>
 					<el-table-column label="操作" fixed="right" :width="canWrite || canChangeStatus || canResetPassword || canDelete ? 196 : 88">
@@ -173,8 +173,8 @@
 						</template>
 					</el-table-column>
 				</el-table>
-			</view>
-		</view>
+			</div>
+		</div>
 	</ucs-admin-layout>
 	<UserDetail
 		ref="detailRef"
@@ -223,7 +223,7 @@
 			class="user-editor-form"
 			@submit.prevent="isEmployee && !editingId && !enrollmentChecked ? findEnrollmentAccount() : saveUser()"
 		>
-            <view v-if="!editingId && !developer" class="user-verification">
+            <div v-if="!editingId && !developer" class="user-verification">
                 <div v-if="isEmployee && !enrollmentChecked" class="employee-lookup-intro">
                     <h3>先查找系统用户的账号</h3>
                     <p>查找到已有账号后可开通系统用户身份，没有账号则继续创建。</p>
@@ -252,7 +252,7 @@
                 </div>
                 <el-alert v-if="enrollmentAccount && !enrollmentCanEnroll" :title="enrollmentAccount.status !== 0 ? '该账号已停用或注销，不能添加身份。' : '该账号已具有' + accountLabel + '身份，无需重复添加。'" type="warning" :closable="false" show-icon />
                 <el-button v-if="enrollmentAlready && enrollmentAccount?.status === 0 && (auth?.isAdmin || auth?.permissions?.includes(developer ? 'READ_UNI_ID_DEVELOPERS' : 'READ_UNI_ID_USERS'))" text type="primary" @click="viewMatchedAccount">查看{{ accountLabel }}</el-button>
-            </view>
+            </div>
             <template v-if="!editingId && enrollmentAccount && enrollmentCanEnroll">
                 <el-form-item label="手机号"><el-input v-model="form.mobile" disabled /></el-form-item>
                 <el-form-item v-if="developer || enrollmentAccount.nickname" label="昵称" :required="developer"><el-input v-model.trim="enrollmentProfile.nickname" placeholder="请输入昵称" :disabled="!developer || !!enrollmentAccount.nickname" maxlength="100" /></el-form-item>
@@ -267,9 +267,9 @@
                 <el-alert :title="'本次为原账号添加' + accountLabel + '身份，' + (enrollmentAccount.has_password === true ? '继续使用原密码' : '同时设置登录密码') + '，保留已有资料、角色和应用授权。'" type="info" :closable="false" show-icon />
             </template>
             <template v-if="editingId || (enrollmentChecked && !enrollmentAccount)">
-			<view class="user-editor-section">
+			<div class="user-editor-section">
 				<h3 class="user-editor-section-title">基本信息</h3>
-				<view class="user-editor-grid">
+				<div class="user-editor-grid">
 
 
 					<el-form-item
@@ -345,7 +345,7 @@
                         <span v-if="editMobileError" class="user-avatar-error">{{ editMobileError }}</span>
 					</el-form-item>
 					<el-form-item label="头像" class="user-avatar-field">
-						<view class="user-profile-strip">
+						<div class="user-profile-strip">
 							<el-upload
 								ref="avatarUploadRef"
 								class="user-avatar-uploader"
@@ -357,7 +357,7 @@
 								:on-success="clearAvatarFiles"
 								:on-error="avatarUploadFailed"
 							>
-								<view
+								<div
 									class="user-avatar-trigger"
 									:aria-label="form.avatar ? '更换头像' : '上传头像'"
 									:aria-busy="avatarUploading"
@@ -365,29 +365,29 @@
 									<el-image v-if="form.avatar" :src="form.avatarPreview" fit="cover" class="user-avatar-preview">
 										<template #error><span class="user-field-help">预览不可用</span></template>
 									</el-image>
-									<view v-else class="user-avatar-placeholder">
+									<div v-else class="user-avatar-placeholder">
 										<el-icon :size="24"><Plus /></el-icon>
 										<text>上传头像</text>
-									</view>
-									<view v-if="avatarUploading" class="user-avatar-mask">
+									</div>
+									<div v-if="avatarUploading" class="user-avatar-mask">
 										<el-icon class="is-loading"><Loading /></el-icon>
 										<text>上传中</text>
-									</view>
-									<view v-else-if="form.avatar && !readOnly" class="user-avatar-replace">更换头像</view>
-								</view>
+									</div>
+									<div v-else-if="form.avatar && !readOnly" class="user-avatar-replace">更换头像</div>
+								</div>
 							</el-upload>
-							<view class="user-profile-caption">
+							<div class="user-profile-caption">
 								<text class="user-field-help">支持 JPG、PNG、WebP 图片{{ editingId ? '，上传后立即保存' : '' }}</text>
 								<el-progress v-if="avatarUploading" :percentage="avatarProgress" :stroke-width="4" />
 								<text v-if="avatarError" class="user-avatar-error">{{ avatarError }}</text>
-							</view>
-						</view>
+							</div>
+						</div>
 					</el-form-item>
-				</view>
-			</view>
-			<view v-if="!original.is_root" class="user-editor-section">
+				</div>
+			</div>
+			<div v-if="!original.is_root" class="user-editor-section">
 				<h3 class="user-editor-section-title">{{ customer ? '社区用户标签' : '组织与标签' }}</h3>
-				<view class="user-editor-grid">
+				<div class="user-editor-grid">
 					<el-form-item v-if="!customer" label="所属部门">
 						<el-tree-select v-model="form.department_id" :data="departmentTree" node-key="_id" :props="{ value: '_id', label: 'name', children: 'children', disabled: 'disabled' }" check-strictly filterable clearable placeholder="请选择所属部门" style="width:100%" />
 					</el-form-item>
@@ -403,11 +403,11 @@
 							<el-option v-for="item in options.tags" :key="item.tagid" :label="item.name" :value="item.tagid" />
 						</el-select>
 					</el-form-item>
-				</view>
-			</view>
-			<view v-if="!customer && !original.is_root" class="user-editor-section">
+				</div>
+			</div>
+			<div v-if="!customer && !original.is_root" class="user-editor-section">
 				<h3 class="user-editor-section-title">账号与授权</h3>
-				<view class="user-editor-grid">
+				<div class="user-editor-grid">
 					<el-form-item ref="roleItemRef" label="角色">
 						<el-select
 							v-model="form.role"
@@ -462,8 +462,8 @@
 						</text>
 					</el-form-item>
 					<text class="user-field-help user-access-help">修改角色或应用授权后，原有登录会失效。</text>
-				</view>
-			</view>
+				</div>
+			</div>
 			<el-alert
 				v-if="isSelf && !original.is_root"
 				title="修改本人授权后需重新登录。"
@@ -1173,6 +1173,7 @@ const resetPassword = async () => {
 .user-content {
 	display: flex;
 	flex-direction: column;
+	height: 100%;
 	min-height: 0;
 }
 .user-search {

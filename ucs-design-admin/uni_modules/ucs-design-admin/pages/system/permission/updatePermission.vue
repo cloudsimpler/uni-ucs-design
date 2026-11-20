@@ -1,8 +1,8 @@
 <!-- 修改权限 -->
 <template>
-	<view>
+	<div>
 		
-	</view>
+	</div>
 </template>
 
 <script setup>

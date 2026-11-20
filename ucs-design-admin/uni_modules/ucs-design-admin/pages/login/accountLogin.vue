@@ -1,10 +1,10 @@
 <!-- 账号登录 -->
 <template>
-	<view class="account-login" v-loading.fullscreen.lock="fullscreenLoading" element-loading-text="正在登录，请稍候…">
-		<view class="form-heading">
+	<div class="account-login" v-loading.fullscreen.lock="fullscreenLoading" element-loading-text="正在登录，请稍候…">
+		<div class="form-heading">
 			<h2>欢迎登录</h2>
 			<p>选择登录方式，进入管理工作台。</p>
-		</view>
+		</div>
 		<el-tabs v-model="loginMode" class="login-tabs" stretch>
             <el-tab-pane label="账号密码" name="password" :disabled="loginBusy" />
             <el-tab-pane label="手机验证码" name="mobile" :disabled="loginBusy" />
@@ -20,10 +20,10 @@
 				<el-input type="password" show-password v-model="entryForm.password" :prefix-icon="Lock" size="large" placeholder="请输入密码"
 					name="password" autocomplete="current-password" :disabled="isSubmitting" />
 			</el-form-item>
-			<view class="form-options">
+			<div class="form-options">
 				<el-checkbox v-model="rememberAccount" :disabled="isSubmitting" @change="onRememberChange">记住账号</el-checkbox>
 				<el-button link type="primary" :disabled="isSubmitting" @click="contactRef.open('reset')">忘记密码？</el-button>
-			</view>
+			</div>
 			<el-button class="login-submit" type="primary" size="large" native-type="submit" :loading="isSubmitting">
 				<span>{{ isSubmitting ? '正在登录…' : '登录' }}</span>
 			</el-button>
@@ -32,11 +32,11 @@
             <account-contact inline :initial-channel="channel" :active="loginMode === channel"
                 @login="finishLogin" @busy-change="contactBusy[channel] = $event" @loading-change="contactLoading[channel] = $event" />
         </div>
-		<view class="account-support">
+		<div class="account-support">
 			<template v-if="isAdmin"><span>首次使用系统？</span><el-button link type="primary" @click="registeredAdmin">注册管理员</el-button></template>
 			<span v-else>还没有账号？请联系系统管理员开通</span>
-		</view>
-	</view>
+		</div>
+	</div>
 	<!-- 验证码 -->
 	<ucs-admin-captcha scene="login-by-pwd" ref="captchaRef" @change="onCaptchaChange" />
 	<!-- 注册管理员 -->
@@ -123,9 +123,16 @@ import 'element-plus/es/components/message/style/css.mjs';
 	};
 	const uniIdRedirectUrl = ref(null);
 	onLoad(async (e) => {
-		if (e.uniIdRedirectUrl) {
-			uniIdRedirectUrl.value = e.uniIdRedirectUrl
-		};
+		let redirect = e.uniIdRedirectUrl;
+		// uni-app x Web 会额外编码回跳地址。已解码的地址保留原有查询参数。
+		try {
+			while (/^%(?:25)*2f/i.test(redirect)) redirect = decodeURIComponent(redirect);
+		} catch {
+			redirect = null;
+		}
+		if (typeof redirect === 'string' && pagesJson.pages.some(({ path }) =>
+			`/${path}` === redirect.split(/[?#]/, 1)[0]
+		)) uniIdRedirectUrl.value = redirect;
 		// 查询是否已经有管理员注册了，如果有，则隐藏注册管理员的入口
 		try {
 			const result = await uniCloud.importObject('uni-id-co', { customUI: true }).getAdminRegistrationStatus();

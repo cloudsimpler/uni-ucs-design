@@ -1,18 +1,18 @@
 <template>
-	<view class="admin-header">
-		<view class="header-brand" :class="{ 'is-collapsed': store.isCollapsed }" :style="{ width: sidebarWidth }">
+	<div class="admin-header">
+		<div class="header-brand" :class="{ 'is-collapsed': store.isCollapsed }" :style="{ width: sidebarWidth }">
 			<image class="brand-logo" src="/uni_modules/ucs-design-admin/static/logo.svg" />
 			<text v-if="!store.isCollapsed" class="brand-name" :title="manifestJson.name">{{ manifestJson.name }}</text>
-		</view>
-		<view class="header-navigation">
+		</div>
+		<div class="header-navigation">
 			<el-button class="header-icon" text :aria-label="store.isCollapsed ? '展开菜单' : '收起菜单'" :aria-expanded="!store.isCollapsed" @click="onCollapsed">
 				<el-icon><Expand v-if="store.isCollapsed" /><Fold v-else /></el-icon>
 			</el-button>
 			<el-breadcrumb class="header-breadcrumb">
 				<el-breadcrumb-item v-for="(item, index) in breadcrumbs" :key="index">{{ item }}</el-breadcrumb-item>
 			</el-breadcrumb>
-		</view>
-		<view class="header-tools">
+		</div>
+		<div class="header-tools">
 			<el-tooltip :content="isDark ? '切换浅色模式' : '切换深色模式'" placement="bottom">
 				<el-button class="header-icon" text :aria-label="isDark ? '切换浅色模式' : '切换深色模式'" @click="onDarkMode">
 					<el-icon><Sunny v-if="isDark" /><Moon v-else /></el-icon>
@@ -23,7 +23,7 @@
 					<el-icon><ScaleToOriginal v-if="isFullScreen" /><FullScreen v-else /></el-icon>
 				</el-button>
 			</el-tooltip>
-			<view class="tools-divider" />
+			<div class="tools-divider" />
 			<el-dropdown trigger="click" @command="onUserSelect">
 				<button type="button" class="account-trigger" aria-label="账号菜单" :disabled="isLoggingOut">
 					<el-avatar :size="32" :src="account.avatarPreview" class="account-avatar"><el-icon><User /></el-icon></el-avatar>
@@ -40,8 +40,8 @@
 					</el-dropdown-menu>
 				</template>
 			</el-dropdown>
-		</view>
-	</view>
+		</div>
+	</div>
 </template>
 
 <script setup>

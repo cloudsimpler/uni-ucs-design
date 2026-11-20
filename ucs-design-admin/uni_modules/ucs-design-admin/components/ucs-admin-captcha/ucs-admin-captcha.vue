@@ -9,9 +9,9 @@
 			</div>
 			<el-input-otp ref="otpRef" class="Asdst" size="large" :length="4" v-model="verificationCode"
 				:disabled="isCaptcha" @finish="onFinish" />
-			<view class="Lsdyg">
+			<div class="Lsdyg">
 				说明：由于两小时内输入错误超过三次以上，请输入验证码核验成功后进行下一步操作。
-			</view>
+			</div>
 		</div>
 	</el-dialog>
 </template>

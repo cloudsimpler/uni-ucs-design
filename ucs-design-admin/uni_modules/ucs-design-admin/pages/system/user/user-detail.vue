@@ -12,9 +12,9 @@
 		append-to-body
 	>
 		<template #header="{ titleId }">
-			<view class="detail-dialog-heading">
+			<div class="detail-dialog-heading">
 				<span :id="titleId">{{ accountLabel }}详情</span>
-				<view class="detail-window-actions">
+				<div class="detail-window-actions">
 					<el-button
 						text
 						:icon="fullscreen ? ScaleToOriginal : FullScreen"
@@ -22,30 +22,30 @@
 						@click="fullscreen = !fullscreen"
 					/>
 					<el-button text :icon="Close" :aria-label="'关闭' + accountLabel + '详情'" @click="visible = false" />
-				</view>
-			</view>
+				</div>
+			</div>
 		</template>
 		<el-skeleton v-if="loading && !user" :rows="12" animated />
 		<el-result v-else-if="error" icon="error" :title="accountLabel + '详情加载失败'" :sub-title="error">
 			<template #extra><el-button type="primary" @click="reload">重新加载</el-button></template>
 		</el-result>
-		<view v-else-if="user" v-loading="loading" class="detail-content">
-			<view class="detail-toolbar">
+		<div v-else-if="user" v-loading="loading" class="detail-content">
+			<div class="detail-toolbar">
 				<el-button :icon="Refresh" :loading="loading" :aria-label="'刷新' + accountLabel + '详情'" @click="reload" />
 				<template v-if="editable">
 					<el-button type="primary" :disabled="busy" @click="emit('edit', user)">编辑{{ accountLabel }}</el-button>
 					<el-button v-if="!customer" type="primary" :disabled="busy" @click="emit('edit-roles', user)">绑定角色</el-button>
 				</template>
 				<el-button v-if="canResetPassword" type="warning" :disabled="busy || isSelf" @click="emit('reset-password', user)">重置密码</el-button>
-			</view>
-			<view class="detail-summary">
-				<view class="detail-profile">
+			</div>
+			<div class="detail-summary">
+				<div class="detail-profile">
 					<el-avatar :size="132" :src="avatarUrl" :icon="UserFilled" />
-					<view class="detail-profile-info">
-						<view class="detail-user-heading">
+					<div class="detail-profile-info">
+						<div class="detail-user-heading">
 							<h2>{{ user.nickname || user.username || '未设置昵称' }}</h2>
 							<el-tag :type="status.type" size="small">{{ status.label }}</el-tag>
-						</view>
+						</div>
 						<dl class="detail-facts">
 							<div>
 								<dt>用户名：</dt>
@@ -94,8 +94,8 @@
 								</dd>
 							</div>
 						</dl>
-					</view>
-				</view>
+					</div>
+				</div>
 				<dl class="detail-facts detail-summary-section">
 					<div>
 						<dt>所属应用：</dt>
@@ -114,11 +114,11 @@
 						<dd>{{ date(user.invite_time) }}</dd>
 					</div>
 				</dl>
-			</view>
+			</div>
 			<el-tabs v-model="activeTab" class="detail-tabs">
 				<el-tab-pane label="基础信息" name="base">
-					<view class="detail-base-grid">
-						<view class="detail-card">
+					<div class="detail-base-grid">
+						<div class="detail-card">
 							<h3>基本信息</h3>
 							<dl class="detail-facts detail-facts-grid">
 								<div v-for="item in basicFacts" :key="item.label">
@@ -126,8 +126,8 @@
 									<dd>{{ item.value }}</dd>
 								</div>
 							</dl>
-						</view>
-						<view class="detail-card detail-bindings">
+						</div>
+						<div class="detail-card detail-bindings">
 							<h3>第三方账号</h3>
 							<dl class="detail-facts">
 								<div v-for="item in user.bindings" :key="item.name">
@@ -142,8 +142,8 @@
 									</dd>
 								</div>
 							</dl>
-						</view>
-						<view class="detail-card">
+						</div>
+						<div class="detail-card">
 							<h3>注册信息</h3>
 							<dl class="detail-facts detail-facts-grid">
 								<div v-for="item in registrationFacts" :key="item.label">
@@ -151,11 +151,11 @@
 									<dd>{{ item.value }}</dd>
 								</div>
 							</dl>
-						</view>
-					</view>
+						</div>
+					</div>
 				</el-tab-pane>
 				<el-tab-pane label="实名认证" name="realname">
-					<view class="detail-card">
+					<div class="detail-card">
 						<h3>实名认证</h3>
 						<dl class="detail-facts">
 							<div>
@@ -175,10 +175,10 @@
 								<dd>{{ date(user.realname.date) }}</dd>
 							</div>
 						</dl>
-					</view>
+					</div>
 				</el-tab-pane>
 				<el-tab-pane label="注册环境" name="environment">
-					<view class="detail-card">
+					<div class="detail-card">
 						<h3>注册与登录信息</h3>
 						<dl class="detail-facts detail-facts-grid">
 							<div v-for="item in registrationFacts" :key="item.label">
@@ -190,27 +190,27 @@
 								<dd>{{ appNames }}</dd>
 							</div>
 						</dl>
-					</view>
+					</div>
 				</el-tab-pane>
 				<el-tab-pane v-if="!customer" label="角色与权限" name="roles">
 					<el-empty v-if="!user.roleDetails?.length" :image-size="100" description="暂未分配角色" />
-					<view v-for="role in user.roleDetails" :key="role.role_id" class="detail-card detail-role-card">
+					<div v-for="role in user.roleDetails" :key="role.role_id" class="detail-card detail-role-card">
 						<h3>
 							{{ role.role_name }}
 							<el-tag size="small" type="info">{{ role.role_id }}</el-tag>
 						</h3>
 						<el-alert v-if="role.allPermissions" title="超级管理员拥有全部管理权限" type="success" :closable="false" />
 						<el-alert v-else-if="role.missing" title="此角色已不存在，请重新分配" type="warning" :closable="false" />
-						<view v-else class="detail-tags">
+						<div v-else class="detail-tags">
 							<el-tag v-for="permission in role.permission" :key="permission" type="info">{{ permission }}</el-tag>
 							<span v-if="!role.permission?.length" class="detail-muted">该角色未配置权限</span>
-						</view>
-					</view>
+						</div>
+					</div>
 				</el-tab-pane>
 				<el-tab-pane label="登录日志" name="logs">
 					<el-alert v-if="!result.logsAllowed" title="暂无查看登录日志的权限" type="info" :closable="false" />
 					<el-alert v-else-if="result.logsError" :title="result.logsError" type="error" :closable="false" />
-					<view v-else class="detail-card">
+					<div v-else class="detail-card">
 						<h3>最近 20 条登录日志</h3>
 						<el-table :data="result.logs" max-height="420">
 							<template #empty>
@@ -232,10 +232,10 @@
 							</el-table-column>
 							<el-table-column prop="appid" label="应用 ID" min-width="180" show-overflow-tooltip />
 						</el-table>
-					</view>
+					</div>
 				</el-tab-pane>
 			</el-tabs>
-		</view>
+		</div>
 	</el-dialog>
 </template>
 

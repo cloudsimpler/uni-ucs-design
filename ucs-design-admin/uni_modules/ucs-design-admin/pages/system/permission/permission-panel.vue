@@ -1,6 +1,6 @@
 <template>
-	<view class="permission-panel" :class="{ 'permission-panel--fill': fill }">
-		<view class="permission-toolbar">
+	<div class="permission-panel" :class="{ 'permission-panel--fill': fill }">
+		<div class="permission-toolbar">
 			<el-input v-model="keyword" placeholder="权限名称或标识" aria-label="搜索权限" clearable class="keyword" />
 			<el-tree-select
 				v-if="props.menuId === '*'"
@@ -30,7 +30,7 @@
 				初始化菜单权限
 			</el-button>
 			<el-button :icon="Refresh" :loading="loading" :disabled="saving" aria-label="刷新权限" @click="load" />
-		</view>
+		</div>
 		<el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
 		<el-table
 			v-loading="loading"
@@ -53,7 +53,7 @@
 			<el-table-column prop="comment" label="描述" min-width="160" align="center" show-overflow-tooltip />
 			<el-table-column label="操作" width="150" align="center" fixed="right">
 				<template #default="{ row }">
-					<view class="actions">
+					<div class="actions">
 						<el-button
 							v-if="auth.update"
 							type="primary"
@@ -75,12 +75,12 @@
 							删除
 						</el-button>
 						<span v-if="!auth.update && !auth.delete">只读</span>
-					</view>
+					</div>
 				</template>
 			</el-table-column>
 		</el-table>
-		<view class="panel-note">每条操作权限必须归属页面，目录只用于分组。调整权限归属不会改变角色授权。</view>
-	</view>
+		<div class="panel-note">每条操作权限必须归属页面，目录只用于分组。调整权限归属不会改变角色授权。</div>
+	</div>
 	<el-dialog
 		v-model="visible"
 		:title="form._id ? '编辑权限' : '新增权限'"
@@ -108,7 +108,7 @@
 				<el-input v-model="form.permission_name" maxlength="80" placeholder="例如：编辑用户" />
 			</el-form-item>
 			<el-form-item label="权限标识" prop="permission_id">
-				<view class="field">
+				<div class="field">
 					<el-input
 						v-model="form.permission_id"
 						:disabled="!!form._id"
@@ -116,7 +116,7 @@
 						placeholder="例如：UPDATE_UNI_ID_USERS"
 					/>
 					<text class="hint">需与按钮、接口校验使用的权限标识一致，创建后不可修改。</text>
-				</view>
+				</div>
 			</el-form-item>
 			<el-form-item label="所属页面" prop="menu_id">
 				<el-tree-select

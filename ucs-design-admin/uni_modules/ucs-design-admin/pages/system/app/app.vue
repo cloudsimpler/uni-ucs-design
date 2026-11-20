@@ -37,10 +37,10 @@
 			</el-table-column>
 			<el-table-column label="应用名称" min-width="190" align="center">
 				<template #default="{ row }">
-					<view class="app-name">
+					<div class="app-name">
 						<span>{{ row.name }}</span>
 						<el-tag v-if="row.appid === currentAppId" size="small">当前应用</el-tag>
-					</view>
+					</div>
 				</template>
 			</el-table-column>
 			<el-table-column prop="appid" label="AppID" min-width="210" align="center" show-overflow-tooltip />
@@ -52,7 +52,7 @@
 			</el-table-column>
 			<el-table-column label="操作" width="270" align="center" fixed="right">
 				<template #default="{ row }">
-					<view class="app-actions">
+					<div class="app-actions">
 						<el-button
 							v-if="auth.update"
 							type="primary"
@@ -84,11 +84,11 @@
 							删除
 						</el-button>
 						<span v-if="!auth.update && !auth.delete && !auth.versions" class="hint">只读</span>
-					</view>
+					</div>
 				</template>
 			</el-table-column>
 		</el-table>
-		<view class="app-pagination">
+		<div class="app-pagination">
 			<el-pagination
 				v-model:current-page="page"
 				v-model:page-size="pageSize"
@@ -97,7 +97,7 @@
 				layout="total, sizes, prev, pager, next"
 				@size-change="page = 1"
 			/>
-		</view>
+		</div>
 	</ucs-admin-layout>
 	<VersionPanel v-if="versionApp" :app="versionApp" @close="versionApp = null" />
 	<el-dialog
@@ -124,7 +124,7 @@
 			@submit.prevent="save"
 		>
 			<el-form-item label="应用图标">
-				<view class="icon-field">
+				<div class="icon-field">
 					<el-upload
 						ref="uploadRef"
 						class="app-uploader"
@@ -136,30 +136,30 @@
 						:on-success="clearUpload"
 						:on-error="uploadFailed"
 					>
-						<view class="icon-trigger" :aria-label="form.icon_url ? '更换图标' : '上传图标'" :aria-busy="uploading">
+						<div class="icon-trigger" :aria-label="form.icon_url ? '更换图标' : '上传图标'" :aria-busy="uploading">
 							<el-image v-if="form.icon_url" :src="iconPreview" fit="contain" class="icon-preview">
 								<template #error><span class="hint">预览不可用</span></template>
 							</el-image>
-							<view v-else class="icon-placeholder">
+							<div v-else class="icon-placeholder">
 								<el-icon :size="24"><Plus /></el-icon>
 								<text>上传图标</text>
-							</view>
-							<view v-if="uploading" class="icon-mask">
+							</div>
+							<div v-if="uploading" class="icon-mask">
 								<el-icon class="is-loading"><Loading /></el-icon>
 								<text>上传中</text>
-							</view>
-							<view v-else-if="form.icon_url" class="icon-replace">更换图标</view>
-						</view>
+							</div>
+							<div v-else-if="form.icon_url" class="icon-replace">更换图标</div>
+						</div>
 					</el-upload>
 					<text class="hint">支持 JPG、PNG、WebP，保存应用后生效。</text>
 					<text v-if="uploadError" class="upload-error">{{ uploadError }}</text>
-				</view>
+				</div>
 			</el-form-item>
 			<el-form-item label="应用名称" prop="name">
 				<el-input v-model.trim="form.name" maxlength="80" placeholder="请输入应用名称" />
 			</el-form-item>
 			<el-form-item label="AppID" prop="appid">
-				<view class="field">
+				<div class="field">
 					<el-input
 						v-model.trim="form.appid"
 						:disabled="!!form._id"
@@ -167,7 +167,7 @@
 						placeholder="填写项目实际使用的 AppID"
 					/>
 					<text class="hint">与项目 manifest.json 中的 AppID 一致，创建后不可修改。</text>
-				</view>
+				</div>
 			</el-form-item>
 			<el-form-item label="应用类型" prop="app_type">
 				<el-radio-group v-model="form.app_type" :disabled="!!form._id">

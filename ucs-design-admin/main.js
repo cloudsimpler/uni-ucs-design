@@ -1,4 +1,4 @@
-import App from './App.vue'
+import App from './App.uvue'
 
 import { provideGlobalConfig } from 'element-plus';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';

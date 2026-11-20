@@ -1,6 +1,6 @@
 <template>
-	<view ref="layoutRef" class="admin-layout" :class="{ 'admin-layout--table': mode === 'table' }">
-		<view v-if="accessLoading" class="layout-access-state"><el-skeleton :rows="5" animated /></view>
+	<div ref="layoutRef" class="admin-layout" :class="{ 'admin-layout--table': mode === 'table' }">
+		<div v-if="accessLoading" class="layout-access-state"><el-skeleton :rows="5" animated /></div>
 		<el-result v-else-if="!pageAllowed" :icon="accessError && accessErrorKind === 'request' ? 'error' : 'warning'" :title="accessErrorKind === 'session' ? '登录已失效' : accessErrorKind === 'permission' ? '无权访问' : accessError ? '菜单权限加载失败' : '暂无此页面的访问权限'" :sub-title="accessError || '请联系管理员分配菜单权限'">
 			<template #extra>
 				<el-button v-if="accessError" @click="checkPageAccess(true)">重试</el-button>
@@ -8,21 +8,21 @@
 			</template>
 		</el-result>
 		<template v-else>
-		<view class="layout-header" :class="{ 'layout-header--custom': $slots.header }">
-			<view v-if="$slots.header" class="layout-header-main">
+		<div class="layout-header" :class="{ 'layout-header--custom': $slots.header }">
+			<div v-if="$slots.header" class="layout-header-main">
 				<slot name="header" />
-			</view>
+			</div>
 			<text v-else class="layout-title">{{ title || store.breadcrumbMenu[store.breadcrumbMenu.length - 1] || '首页' }}</text>
-			<view v-if="$slots.button" class="layout-actions">
+			<div v-if="$slots.button" class="layout-actions">
 				<slot name="button" />
-			</view>
-		</view>
+			</div>
+		</div>
 
-		<view v-if="mode === 'table'" class="layout-panel layout-table">
-			<view class="layout-table-body">
+		<div v-if="mode === 'table'" class="layout-panel layout-table">
+			<div class="layout-table-body">
 				<slot />
-			</view>
-			<view class="layout-pagination">
+			</div>
+			<div class="layout-pagination">
 				<el-pagination
 					background
 					:page-sizes="pageSizes"
@@ -34,16 +34,16 @@
 					@update:current-page="onPageChange"
 					@update:page-size="onPageSizeChange"
 				/>
-			</view>
-		</view>
-		<view v-else-if="mode === 'card'" class="layout-panel layout-card" :class="{ 'layout-card--padded': padding }">
+			</div>
+		</div>
+		<div v-else-if="mode === 'card'" class="layout-panel layout-card" :class="{ 'layout-card--padded': padding }">
 			<slot />
-		</view>
-		<view v-else class="layout-content">
+		</div>
+		<div v-else class="layout-content">
 			<slot />
-		</view>
+		</div>
 		</template>
-	</view>
+	</div>
 </template>
 
 <script setup>

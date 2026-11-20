@@ -12,7 +12,7 @@
 		:close-on-press-escape="!busy"
 		@close="$emit('close')"
 	>
-		<view class="version-toolbar">
+		<div class="version-toolbar">
 			<el-tabs v-model="activePlatform" type="card" class="version-platforms" @tab-change="changePlatform">
 				<el-tab-pane
 					v-for="platform in platforms"
@@ -22,13 +22,13 @@
 					:disabled="busy || editor"
 				/>
 			</el-tabs>
-			<view class="version-toolbar-actions">
+			<div class="version-toolbar-actions">
 				<el-button v-if="auth.create" type="primary" :icon="Plus" :disabled="busy || loading" @click="edit()">
 					新增版本
 				</el-button>
 				<el-button :icon="Refresh" :loading="loading" :disabled="busy" aria-label="刷新版本" @click="load" />
-			</view>
-		</view>
+			</div>
+		</div>
 		<el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
 		<el-table
 			v-loading="loading"
@@ -73,7 +73,7 @@
 			</el-table-column>
 			<el-table-column label="操作" width="230" fixed="right" align="center">
 				<template #default="{ row }">
-					<view class="version-actions">
+					<div class="version-actions">
 						<el-button
 							v-if="row.stable_publish || auth.update"
 							size="small"
@@ -105,11 +105,11 @@
 							删除
 						</el-button>
 						<span v-if="!row.stable_publish && !auth.update && !auth.publish && !auth.delete" class="hint">只读</span>
-					</view>
+					</div>
 				</template>
 			</el-table-column>
 		</el-table>
-		<view class="version-pagination">
+		<div class="version-pagination">
 			<el-pagination
 				:current-page="page"
 				:page-size="pageSize"
@@ -120,7 +120,7 @@
 				@update:current-page="changePage"
 				layout="total, sizes, prev, pager, next"
 			/>
-		</view>
+		</div>
 	</el-dialog>
 	<el-dialog
 		v-if="detail"
@@ -183,13 +183,13 @@
 		<el-form ref="formRef" :model="form" :rules="rules" label-width="110px" :disabled="busy" @submit.prevent="save">
 			<el-form-item label="应用">{{ app.name }}</el-form-item>
 			<el-form-item label="包类型" prop="type">
-				<view class="version-field">
+				<div class="version-field">
 					<el-radio-group v-model="form.type" :disabled="busy || !!form._id" @change="changePackage">
 						<el-radio value="native_app">原生安装包</el-radio>
 						<el-radio value="wgt" :disabled="!supportsWgt">WGT 资源包</el-radio>
 					</el-radio-group>
 					<span v-if="!supportsWgt" class="hint">当前应用平台暂不提供 WGT 更新。</span>
-				</view>
+				</div>
 			</el-form-item>
 			<el-form-item label="版本号" prop="version">
 				<el-input v-model.trim="form.version" :disabled="busy || !!form._id" placeholder="例如 1.0.0" maxlength="40" />
@@ -204,7 +204,7 @@
 				/>
 			</el-form-item>
 			<el-form-item :label="urlLabel" prop="url">
-				<view class="version-field">
+				<div class="version-field">
 					<el-input
 						:model-value="form.url_source === 'upload' ? packageUrl || form.url : form.url"
 						@update:model-value="form.url = $event.trim()"
@@ -238,7 +238,7 @@
 								: '填写对应平台应用商店的 HTTPS 链接。'
 						}}
 					</span>
-				</view>
+				</div>
 			</el-form-item>
 			<el-form-item v-if="form.type === 'wgt'" label="最低原生版本" prop="min_uni_version">
 				<el-input v-model.trim="form.min_uni_version" placeholder="例如 1.0.0" maxlength="40" />
