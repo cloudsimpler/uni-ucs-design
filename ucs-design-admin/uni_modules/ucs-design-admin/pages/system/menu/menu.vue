@@ -238,6 +238,7 @@
 			</el-form-item>
 			<el-form-item label="上级菜单" prop="parent_id">
 				<el-tree-select
+					class="menu-parent-select"
 					v-model="form.parent_id"
 					:empty-values="[null, undefined]"
 					placeholder="顶级菜单"
@@ -936,7 +937,7 @@ onBeforeUnmount(() => {
 	flex-shrink: 0;
 }
 :global(.menu-editor .el-select),
-:global(.menu-editor .el-tree-select) {
+:global(.menu-editor .menu-parent-select) {
 	width: 100%;
 }
 </style>
