@@ -30,7 +30,7 @@
 			<el-tooltip :content="'当前版本 v' + manifestJson.versionName" :disabled="!store.isCollapsed" placement="right">
 				<div class="version-info">
 					<el-icon><Monitor /></el-icon>
-					<text v-if="!store.isCollapsed">系统版本 {{ manifestJson.versionName }}</text>
+					<text v-if="!store.isCollapsed" class="version-label">系统版本 {{ manifestJson.versionName }}</text>
 				</div>
 			</el-tooltip>
 		</div>
@@ -262,13 +262,13 @@ onBeforeUnmount(() => {
 	gap: 8px;
 	white-space: nowrap;
 	color: var(--el-text-color-placeholder);
-	font-size: 12px;
+	font-size: 14px;
+	line-height: 20px;
 }
-.version-info .el-icon {
-	font-size: 15px;
-}
-.version-info span {
-	margin-left: 6px;
+.version-info .el-icon,
+.version-info .version-label {
+	font-size: inherit;
+	line-height: inherit;
 }
 .sidebar-state {
 	padding: 24px 12px;

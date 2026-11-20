@@ -167,7 +167,7 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 		flex-direction: column;
 		min-width: 0;
 		min-height: calc(100vh - var(--top-window-height, 56px));
-		padding: 16px;
+		padding: 16px 0 0 16px;
 		box-sizing: border-box;
 		background: var(--el-fill-color-light);
 		color: var(--el-text-color-primary);
@@ -189,7 +189,6 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 		box-sizing: border-box;
 		background: var(--el-bg-color);
 		margin-top: 0;
-		border-radius: 6px 6px 0 0;
 		border-top: 1px solid var(--el-border-color-light);
 		border-left: 1px solid var(--el-border-color-light);
 		border-right: 1px solid var(--el-border-color-light);
@@ -202,7 +201,7 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 		overflow-wrap: anywhere;
 	}
 	.layout-header--custom { align-items: center; }
-	.layout-header-main { flex: 1 1 auto; min-width: 0; max-width: 100%; }
+	.layout-header-main { flex: 1 1 max-content; min-width: 0; max-width: 100%; }
 	.layout-header-main:empty { display: none; }
 	.layout-actions {
 		display: flex;
@@ -217,7 +216,6 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 		min-width: 0;
 		background: var(--el-bg-color);
 		border: 1px solid var(--el-border-color-light);
-		border-radius: 0 0 6px 6px;
 		box-sizing: border-box;
 	}
 	.layout-card, .layout-content { flex: 1; min-width: 0; }
@@ -259,12 +257,14 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 	.layout-pagination :deep(.el-pagination) { margin-left: auto; }
 	.layout-actions :deep(.el-button + .el-button) { margin-left: 0; }
 	@media (max-width: 1100px) {
-		.admin-layout { padding: 12px; }
+		.admin-layout { padding: 12px 0 0 12px; }
 		.layout-header { padding: 12px; gap: 12px; }
-		.layout-header-main { flex-basis: 100%; }
 	}
 	@media (max-width: 600px) {
-		.admin-layout { padding: 8px; }
+		.admin-layout { padding: 8px 0 0 8px; }
 		.layout-pagination { padding: 12px 8px; }
+	}
+	:global(uni-layout:not(.uni-app--showleftwindow):not(.uni-app--showtopwindow) .admin-layout) {
+		padding: 0;
 	}
 </style>
