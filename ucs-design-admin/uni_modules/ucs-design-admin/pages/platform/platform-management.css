@@ -1,0 +1,32 @@
+@import 'element-plus/theme-chalk/el-alert.css';
+@import 'element-plus/theme-chalk/el-button.css';
+@import 'element-plus/theme-chalk/el-checkbox.css';
+@import 'element-plus/theme-chalk/el-dialog.css';
+@import 'element-plus/theme-chalk/el-empty.css';
+@import 'element-plus/theme-chalk/el-form.css';
+@import 'element-plus/theme-chalk/el-form-item.css';
+@import 'element-plus/theme-chalk/el-input.css';
+@import 'element-plus/theme-chalk/el-loading.css';
+@import 'element-plus/theme-chalk/el-message.css';
+@import 'element-plus/theme-chalk/el-message-box.css';
+@import 'element-plus/theme-chalk/el-select.css';
+@import 'element-plus/theme-chalk/el-table.css';
+@import 'element-plus/theme-chalk/el-tag.css';
+@import '../../common/form-dialog.css';
+
+.platform-search { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.platform-search .el-form-item { margin: 0; }
+.platform-search .el-input { width: 240px; max-width: 100%; }
+.platform-table { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.platform-table > .el-alert { flex-shrink: 0; }
+.platform-table > .el-table { flex: 1; min-height: 0; }
+.platform-table .el-button + .el-button { margin-left: 6px; }
+.package-menu-tree { margin-top: 12px; --el-tree-node-content-height: 36px; }
+.package-menu-tree .el-tree-node__content > .el-checkbox {
+	margin-right: 8px;
+	flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+	.platform-search .el-input { width: 200px; }
+}

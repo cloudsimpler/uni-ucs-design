@@ -24,5 +24,18 @@
       ],
       "MgoIsUnique": false
     }
+  },
+  {
+    "IndexName": "tenant_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "tenant_id",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": false
+    }
   }
 ]

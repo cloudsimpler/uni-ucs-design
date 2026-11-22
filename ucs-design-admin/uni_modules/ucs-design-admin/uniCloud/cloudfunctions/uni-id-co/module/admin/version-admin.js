@@ -1,5 +1,6 @@
 const { accessContext, fail } = require('./admin-access');
 const { createHash } = require('crypto');
+const { withAppTransaction } = require('./app-admin');
 const table = 'ucsdb-app-versions';
 const suffix = 'OPENDB_APP_VERSIONS';
 const urlSource = (row) =>
@@ -20,8 +21,9 @@ const compareVersion = (a, b) => {
 };
 const { createFields, updateFields } = require('../../lib/utils/record-metadata');
 
-function createVersionAdmin({ db, uid, appId }) {
+function createVersionAdmin({ db, versionDb = db, uid, appId }) {
 	const ctx = accessContext({ db, uid, appId });
+	const versions = versionDb.collection(table);
 	const authorize = async (action) => {
 		const auth = await ctx.actor();
 		ctx.requirePermission(auth, `${action}_${suffix}`);
@@ -35,7 +37,7 @@ function createVersionAdmin({ db, uid, appId }) {
 	};
 	const find = async (appid, id) => {
 		if (typeof id !== 'string' || !id || id.length > 100) fail('版本 ID 不正确');
-		const { data } = await db.collection(table).where({ _id: id, appid }).get();
+		const { data } = await versions.where({ _id: id, appid }).get();
 		if (!data.length) fail('版本不存在或不属于此应用');
 		return data[0];
 	};
@@ -84,7 +86,7 @@ function createVersionAdmin({ db, uid, appId }) {
 		return value;
 	};
 	const checkDuplicate = async (appid, value, id) => {
-		const rows = await ctx.all(table, { appid, type: value.type });
+		const rows = await ctx.all(table, { appid, type: value.type }, versions);
 		if (
 			rows.some(
 				(row) =>
@@ -111,10 +113,9 @@ function createVersionAdmin({ db, uid, appId }) {
 				{ platform },
 				db.command.and([{ platform: db.command.in([null, []]) }, { uni_platform: platform.toLowerCase() }])
 			])]);
-			const collection = db.collection(table);
-			const { total: count } = await collection.where(where).count();
+			const { total: count } = await versions.where(where).count();
 			const page = Math.min(current, Math.max(1, Math.ceil(count / size)));
-			const { data: rows } = await collection.where(where).orderBy('create_date', 'desc').orderBy('_id', 'asc')
+			const { data: rows } = await versions.where(where).orderBy('create_date', 'desc').orderBy('_id', 'asc')
 				.skip((page - 1) * size).limit(size).get();
 			return {
 				errCode: 0,
@@ -143,8 +144,7 @@ function createVersionAdmin({ db, uid, appId }) {
 				fail('版本号、平台和包类型创建后不可修改，请新增版本');
 			await checkDuplicate(params.appid, value, old?._id);
 			if (old) {
-				const result = await db
-					.collection(table)
+				const result = await versions
 					.where({ _id: old._id, appid: params.appid, stable_publish: db.command.neq(true) })
 					.update({ ...value, name: application.name, ...updateFields(auth) });
 				if (!result.updated) {
@@ -158,7 +158,7 @@ function createVersionAdmin({ db, uid, appId }) {
 				.digest('hex')
 				.slice(0, 24);
 			try {
-				await db.collection(table).add({
+				await withAppTransaction(versionDb, application, transaction => transaction.collection(table).add({
 					...value,
 					_id: id,
 					appid: params.appid,
@@ -166,7 +166,7 @@ function createVersionAdmin({ db, uid, appId }) {
 					stable_publish: false,
 					create_env: 'upgrade-center',
 					...createFields(auth)
-				});
+				}));
 			} catch (e) {
 				if (/duplicate|E11000/i.test(e.message || e.errMsg || '')) fail('该平台和包类型下版本号已存在');
 				throw e;
@@ -198,11 +198,11 @@ function createVersionAdmin({ db, uid, appId }) {
 						.filter((key) => old[key] !== undefined)
 						.map((key) => [key, old[key]])
 				);
-				const result = await db.collection(table).where(reviewed).update({ stable_publish: true, ...updateFields(auth) });
+				const result = await versions.where(reviewed).update({ stable_publish: true, ...updateFields(auth) });
 				if (!result.updated && !(await find(params.appid, old._id)).stable_publish)
 					fail('版本已变更，请刷新后重新发布');
 			} else {
-				await db.collection(table).where({ _id: old._id, appid: params.appid }).update({ stable_publish: false, ...updateFields(auth) });
+				await versions.where({ _id: old._id, appid: params.appid }).update({ stable_publish: false, ...updateFields(auth) });
 			}
 			return { errCode: 0 };
 		},
@@ -211,8 +211,7 @@ function createVersionAdmin({ db, uid, appId }) {
 			await app(params.appid);
 			const old = await find(params.appid, params._id);
 			if (old.stable_publish) fail('请先下线版本再删除');
-			const result = await db
-				.collection(table)
+			const result = await versions
 				.where({ _id: old._id, appid: params.appid, stable_publish: db.command.neq(true) })
 				.remove();
 			if (!result.deleted) fail('版本状态已变化，请刷新后重试');

@@ -52,6 +52,8 @@
 		},
 		{ "path": "uni_modules/ucs-design-admin/pages/system/department/department", "style": { "navigationBarTitleText": "部门管理" } },
 		{ "path": "uni_modules/ucs-design-admin/pages/system/dictionary/dictionary", "style": { "navigationBarTitleText": "数据字典" } },
+		{ "path": "uni_modules/ucs-design-admin/pages/platform/tenant/tenant", "style": { "navigationBarTitleText": "租户管理" } },
+		{ "path": "uni_modules/ucs-design-admin/pages/platform/package/package", "style": { "navigationBarTitleText": "产品包管理" } },
 		{
 			"path": "uni_modules/ucs-design-admin/pages/login/login",
 			"style": {
@@ -83,7 +85,7 @@
 	},
 	"uniIdRouter": {
 		"loginPage": "uni_modules/ucs-design-admin/pages/login/login",
-		"needLogin": ["pages/needLogin/.*", "uni_modules/ucs-design-admin/pages/system/developer/.*", "uni_modules/ucs-design-admin/pages/system/customer/.*"],
+		"needLogin": ["pages/needLogin/.*", "uni_modules/ucs-design-admin/pages/system/developer/.*", "uni_modules/ucs-design-admin/pages/system/customer/.*", "uni_modules/ucs-design-admin/pages/platform/.*"],
 		"resToLogin": true
 	}
 }

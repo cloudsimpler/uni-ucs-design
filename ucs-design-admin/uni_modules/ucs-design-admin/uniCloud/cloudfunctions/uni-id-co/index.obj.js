@@ -15,6 +15,31 @@ const {
 } = require('./common/error')
 const middleware = require('./middleware/index')
 const universal = require('./common/universal')
+const { resolveEntryTenant, scopedDatabase, fail } = require('./module/admin/tenant-scope')
+const { installAdminTokenIssuer, authenticateAdmin } = require('./module/admin/admin-token')
+const { PLATFORM_TENANT_ID } = require('./lib/utils/platform-tenant')
+const adminMethods = require('./module/admin/index')
+const scopedMethods = new Set(Object.keys(adminMethods))
+const tenantMethods = require('./module/admin/tenant-methods')
+const managementLogin = new Set(['adminLogin', 'adminLoginBySms', 'adminLoginByEmailCode', 'adminCompleteAccountLogin', 'registerAdmin'])
+const directLoginAppMethods = new Set([
+  ...Object.keys(require('./module/admin/app-methods')),
+  ...Object.keys(require('./module/admin/version-methods'))
+])
+const globalMenuMethods = new Set(['listMenus', 'createMenu', 'updateMenu', 'deleteMenu',
+  'listPermissions', 'savePermission', 'deletePermission', 'initializeMenuPermissions'])
+const platformOnlyMethods = new Set([
+  'installAssetManagement', 'installDepartmentManagement', 'installDictionaryManagement',
+  'createMenu', 'updateMenu', 'deleteMenu', 'savePermission', 'deletePermission', 'initializeMenuPermissions',
+  'authorizeAppLogin', 'removeAuthorizedApp', 'setAuthorizedApp'
+])
+const appAuthorizationMethods = new Set(['authorizeAppLogin', 'removeAuthorizedApp', 'setAuthorizedApp'])
+const tenantEntries = new Set([
+  'adminLogin', 'adminLoginBySms', 'adminLoginByEmailCode', 'adminCompleteAccountLogin',
+  'adminBeginAccountRecovery', 'adminCompleteAccountRecovery', 'login', 'loginBySms',
+  'loginByEmailCode', 'completeAccountLogin', 'beginAccountRecovery', 'completeAccountRecovery',
+  'resetPwdBySms', 'resetPwdByEmail', 'registerUser', 'registerUserByEmail'
+])
 
 const {
   registerAdmin,
@@ -106,9 +131,8 @@ const {
 } = require('./module/facial-recognition-verify')
 
 module.exports = {
+  ...tenantMethods,
   getAccountCapabilities: require('./module/account/get-account-capabilities'),
-  completeCustomerEnrollment: require('./lib/utils/account-selection').completeCustomerEnrollment,
-  ...require('./module/admin/identity-methods'),
   getAdminRegistrationStatus: require('./module/register/get-admin-registration-status'),
   getCurrentUserProfile: require('./module/account/get-current-user-profile'),
   ...require('./module/admin/customer-methods'),
@@ -182,6 +206,9 @@ module.exports = {
     })
     this.config = this.configUtils.getPlatformConfig()
     this.hooks = this.configUtils.getHooks()
+    const method = this.getMethodName()
+    this.issueAdminScope = managementLogin.has(method)
+    installAdminTokenIssuer(this)
 
     this.validator = new Validator({
       passwordStrength: this.config.passwordStrength
@@ -277,8 +304,24 @@ module.exports = {
     // 请求鉴权验证
     await this.middleware.verifyRequestSign()
 
+    if (scopedMethods.has(method) || platformOnlyMethods.has(method) || Object.hasOwn(tenantMethods, method)) {
+      await authenticateAdmin(this, this.getParams()[1])
+    }
     // 通用权限校验模块
     await this.middleware.accessControl()
+    const params = this.getParams()[0]
+    if (tenantEntries.has(method) || (['sendSmsCode', 'sendEmailCode'].includes(method) &&
+      /^(login-by|reset-pwd-by|register-by)-/.test(params?.scene || ''))) {
+      this.entryTenantId = await resolveEntryTenant(uniCloud.database(), params?.tenant_no)
+    }
+    if (scopedMethods.has(method) || platformOnlyMethods.has(method)) {
+      const db = uniCloud.database()
+      const scope = globalMenuMethods.has(method) ? this.loginAdminScope : this.adminScope
+      if (scope.sessionId && directLoginAppMethods.has(method)) fail('请退出代管后操作应用管理')
+      if (scope.tenantId !== PLATFORM_TENANT_ID && platformOnlyMethods.has(method)) fail('此功能由平台维护')
+      if (appAuthorizationMethods.has(method) && !scope.isAdmin) fail('没有应用登录授权管理权限')
+      this.adminDb = scopedDatabase(db, scope)
+    }
   },
   _after (error, result) {
     if (error) {

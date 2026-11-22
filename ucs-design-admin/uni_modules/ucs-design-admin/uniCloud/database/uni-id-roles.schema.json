@@ -6,7 +6,7 @@
 		"role_name"
 	],
 	"permission": {
-		"read": "'READ_UNI_ID_ROLES' in auth.permission",
+		"read": false,
 		"create": false,
 		"update": false,
 		"delete": false

@@ -20,6 +20,9 @@
 				<el-input type="password" show-password v-model="entryForm.password" :prefix-icon="Lock" size="large" placeholder="请输入密码"
 					name="password" autocomplete="current-password" :disabled="isSubmitting" />
 			</el-form-item>
+			<el-form-item prop="tenant_no" label="租户号" :rules="[{ required: true, pattern: /^\d{5}$/, message: '请输入五位数字租户号' }]">
+				<el-input v-model.trim="entryForm.tenant_no" name="tenant_no" size="large" maxlength="5" inputmode="numeric" :disabled="isSubmitting" />
+			</el-form-item>
 			<div class="form-options">
 				<el-checkbox v-model="rememberAccount" :disabled="isSubmitting" @change="onRememberChange">记住账号</el-checkbox>
 				<el-button link type="primary" :disabled="isSubmitting" @click="contactRef.open('reset')">忘记密码？</el-button>
@@ -29,7 +32,10 @@
 			</el-button>
 		</el-form>
 		<div v-for="channel in ['mobile', 'email']" :key="channel" :style="{ display: loginMode === channel ? '' : 'none' }">
-            <account-contact inline :initial-channel="channel" :active="loginMode === channel"
+            <el-form label-position="top">
+                <el-form-item label="租户号"><el-input v-model.trim="entryForm.tenant_no" size="large" maxlength="5" inputmode="numeric" :disabled="loginBusy" /></el-form-item>
+            </el-form>
+            <account-contact inline :tenant-no="entryForm.tenant_no" :initial-channel="channel" :active="loginMode === channel"
                 @login="finishLogin" @busy-change="contactBusy[channel] = $event" @loading-change="contactLoading[channel] = $event" />
         </div>
 		<div class="account-support">
@@ -41,7 +47,7 @@
 	<ucs-admin-captcha scene="login-by-pwd" ref="captchaRef" @change="onCaptchaChange" />
 	<!-- 注册管理员 -->
 	<registered-admin-vue ref="registeredRef" @change="onRegisteredAdminChange" />
-	<account-contact ref="contactRef" @login="finishLogin" @loading-change="contactLoading.dialog = $event" />
+	<account-contact ref="contactRef" :tenant-no="entryForm.tenant_no" @login="finishLogin" @loading-change="contactLoading.dialog = $event" />
 </template>
 
 <script setup>
@@ -64,6 +70,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 	import registeredAdminVue from "./registeredAdmin.vue"
 	import AccountContact from './accountContact.vue';
 	import store from "../../common/store.js";
+	import { setDelegation } from "../../common/tenant-session.js";
 	import {
 		onLoad
 	} from "@dcloudio/uni-app";
@@ -81,6 +88,7 @@ import 'element-plus/es/components/message/style/css.mjs';
     const formRef = ref(null);
 	const contactRef = ref(null);
 	const finishLogin = () => {
+        setDelegation(null);
         navigating.value = true;
 		store.isLogin = true;
 		uni.redirectTo({
@@ -102,6 +110,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 	// 表单数据
 	const entryForm = ref({
 		username: savedAccount,
+		tenant_no: '00000',
 		password: "",
 		captcha: ""
 	});
@@ -165,6 +174,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 		isSubmitting.value = true;
 		uniIdCo.adminLogin({
 			username: form.username,
+			tenant_no: form.tenant_no,
 			password: form.password,
 			captcha: form.captcha
 		}).then(res => {

@@ -18,7 +18,7 @@ module.exports = async function (params = {}) {
     appId
   } = params
   await require('../admin/root-admin').updateRootAware({
-    db: uniCloud.database(), uid,
+    db: this.adminDb, uid,
     data: user => ({ dcloud_appid: (user.dcloud_appid || ['*']).filter(id => id !== appId) })
   })
   return {

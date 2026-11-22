@@ -43,7 +43,7 @@
 					<el-avatar :size="132" :src="avatarUrl" :icon="UserFilled" />
 					<div class="detail-profile-info">
 						<div class="detail-user-heading">
-							<h2>{{ user.nickname || user.username || '未设置昵称' }}</h2>
+						<h2>{{ user.nickname || user.username || '未设置' + nameLabel }}</h2>
 							<el-tag :type="status.type" size="small">{{ status.label }}</el-tag>
 						</div>
 						<dl class="detail-facts">
@@ -68,7 +68,7 @@
 								</dd>
 							</div>
 							<div>
-								<dt>昵称：</dt>
+								<dt>{{ nameLabel }}：</dt>
 								<dd>{{ user.nickname || '—' }}</dd>
 							</div>
 							<div>
@@ -240,6 +240,7 @@
 </template>
 
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import { ElAlert, ElAvatar, ElButton, ElDialog, ElEmpty, ElIcon, ElResult, ElSkeleton, ElTabPane, ElTable, ElTableColumn, ElTabs, ElTag, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
 import 'element-plus/es/components/avatar/style/css.mjs';
@@ -280,6 +281,7 @@ const props = defineProps({
 	busy: Boolean
 });
 const emit = defineEmits(['update:modelValue', 'edit', 'edit-roles', 'reset-password']);
+const nameLabel = computed(() => !props.customer && props.detailMethod === 'getUserDetail' ? '姓名' : '昵称');
 const visible = computed({ get: () => props.modelValue, set: (value) => emit('update:modelValue', value) });
 const result = ref({}),
 	user = computed(() => result.value.data);
@@ -287,7 +289,7 @@ const loading = ref(false),
 	error = ref(''),
 	fullscreen = ref(false),
 	activeTab = ref('base');
-const api = uniCloud.importObject('uni-id-co', { customUI: true });
+const api = importTenantAdmin();
 let requestId = 0;
 const reload = async () => {
 	const id = ++requestId;

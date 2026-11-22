@@ -34,7 +34,7 @@ const { updateFields } = require('../../lib/utils/record-metadata')
 module.exports = async function (params = {}) {
   params = normalizeIdentifiers(params)
   const randomReset = ['resetDeveloperPassword', 'resetUserPassword'].includes(this.getMethodName())
-  const admin = createUserAdmin({ db: uniCloud.database(), uid: this.authInfo?.uid, appId: this.getUniversalClientInfo().appId, accountType: managementType(this) })
+  const admin = createUserAdmin({ db: this.adminDb, uid: this.authInfo?.uid, appId: this.getUniversalClientInfo().appId, accountType: managementType(this) })
   let authorized
   if (randomReset) {
     authorized = await admin.authorize('resetPassword')
@@ -131,14 +131,14 @@ module.exports = async function (params = {}) {
     return res
   }, {})
 
-  // 按修改后的应用范围检查账号和联系方式，保持与 uni-id 的多应用匹配规则一致。
-  if (username !== undefined || mobile !== undefined || email !== undefined || authorizedApp !== undefined) {
-    const identifiers = { username: username ?? old.username, mobile: mobile ?? old.mobile, email: email ?? old.email }
+  if (username !== undefined || email !== undefined || authorizedApp !== undefined) {
+    const identifiers = { username: username ?? old.username, email: email ?? old.email }
     if (Object.values(identifiers).some(Boolean)) {
       const { userMatched } = await findUser({
         userQuery: identifiers,
         authorizedApp: authorizedApp ?? old.dcloud_appid ?? [],
-        uniqueAccountType: accountTypeOf(old)
+        uniqueAccountType: accountTypeOf(old),
+        tenantId: this.adminDb.tenantActor.tenantId
       })
       if (userMatched.some(user => user._id !== uid)) {
         throw { errCode: ERROR.ACCOUNT_EXISTS }
@@ -161,11 +161,12 @@ module.exports = async function (params = {}) {
     realData.password_secret_version = version
   }
 
-  if (mobile !== undefined && mobile !== old.mobile) realData.mobile_confirmed = mobile ? 1 : 0
+  if (mobile !== undefined && mobile !== (old.mobile || '')) realData.mobile_confirmed = 0
+  else delete realData.mobile
   if (email !== undefined && email !== old.email) realData.email_confirmed = email ? 1 : 0
   const sessionInvalidated = admin.sessionChanged(params, old)
   if (sessionInvalidated) realData.token = []
-  await require('./root-admin').updateRootAware({ db: uniCloud.database(), uid, data: { ...realData, ...updateFields(authorized) }, current: old })
+  await require('./root-admin').updateRootAware({ db: this.adminDb, uid, data: { ...realData, ...updateFields(authorized) }, current: old })
 
   return {
     errCode: 0,

@@ -39,6 +39,7 @@
  <ucs-admin-userPicker v-model="form.manager_uid" v-model:visible="managerVisible" title="选择部门负责人" :selected-users="selectedManagerUsers" :fetch-users="fetchManagers" @confirm="onManagerConfirm" />
 </template>
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import UcsAdminUserPicker from '../../../components/ucs-admin-userPicker/ucs-admin-userPicker.vue';
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
@@ -62,7 +63,7 @@ import 'element-plus/es/components/table/style/css.mjs';
 import 'element-plus/es/components/tag/style/css.mjs';
 import 'element-plus/es/components/tree-select/style/css.mjs';
 import 'element-plus/es/components/loading/style/css.mjs';
-const api = uniCloud.importObject('uni-id-co', { customUI: true });
+const api = importTenantAdmin();
 const rows = ref([]), loading = ref(true), error = ref(''), keyword = ref(''), status = ref(''), applied = reactive({ keyword: '', status: '' });
 const auth = reactive({ create: false, update: false, delete: false }), visible = ref(false), saving = ref(false), deleting = ref(''), form = reactive({});
 const codeLocked = ref(false), managerName = ref(''), managerVisible = ref(false);

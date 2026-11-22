@@ -17,7 +17,9 @@ const {
 const {
   merge
 } = require('../npm/index')
-const { accountTypeOf } = require('../../module/admin/account-types')
+const { accountTypeOf, hasManagementIdentity } = require('../../module/admin/account-types')
+const { ownerOf } = require('../../module/admin/tenant-scope')
+const { writeSystemMobile } = require('./system-mobile')
 const { normalizeIdentifiers } = require('./account-policy')
 
 /**
@@ -38,7 +40,8 @@ async function preBind ({
     userMatched
   } = await findUser({
     userQuery: bindAccount,
-    uniqueAccountType: accountTypeOf(owner)
+    uniqueAccountType: accountTypeOf(owner),
+    tenantId: owner.tenant_id || '00000'
   })
   if (userMatched.some(user => user._id !== uid)) {
     await this.middleware.uniIdLog({
@@ -52,6 +55,7 @@ async function preBind ({
       errCode: ERROR.BIND_CONFLICT
     }
   }
+  return owner
 }
 
 async function postBind ({
@@ -60,9 +64,20 @@ async function postBind ({
   bindAccount,
   logType
 } = {}) {
-  await preBind.call(this, { uid, bindAccount, logType })
+  const owner = await preBind.call(this, { uid, bindAccount, logType })
   const value = normalizeIdentifiers(merge(bindAccount, extraData))
-  await userCollection.doc(uid).update(value)
+  if (value.mobile && hasManagementIdentity(owner)) {
+    const tenantId = ownerOf(owner)
+    await writeSystemMobile({ db: uniCloud.database(), tenantId, mobile: value.mobile, uid }, async users => {
+      const ref = users.doc(uid)
+      const { data } = await ref.get()
+      const latest = Array.isArray(data) ? data[0] : data
+      if (!latest || ownerOf(latest) !== tenantId) throw { errCode: ERROR.ACCOUNT_NOT_EXISTS }
+      await ref.update(value)
+    })
+  } else {
+    await userCollection.doc(uid).update(value)
+  }
   await this.middleware.uniIdLog({
     data: {
       user_id: uid

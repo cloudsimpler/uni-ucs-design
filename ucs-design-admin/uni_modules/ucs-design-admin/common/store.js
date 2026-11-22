@@ -8,6 +8,7 @@ let store = reactive({
 	// 收缩左侧菜单
 	isCollapsed: false,
 	menuVersion: 0,
+	delegation: null,
 	userInfoVersion: 0,
 	// 面包屑菜单
 	breadcrumbMenu: []

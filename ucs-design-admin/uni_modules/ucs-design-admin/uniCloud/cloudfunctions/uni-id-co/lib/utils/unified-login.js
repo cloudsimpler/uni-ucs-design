@@ -24,6 +24,7 @@ async function realPreUnifiedLogin (params = {}) {
     userMatched
   } = await findUser({
     userQuery: user,
+    tenantId: this.entryTenantId,
     authorizedApp: appId,
     accountTypes: allowedAccountTypes(this)
   })

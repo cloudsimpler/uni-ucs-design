@@ -1,18 +1,5 @@
 [
   {
-    "IndexName": "role_id_",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "role_id",
-          "Direction": "1",
-          "Type": "varchar"
-        }
-      ],
-      "MgoIsUnique": true
-    }
-  },
-  {
     "IndexName": "menu_ids",
     "MgoKeySchema": {
       "MgoIndexKeys": [
@@ -36,6 +23,24 @@
         }
       ],
       "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "tenant_id_role_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "tenant_id",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "role_id",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": true
     }
   }
 ]

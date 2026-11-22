@@ -89,12 +89,12 @@ function createAccessAdmin(context) {
 				const available = new Set((await all('uni-id-permissions')).map((row) => row.permission_id));
 				if (value.permission.some((id) => !available.has(id))) fail('所选权限已被删除，请刷新后重新选择');
 			}
-			grantable(auth, [...(old?.permission || []), ...value.permission]);
+			grantable(auth, [...(auth.packageAdministrator ? [] : (old?.permission || [])), ...value.permission]);
 			const menuIds = params.menu_ids !== undefined ? params.menu_ids : old?.menu_ids ?? [];
 			if (!Array.isArray(menuIds) || menuIds.length > 5000 || menuIds.some(id => typeof id !== 'string' || !id || id.length > 100))
 				fail('角色菜单格式不正确');
 			value.menu_ids = [...new Set(menuIds)];
-			grantableMenus(auth, [...(old?.menu_ids || []), ...value.menu_ids]);
+			grantableMenus(auth, [...(auth.packageAdministrator ? [] : (old?.menu_ids || [])), ...value.menu_ids]);
 			if (params.menu_ids !== undefined) {
 				const [menus, permissions] = await Promise.all([all('ucsdb-admin-menus'), all('uni-id-permissions')]);
 				const pages = new Set(menus.filter(menu => menu.menu_type === MENU_TYPE.PAGE).map(menu => menu.menu_id));
@@ -136,8 +136,10 @@ function createAccessAdmin(context) {
 		const old = find(await all(tables[kind]), params._id);
 		if (kind === 'role') {
 			if (old.role_id === 'admin') fail('超级管理员不可删除');
-			grantable(auth, old.permission || []);
-			grantableMenus(auth, old.menu_ids || []);
+			if (!auth.packageAdministrator) {
+				grantable(auth, old.permission || []);
+				grantableMenus(auth, old.menu_ids || []);
+			}
 			if ((await all('uni-id-users', { role: old.role_id })).length) fail('角色已分配给用户，请先解除绑定');
 		} else {
 			const roles = await all('uni-id-roles', { permission: old.permission_id });
@@ -151,8 +153,20 @@ function createAccessAdmin(context) {
 			const auth = await actor();
 			requireRead(auth, suffixes.role);
 			const [menus, permissions] = await Promise.all([all('ucsdb-admin-menus'), all('uni-id-permissions')]);
+			const enterprise = auth.tenant?.type === 'enterprise';
+			const visible = new Set(auth.menuIds);
+			const byId = new Map(menus.map(row => [row.menu_id, row]));
+			if (enterprise) for (const id of auth.menuIds) {
+				let parent = byId.get(id)?.parent_id;
+				while (parent && !visible.has(parent)) {
+					visible.add(parent);
+					parent = byId.get(parent)?.parent_id;
+				}
+			}
 			return {
-				errCode: 0, menus, permissions,
+				errCode: 0,
+				menus: enterprise ? menus.filter(row => visible.has(row.menu_id)) : menus,
+				permissions: enterprise ? permissions.filter(row => auth.permissions.includes(row.permission_id)) : permissions,
 				auth: { ...capabilities(auth, suffixes.role), isAdmin: auth.isAdmin, permission: auth.permissions, menu_ids: auth.menuIds }
 			};
 		},

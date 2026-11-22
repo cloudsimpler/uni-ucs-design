@@ -14,7 +14,7 @@
 					<el-input
 						v-model="filters.keyword"
                         aria-label="关键词" :prefix-icon="Search"
-						:placeholder="developer ? '请输入账号' : isEmployee ? '账号、昵称或手机号' : '请输入UID或手机号'"
+						:placeholder="developer ? '请输入账号' : isEmployee ? '账号、姓名或手机号' : '请输入UID或手机号'"
 						maxlength="80"
 						clearable
 						@clear="search"
@@ -99,8 +99,9 @@
 					<el-table-column v-if="!customer" label="角色" min-width="120">
 						<template #default="{ row }">
 							<div class="user-tags">
+								<el-tag v-if="row.is_tenant_admin" size="small" type="success">企业管理员</el-tag>
 								<el-tag v-for="id in row.role" :key="id" size="small">{{ roleName(id) }}</el-tag>
-								<text v-if="!row.role?.length" class="user-secondary">未分配</text>
+								<text v-if="!row.is_tenant_admin && !row.role?.length" class="user-secondary">未分配</text>
 							</div>
 						</template>
 					</el-table-column>
@@ -196,76 +197,24 @@
 		width="680px"
 		align-center
 		class="user-editor admin-form-dialog"
-		:class="{ 'employee-create-dialog': isEmployee && !editingId }"
 		modal-class="user-editor-overlay"
 		append-to-body
 		@opened="onEditorOpened"
 		:close-on-click-modal="false"
-		:close-on-press-escape="!saving && !avatarUploading && !enrollmentBusy"
-		:show-close="!saving && !avatarUploading && !enrollmentBusy"
+		:close-on-press-escape="!saving && !avatarUploading"
+		:show-close="!saving && !avatarUploading"
 		destroy-on-close
 	>
-		<template v-if="isEmployee && !editingId" #header>
-            <h2 class="employee-create-title">新增系统用户</h2>
-            <div class="employee-create-steps" aria-label="新增系统用户步骤">
-                <span :class="{ active: !enrollmentChecked }" :aria-current="!enrollmentChecked ? 'step' : undefined">1. 查找账号</span>
-                <span class="employee-step-divider">/</span>
-                <span :class="{ active: enrollmentChecked }" :aria-current="enrollmentChecked ? 'step' : undefined">2. 完善系统用户信息</span>
-            </div>
-        </template>
 		<el-alert v-if="formError" :title="formError" type="error" show-icon :closable="false" class="user-form-alert" />
 		<el-form
 			ref="formRef"
 			:model="form"
 			label-position="right"
 			label-width="108px"
-			:disabled="saving || readOnly || enrollmentBusy"
+			:disabled="saving || readOnly"
 			class="user-editor-form"
-			@submit.prevent="isEmployee && !editingId && !enrollmentChecked ? findEnrollmentAccount() : saveUser()"
+			@submit.prevent="saveUser"
 		>
-            <div v-if="!editingId && !developer" class="user-verification">
-                <div v-if="isEmployee && !enrollmentChecked" class="employee-lookup-intro">
-                    <h3>先查找系统用户的账号</h3>
-                    <p>查找到已有账号后可开通系统用户身份，没有账号则继续创建。</p>
-                </div>
-                <el-form-item v-if="!isEmployee || !enrollmentChecked" :label="isEmployee ? '手机号' : '核验手机号'" :required="!developer">
-                    <el-input ref="enrollmentMobileRef" v-model.trim="enrollmentMobile" :placeholder="isEmployee ? '请输入系统用户手机号' : '输入手机号后点击核验'" maxlength="11" @input="invalidateEnrollment" @keydown.enter.prevent @keyup.enter.stop="findEnrollmentAccount">
-                        <template v-if="!isEmployee" #append><el-button :loading="enrollmentBusy" :disabled="saving || avatarUploading" @click="findEnrollmentAccount">核验</el-button></template>
-                    </el-input>
-                    <span class="user-field-help">查询该手机号是否已有账号，不代表已验证手机号归属。</span>
-                </el-form-item>
-                <el-button v-if="developer && !enrollmentMobile && !enrollmentChecked" text type="primary" @click="skipMobileCheck">不填手机号，直接新建</el-button>
-                <el-alert v-if="enrollmentError" :title="enrollmentError" type="error" :closable="false" show-icon />
-                <div v-if="isEmployee && enrollmentChecked" class="employee-match-summary">
-                    <div><strong>{{ enrollmentMobile }}</strong><el-tag size="small" :type="enrollmentAccount ? 'primary' : 'info'">{{ enrollmentAccount ? '已有账号' : '新账号' }}</el-tag></div>
-                    <el-button text type="primary" :disabled="saving || avatarUploading || enrollmentBusy" @click="invalidateEnrollment">更换手机号</el-button>
-                </div>
-                <el-alert v-else-if="!isEmployee && enrollmentChecked && !enrollmentAccount && enrollmentMobile" title="该手机号尚未注册，请填写以下信息创建账号。" type="success" :closable="false" show-icon />
-                <div v-if="enrollmentAccount" class="enrollment-account-card">
-                    <el-avatar :size="56" :src="enrollmentAccount.avatarPreview">{{ (enrollmentAccount.nickname || enrollmentAccount.username || '用').slice(0, 1) }}</el-avatar>
-                    <div class="enrollment-account-info">
-                        <strong>{{ enrollmentAccount.nickname || enrollmentAccount.username || '未设置昵称' }}</strong>
-                        <span>手机号：{{ enrollmentAccount.mobile }}</span>
-                        <span>注册时间：{{ formatDate(enrollmentAccount.register_date) }}</span>
-                        <div class="enrollment-identities"><span>已有身份：</span><el-tag v-for="type in enrollmentAccount.account_type" :key="type" size="small">{{ ['系统用户', '社区用户'][type] }}</el-tag></div>
-                    </div>
-                </div>
-                <el-alert v-if="enrollmentAccount && !enrollmentCanEnroll" :title="enrollmentAccount.status !== 0 ? '该账号已停用或注销，不能添加身份。' : '该账号已具有' + accountLabel + '身份，无需重复添加。'" type="warning" :closable="false" show-icon />
-                <el-button v-if="enrollmentAlready && enrollmentAccount?.status === 0 && (auth?.isAdmin || auth?.permissions?.includes(developer ? 'READ_UNI_ID_DEVELOPERS' : 'READ_UNI_ID_USERS'))" text type="primary" @click="viewMatchedAccount">查看{{ accountLabel }}</el-button>
-            </div>
-            <template v-if="!editingId && enrollmentAccount && enrollmentCanEnroll">
-                <el-form-item label="手机号"><el-input v-model="form.mobile" disabled /></el-form-item>
-                <el-form-item label="昵称" required><el-input v-model.trim="enrollmentProfile.nickname" placeholder="请输入昵称" :disabled="!!enrollmentAccount.nickname" maxlength="100" /></el-form-item>
-                <template v-if="enrollmentAccount.has_password !== true">
-                    <el-form-item label="初始密码" prop="password" :rules="passwordRules"><el-input v-model="form.password" placeholder="请输入初始密码" type="password" show-password maxlength="64" autocomplete="new-password" /></el-form-item>
-                    <el-form-item label="确认密码" prop="confirm" :rules="[{ required: true, message: '请再次输入密码' }, { validator: confirmInitialPassword }]"><el-input v-model="form.confirm" placeholder="请再次输入密码" type="password" show-password maxlength="64" autocomplete="new-password" /></el-form-item>
-                </template>
-                <el-form-item v-if="![1, 2].includes(enrollmentAccount.gender)" label="性别" required><el-radio-group v-model="enrollmentProfile.gender"><el-radio :value="1">男</el-radio><el-radio :value="2">女</el-radio></el-radio-group></el-form-item>
-                <el-form-item v-if="!developer" label="所属部门"><el-tree-select v-model="enrollmentProfile.department_id" :data="departmentTree" node-key="_id" :props="{ value: '_id', label: 'name', children: 'children', disabled: 'disabled' }" check-strictly filterable clearable placeholder="请选择所属部门" style="width:100%" /></el-form-item>
-                <el-form-item label="追加角色"><el-select v-model="enrollmentProfile.role" placeholder="请选择角色" multiple clearable><el-option v-for="item in options.roles" :key="item.role_id" :value="item.role_id" :label="item.role_name" /></el-select></el-form-item>
-                <el-alert :title="'本次为原账号添加' + accountLabel + '身份，' + (enrollmentAccount.has_password === true ? '继续使用原密码' : '同时设置登录密码') + '，保留已有资料、角色和应用授权。'" type="info" :closable="false" show-icon />
-            </template>
-            <template v-if="editingId || (enrollmentChecked && !enrollmentAccount)">
 			<div class="user-editor-section">
 				<h3 class="user-editor-section-title">基本信息</h3>
 				<div class="user-editor-grid">
@@ -288,11 +237,11 @@
 						/>
 					</el-form-item>
 					<el-form-item
-						label="昵称"
+						:label="nameLabel"
 						prop="nickname"
-						:rules="[{ required: !isEmployee || !editingId, whitespace: true, message: '请输入昵称' }, { validator: validateNickname }]"
+						:rules="[{ required: !isEmployee || !editingId, whitespace: true, message: '请输入' + nameLabel }, { validator: validateNickname }]"
 					>
-						<el-input v-model.trim="form.nickname" placeholder="请输入昵称" maxlength="100" />
+						<el-input v-model.trim="form.nickname" :placeholder="'请输入' + nameLabel" maxlength="100" />
 					</el-form-item>
 					<template v-if="!editingId">
 						<el-form-item class="user-field-full" label="初始密码" prop="password" :rules="passwordRules">
@@ -331,13 +280,9 @@
 						v-if="!developer && !original.is_root"
 						label="手机号"
 						prop="mobile"
-						:rules="[{ required: isEmployee && !original.is_root, message: '请输入手机号' }, { pattern: /^$|^1\d{10}$/, message: '请输入有效的 11 位手机号' }]"
+						:rules="[{ required: requiresMobile, message: '请输入手机号' }, { pattern: /^$|^1\d{10}$/, message: '请输入有效的 11 位手机号' }]"
 					>
-						<el-input v-model.trim="form.mobile" placeholder="请输入手机号" maxlength="11" :disabled="!editingId || editMobileBusy" @input="invalidateEditMobile">
-                            <template v-if="editingId && !developer && !customer" #append><el-button :loading="editMobileBusy" :disabled="!editMobileNeedsCheck || saving" @click="checkEditMobile">{{ editMobileVerified === form.mobile && editMobileNeedsCheck ? '已核验' : '核验' }}</el-button></template>
-                        </el-input>
-                        <span v-if="editingId && !developer && !customer && editMobileNeedsCheck" class="user-field-help">{{ editMobileVerified === form.mobile ? '新手机号核验通过，保存后生效。' : '手机号已变更，请先核验再保存。' }}</span>
-                        <span v-if="editMobileError" class="user-avatar-error">{{ editMobileError }}</span>
+						<el-input v-model.trim="form.mobile" :placeholder="requiresMobile ? '请输入手机号' : '请输入手机号（选填）'" maxlength="11" />
 					</el-form-item>
 					<el-form-item label="头像" class="user-avatar-field">
 						<div class="user-profile-strip">
@@ -384,7 +329,7 @@
 				<h3 class="user-editor-section-title">{{ customer ? '社区用户标签' : '组织与标签' }}</h3>
 				<div class="user-editor-grid">
 					<el-form-item v-if="!customer" label="所属部门">
-						<el-tree-select v-model="form.department_id" :data="departmentTree" node-key="_id" :props="{ value: '_id', label: 'name', children: 'children', disabled: 'disabled' }" check-strictly filterable clearable placeholder="请选择所属部门" style="width:100%" />
+						<el-tree-select class="user-department-select" v-model="form.department_id" :data="departmentTree" node-key="_id" :props="{ value: '_id', label: 'name', children: 'children', disabled: 'disabled' }" check-strictly filterable clearable placeholder="请选择所属部门" style="width:100%" />
 					</el-form-item>
 					<el-form-item label="用户标签">
 						<el-select
@@ -420,6 +365,9 @@
 								:disabled="original.is_root && item.role_id === 'admin'"
 							/>
 						</el-select>
+					</el-form-item>
+					<el-form-item v-if="store.delegation && !editingId && !developer && !customer" label="企业管理员">
+						<el-checkbox v-model="form.tenantAdmin">授予产品包内的管理权限</el-checkbox>
 					</el-form-item>
 
 					<el-form-item
@@ -466,15 +414,13 @@
 				:closable="false"
 				class="user-editor-notice"
 			/>
-            </template>
 		</el-form>
 		<template #footer>
-			<el-button :disabled="saving || avatarUploading || enrollmentBusy" @click="editorVisible = false">
+			<el-button :disabled="saving || avatarUploading" @click="editorVisible = false">
 				{{ readOnly ? '关闭' : '取消' }}
 			</el-button>
-			<el-button v-if="isEmployee && !editingId && !enrollmentChecked" type="primary" :loading="enrollmentBusy" @click="findEnrollmentAccount">查找并继续</el-button>
-			<el-button v-else-if="!readOnly" type="primary" :loading="saving || enrollmentBusy" :disabled="avatarUploading || editMobileBusy || (editMobileNeedsCheck && editMobileVerified !== form.mobile) || (!editingId && (!enrollmentChecked || (enrollmentAccount && !enrollmentCanEnroll)))" @click="saveUser">
-				{{ editingId ? '保存' : enrollmentAccount ? '添加' + accountLabel + '身份' : '创建' + accountLabel }}
+			<el-button v-if="!readOnly" type="primary" :loading="saving" :disabled="avatarUploading" @click="saveUser">
+				{{ editingId ? '保存' : '创建' + accountLabel }}
 			</el-button>
 		</template>
 	</el-dialog>
@@ -527,6 +473,7 @@
 </template>
 
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import { ElAlert, ElAvatar, ElButton, ElCheckbox, ElCheckboxGroup, ElDialog, ElDropdown, ElDropdownItem, ElDropdownMenu, ElEmpty, ElForm, ElFormItem, ElIcon, ElImage, ElInput, ElOption, ElProgress, ElRadio, ElRadioButton, ElRadioGroup, ElSelect, ElTreeSelect, ElTable, ElTableColumn, ElTag, ElUpload, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
@@ -575,7 +522,7 @@ const developerMethods = {
 	listUsers: 'listDevelopers', getUserOptions: 'getDeveloperOptions',
 	addUser: 'addDeveloper', updateUser: 'updateDeveloper', resetUserPassword: 'resetDeveloperPassword'
 };
-const api = uniCloud.importObject('uni-id-co', { customUI: true });
+const api = importTenantAdmin();
 const statuses = [
 	{ label: '正常', type: 'success' },
 	{ label: '禁用', type: 'danger' },
@@ -645,7 +592,7 @@ const departmentTree = computed(() => {
  return roots;
 });
 const formatDate = (value) => (value && dayjs(value).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '—');
-const accountDisplayName = (row) => row.nickname || row.username || '未设置昵称';
+const accountDisplayName = (row) => row.nickname || row.username || '未设置' + nameLabel.value;
 const message = (e) => e?.errMsg || e?.message || '操作失败，请稍后重试';
 const call = async (method, params) => {
 	const result = await api[props.customer ? customerMethods[method] || method : props.developer ? developerMethods[method] || method : method](params);
@@ -712,64 +659,6 @@ onBeforeUnmount(() => {
 	requestId++;
 });
 
-const enrollmentMobile = ref(''), enrollmentAccount = ref(null), enrollmentError = ref(''), enrollmentBusy = ref(false);
-const enrollmentChecked = ref(false), enrollmentCanEnroll = ref(false), enrollmentAlready = ref(false), enrollmentSnapshot = ref('');
-let enrollmentRequest = 0;
-const enrollmentProfile = reactive({ nickname: '', gender: undefined, role: [], department_id: '' });
-const invalidateEnrollment = () => {
-    enrollmentRequest++;
-    enrollmentChecked.value = false; enrollmentAccount.value = null; enrollmentError.value = '';
-    enrollmentCanEnroll.value = false; enrollmentAlready.value = false; enrollmentSnapshot.value = '';
-    formError.value = ''; form.value.mobile = '';
-    form.value.password = ''; form.value.confirm = '';
-    Object.assign(enrollmentProfile, { nickname: '', gender: undefined, role: [], department_id: '' });
-};
-const skipMobileCheck = () => {
-    if (!props.developer || enrollmentMobile.value || enrollmentBusy.value) return;
-    invalidateEnrollment(); enrollmentChecked.value = true;
-};
-const findEnrollmentAccount = async () => {
-    if (enrollmentBusy.value || saving.value || avatarUploading.value || !canCreate.value) return;
-    invalidateEnrollment();
-    if (!/^1\d{10}$/.test(enrollmentMobile.value)) { enrollmentError.value = '请输入有效的 11 位手机号'; return; }
-    const id = enrollmentRequest, mobile = enrollmentMobile.value;
-    enrollmentBusy.value = true;
-    try {
-        const result = await call(props.developer ? 'findAccountForDeveloper' : 'findAccountForEmployee', { mobile });
-        const data = result.data ? (await resolveUserAvatars([result.data], uniCloud))[0] : null;
-        if (disposed || id !== enrollmentRequest || !editorVisible.value) return;
-        enrollmentAccount.value = data; enrollmentChecked.value = true;
-        enrollmentCanEnroll.value = result.canEnroll === true; enrollmentAlready.value = result.alreadyEnrolled === true;
-        enrollmentSnapshot.value = result.snapshot || ''; form.value.mobile = mobile;
-        Object.assign(enrollmentProfile, { nickname: data?.nickname || '' });
-    } catch (error) { if (!disposed && id === enrollmentRequest) enrollmentError.value = message(error); }
-    finally { enrollmentBusy.value = false; }
-};
-const viewMatchedAccount = () => {
-    if (!enrollmentAlready.value || !enrollmentAccount.value) return;
-    detailUid.value = enrollmentAccount.value._id; editorVisible.value = false; detailVisible.value = true;
-};
-const submitEnrollment = async () => {
-    if (enrollmentBusy.value || saving.value || !enrollmentAccount.value || !enrollmentCanEnroll.value || !canCreate.value) return;
-    if (!enrollmentAccount.value.nickname && !enrollmentProfile.nickname.trim()) { enrollmentError.value = '请输入昵称'; return; }
-    if (![1, 2].includes(enrollmentAccount.value.gender) && ![1, 2].includes(enrollmentProfile.gender)) { enrollmentError.value = '请选择男或女'; return; }
-    const needsPassword = enrollmentAccount.value.has_password !== true;
-    if (needsPassword) {
-        if (!form.value.password || form.value.password.length < 6 || form.value.password.length > 64) { enrollmentError.value = '请输入 6–64 位密码'; return; }
-        if (form.value.password !== form.value.confirm) { enrollmentError.value = '两次密码不一致'; return; }
-    }
-    enrollmentBusy.value = true; enrollmentError.value = '';
-    try {
-        await call(props.developer ? 'enrollDeveloper' : 'enrollEmployee', { uid: enrollmentAccount.value._id, snapshot: enrollmentSnapshot.value,
-            ...(!enrollmentAccount.value.nickname && { nickname: enrollmentProfile.nickname }), gender: enrollmentProfile.gender, role: enrollmentProfile.role,
-            ...(needsPassword ? { password: form.value.password } : {}),
-            ...(!props.developer ? { department_id: enrollmentProfile.department_id ? [enrollmentProfile.department_id] : [] } : {}) });
-        form.value.password = ''; form.value.confirm = '';
-        editorVisible.value = false; ElMessage.success(accountLabel.value + '身份已添加'); await refresh();
-    } catch (error) { enrollmentError.value = message(error); }
-    finally { enrollmentBusy.value = false; }
-};
-
 const editorVisible = ref(false),
 	readOnly = ref(false),
 	editingId = ref(''),
@@ -801,53 +690,27 @@ const selectableApps = computed(() => {
 	return apps;
 });
 const formRef = ref();
-const editMobileBusy = ref(false), editMobileVerified = ref(''), editMobileError = ref('');
-let editMobileRequest = 0;
-const editMobileNeedsCheck = computed(() => Boolean(editingId.value) && !props.developer && !props.customer && form.value.mobile !== (original.value.mobile || ''));
-const invalidateEditMobile = () => { editMobileRequest++; editMobileVerified.value = ''; editMobileError.value = ''; };
-const checkEditMobile = async () => {
-    if (editMobileBusy.value || saving.value || readOnly.value || !canWrite.value || !editMobileNeedsCheck.value) return;
-    invalidateEditMobile();
-    const mobile = form.value.mobile, uid = editingId.value, request = editMobileRequest;
-    if (!/^1\d{10}$/.test(mobile)) { editMobileError.value = '请输入有效的 11 位手机号'; return; }
-    editMobileBusy.value = true;
-    try {
-        await call('checkEmployeeMobile', { uid, mobile });
-        if (disposed || request !== editMobileRequest || !editorVisible.value || uid !== editingId.value || mobile !== form.value.mobile) return;
-        editMobileVerified.value = mobile;
-        ElMessage.success('手机号核验通过');
-    } catch (error) {
-        if (request === editMobileRequest && editorVisible.value) editMobileError.value = message(error);
-    } finally { editMobileBusy.value = false; }
-};
 const detailRef = ref(),
 	detailVisible = ref(false),
 	detailUid = ref(''),
 	roleItemRef = ref();
 let focusRoleOnOpen = false;
 const onEditorOpened = () => {
-	if (!editingId.value && isEmployee.value) enrollmentMobileRef.value?.focus();
+	if (!editingId.value) formRef.value?.$el?.querySelector('input:not(:disabled)')?.focus({ preventScroll: true });
 	if (focusRoleOnOpen) roleItemRef.value?.$el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 	focusRoleOnOpen = false;
 };
 const isSelf = computed(() => Boolean(editingId.value) && editingId.value === auth.value?.uid);
 const isEmployee = computed(() => !props.developer && !props.customer);
-const enrollmentMobileRef = ref();
-watch(enrollmentChecked, async () => {
-    if (!isEmployee.value || editingId.value || !editorVisible.value) return;
-    await nextTick();
-    const root = formRef.value?.$el;
-    root?.closest('.el-dialog__body')?.scrollTo({ top: 0 });
-    if (!enrollmentChecked.value) enrollmentMobileRef.value?.focus();
-    else root?.querySelector('input:not(:disabled)')?.focus({ preventScroll: true });
-});
+const nameLabel = computed(() => isEmployee.value ? '姓名' : '昵称');
+const requiresMobile = computed(() => isEmployee.value && !editingId.value);
 const requiresProfile = computed(() => (isEmployee.value && !original.value.is_root) || !editingId.value);
 const passwordRules = [
 	{ required: true, message: '请输入密码' },
 	{ min: 6, max: 64, message: '密码长度应为 6–64 位' }
 ];
 const validateNickname = (rule, value, callback) =>
-	callback(value && (value.includes('@') || /^\d+$/.test(value)) ? new Error('昵称不能包含 @ 或为纯数字') : undefined);
+	callback(value && (value.includes('@') || /^\d+$/.test(value)) ? new Error(nameLabel.value + '不能包含 @ 或为纯数字') : undefined);
 const avatarUploading = ref(false),
 	avatarProgress = ref(0),
 	avatarError = ref('');
@@ -928,9 +791,6 @@ const openEditor = async (row, detail = false, focusRole = false) => {
 		original.value = row ? JSON.parse(JSON.stringify(row)) : {};
 		editingId.value = row?._id || '';
 		readOnly.value = detail;
-        enrollmentMobile.value = ''; invalidateEnrollment();
-        if (props.developer && !row) enrollmentChecked.value = true;
-        invalidateEditMobile();
 		formError.value = '';
 		avatarError.value = '';
 		form.value = {
@@ -944,6 +804,7 @@ const openEditor = async (row, detail = false, focusRole = false) => {
 			email: row?.email || '',
 			role: [...(row?.role || [])],
 			tags: [...(row?.tags || [])],
+			tenantAdmin: false,
 			status: row?.status || 0,
 			authorizedApp: row ? [...(row.dcloud_appid ?? ['*'])] : ['*'],
 			password: '',
@@ -960,13 +821,6 @@ const openEditor = async (row, detail = false, focusRole = false) => {
 	}
 };
 const saveUser = async () => {
-    if (editMobileBusy.value || (editMobileNeedsCheck.value && editMobileVerified.value !== form.value.mobile)) {
-        formError.value = '请先核验新手机号'; return;
-    }
-    if (!editingId.value) {
-        if (!enrollmentChecked.value || enrollmentBusy.value) return;
-        if (enrollmentAccount.value) return submitEnrollment();
-    }
 	if (
 		saving.value ||
 		avatarUploading.value ||
@@ -1000,8 +854,8 @@ const saveUser = async () => {
 			role
 		};
 
-        if (props.developer) delete params.mobile;
-        if (original.value.is_root) { delete params.mobile; delete params.email; }
+		if (props.developer || original.value.is_root || (!editingId.value && !mobile)) delete params.mobile;
+		if (editingId.value && mobile === (original.value.mobile || '')) delete params.mobile;
 		if (!editingId.value || avatar !== (original.value.avatar || '')) params.avatar = avatar;
 		if (username && !props.customer) params.username = username;
 		// 保留历史账号未限制应用的存储方式，避免仅修改资料时意外变更授权。
@@ -1029,6 +883,8 @@ const saveUser = async () => {
 		}
 		if (editingId.value) params.uid = editingId.value;
 		else params.password = password;
+		if (!editingId.value && store.delegation && !props.developer && !props.customer && form.value.tenantAdmin)
+			params.tenantAdmin = true;
 		const result = await call(editingId.value ? 'updateUser' : 'addUser', params);
 		if (editingId.value === uniCloud.getCurrentUserInfo().uid && !result.requireLogin) store.userInfoVersion++;
 		editorVisible.value = false;
@@ -1047,7 +903,7 @@ const saveUser = async () => {
 		if (detailVisible.value) await detailRef.value?.reload();
 		await load(editingId.value ? pagination.current : 1);
 	} catch (e) {
-		formError.value = message(e) + (!editingId.value && (e.errCode === 'uni-id-account-exists' || e.errCode === 'ACCOUNT_EXISTS') ? '，请重新核验手机号；若账号被其他人使用，请核对后修改。' : '');
+		formError.value = message(e);
 	} finally {
 		saving.value = false;
 	}
@@ -1057,8 +913,6 @@ const passwordVisible = ref(false),
 	passwordUser = ref({});
 watch(editorVisible, (visible) => {
 	if (!visible) {
-        invalidateEditMobile();
-        enrollmentRequest++;
 		form.value.password = '';
 		form.value.confirm = '';
 	}
@@ -1156,12 +1010,6 @@ const resetPassword = async () => {
 </script>
 
 <style scoped>
-.user-verification { margin-bottom: 24px; }
-.enrollment-account-card { display: flex; align-items: flex-start; gap: 16px; padding: 20px; margin: 16px 0; border: 1px solid var(--el-border-color-light); border-radius: 8px; background: var(--el-fill-color-light); }
-.enrollment-account-card .el-avatar { flex-shrink: 0; }
-.enrollment-account-info { display: flex; flex-direction: column; gap: 8px; min-width: 0; overflow-wrap: anywhere; color: var(--el-text-color-regular); }
-.enrollment-account-info strong { color: var(--el-text-color-primary); font-size: 16px; }
-.enrollment-identities { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .user-content {
 	display: flex;
 	flex-direction: column;
@@ -1518,16 +1366,4 @@ const resetPassword = async () => {
 :global(.user-editor .el-select) {
 	width: 100%;
 }
-.employee-create-title { margin: 0; font-size: 18px; font-weight: 600; }
-.employee-create-steps { display: flex; align-items: center; gap: 16px; margin-top: 14px; font-size: 14px; color: var(--el-text-color-secondary); }
-.employee-create-steps .active { color: var(--el-color-primary); font-weight: 600; }
-.employee-step-divider { color: var(--el-border-color); }
-.employee-lookup-intro { margin: 28px 0 32px 108px; }
-.employee-lookup-intro h3 { margin: 0 0 12px; font-size: 18px; color: var(--el-text-color-primary); }
-.employee-lookup-intro p { margin: 0; line-height: 1.6; color: var(--el-text-color-secondary); }
-.employee-match-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; margin-bottom: 24px; background: var(--el-fill-color-light); border-radius: 6px; }
-.employee-match-summary > div { display: flex; align-items: center; gap: 12px; }
-:global(.user-editor.employee-create-dialog) { height: min(680px, calc(100dvh - 48px)); }
-:global(.employee-create-dialog > .el-dialog__body) { flex: 1; }
-@media (max-width: 600px) { .employee-lookup-intro { margin-left: 0; } }
 </style>

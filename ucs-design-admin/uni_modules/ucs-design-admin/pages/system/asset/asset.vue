@@ -115,6 +115,7 @@
 </template>
 
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import { computed, onMounted, onBeforeUnmount, reactive, ref } from 'vue';
 import { ElAlert, ElButton, ElCheckbox, ElDescriptions, ElDescriptionsItem, ElDialog, ElDropdown, ElDropdownItem, ElDropdownMenu, ElEmpty, ElForm, ElFormItem, ElIcon, ElInput, ElMessage, ElMessageBox, ElOption, ElPagination, ElProgress, ElSelect, ElTable, ElTableColumn, ElUpload, vLoading } from 'element-plus';
@@ -142,7 +143,7 @@ import 'element-plus/es/components/pagination/style/css.mjs';
 import 'element-plus/es/components/progress/style/css.mjs';
 import 'element-plus/es/components/select/style/css.mjs';
 import 'element-plus/es/components/upload/style/css.mjs';
-const api = uniCloud.importObject('uni-id-co', { customUI: true });
+const api = importTenantAdmin();
 const types = { image: '图片', video: '视频', audio: '音频', document: '文档' };
 const fileIcons = { image: Picture, video: VideoPlay, audio: Headset, document: Document };
 const typeExtensions = { image: ['jpg','jpeg','png','webp','gif'], video: ['mp4','webm'], audio: ['mp3','wav'], document: ['pdf','txt','docx','xlsx','pptx'] };
@@ -383,11 +384,10 @@ async function removeSelected() {
  finally { deleting.value = false; }
 }
 async function ensureAssetMenu() {
- if (!uniCloud.getCurrentUserInfo().role?.includes('admin')) return;
  try {
   // 复用布局已请求的导航；正常进入页面不再安装菜单或使全局导航失效。
   const navigation = await loadNavigation();
-  if (hasAssetMenu(navigation.data || [])) return;
+  if (!navigation.isAdmin || hasAssetMenu(navigation.data || [])) return;
   const result = await call('installAssetManagement');
   if (result.changed) store.menuVersion++;
  } catch (e) { ElMessage.error(`素材菜单检查失败：${message(e)}`); }

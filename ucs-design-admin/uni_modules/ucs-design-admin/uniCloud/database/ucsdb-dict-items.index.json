@@ -1,23 +1,5 @@
 [
   {
-    "IndexName": "dict_value",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "dict_id",
-          "Direction": "1",
-          "Type": "varchar"
-        },
-        {
-          "Name": "value",
-          "Direction": "1",
-          "Type": "varchar"
-        }
-      ],
-      "MgoIsUnique": true
-    }
-  },
-  {
     "IndexName": "dict_sort",
     "MgoKeySchema": {
       "MgoIndexKeys": [
@@ -38,6 +20,29 @@
         }
       ],
       "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "tenant_id_dict_id_value",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "tenant_id",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "dict_id",
+          "Direction": "1",
+          "Type": "varchar"
+        },
+        {
+          "Name": "value",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": true
     }
   }
 ]

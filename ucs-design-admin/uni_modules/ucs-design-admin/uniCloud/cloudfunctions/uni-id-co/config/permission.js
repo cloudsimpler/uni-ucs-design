@@ -28,9 +28,6 @@ module.exports = {
   deleteAssets: { auth: true },
 
   getAccountCapabilities: { auth: true },
-  findAccountForDeveloper: { auth: true }, findAccountForEmployee: { auth: true },
-  checkEmployeeMobile: { auth: true },
-  enrollDeveloper: { auth: true }, enrollEmployee: { auth: true },
   getCurrentUserProfile: { auth: true },
   listCustomers: { auth: true }, getCustomerOptions: { auth: true }, getCustomerDetail: { auth: true },
   updateCustomer: { auth: true }, setCustomerStatus: { auth: true },
@@ -66,13 +63,13 @@ module.exports = {
     auth: true
   },
   authorizeAppLogin: {
-    role: ['admin']
+    auth: true
   },
   removeAuthorizedApp: {
-    role: ['admin']
+    auth: true
   },
   setAuthorizedApp: {
-    role: ['admin']
+    auth: true
   },
 
   // 用户接口

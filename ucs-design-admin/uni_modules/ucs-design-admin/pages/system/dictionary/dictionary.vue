@@ -53,6 +53,7 @@
  </el-dialog>
 </template>
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import {ref,reactive,computed,onMounted,onBeforeUnmount} from 'vue';
 import {ElAlert,ElButton,ElColorPicker,ElDialog,ElEmpty,ElForm,ElFormItem,ElInput,ElInputNumber,ElMessage,ElMessageBox,ElPagination,ElSwitch,ElTable,ElTableColumn,ElTag,vLoading} from 'element-plus';
@@ -75,7 +76,7 @@ import 'element-plus/es/components/table/style/css.mjs';
 import 'element-plus/es/components/tag/style/css.mjs';
 import 'element-plus/es/components/loading/style/css.mjs';
 
-const api=uniCloud.importObject('uni-id-co',{customUI:true});
+const api=importTenantAdmin();
 const sizes=[20,40,60,80,100];
 const presetColors=['#409EFF','#67C23A','#E6A23C','#F56C6C','#909399','#8B5CF6','#14B8A6','#EC4899'];
 const types=ref([]),loading=ref(true),error=ref(''),keyword=ref(''),applied=ref(''),page=ref(1),size=ref(20);

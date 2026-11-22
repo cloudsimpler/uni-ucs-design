@@ -1,6 +1,8 @@
 const {
   ERROR
 } = require('../../common/error')
+const { tenantWhere } = require('../../module/admin/tenant-scope')
+const { PLATFORM_TENANT_ID } = require('./platform-tenant')
 
 async function getNeedCaptcha ({
   uid,
@@ -38,12 +40,12 @@ async function getNeedCaptcha ({
 
   const {
     data: recentRecord
-  } = await uniIdLogCollection.where({
+  } = await uniIdLogCollection.where(dbCmd.and([{
     ip: this.getUniversalClientInfo().clientIP,
     ...userIdentifier,
     type,
     create_date: dbCmd.gt(now - limitDuration)
-  })
+  }, tenantWhere(db, this.entryTenantId || PLATFORM_TENANT_ID)]))
     .orderBy('create_date', 'desc')
     .limit(limitTimes)
     .get()

@@ -1,5 +1,6 @@
 <template>
 	<div ref="layoutRef" class="admin-layout" :class="{ 'admin-layout--table': mode === 'table' }">
+		<ucs-admin-delegation v-if="store.delegation" class="layout-delegation" />
 		<div v-if="accessLoading" class="layout-access-state"><el-skeleton :rows="5" animated /></div>
 		<el-result v-else-if="!pageAllowed" :icon="accessError && accessErrorKind === 'request' ? 'error' : 'warning'" :title="accessErrorKind === 'session' ? '登录已失效' : accessErrorKind === 'permission' ? '无权访问' : accessError ? '菜单权限加载失败' : '暂无此页面的访问权限'" :sub-title="accessError || '请联系管理员分配菜单权限'">
 			<template #extra>
@@ -48,6 +49,7 @@
 
 <script setup>
 import { ElButton, ElPagination, ElResult, ElSkeleton } from 'element-plus';
+import UcsAdminDelegation from '../ucs-admin-delegation/ucs-admin-delegation.vue';
 import 'element-plus/es/components/button/style/css.mjs';
 import 'element-plus/es/components/pagination/style/css.mjs';
 import 'element-plus/es/components/result/style/css.mjs';
@@ -155,6 +157,16 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 </script>
 
 <style scoped>
+	.layout-delegation {
+		justify-content: space-between;
+		flex-shrink: 0;
+		padding: 6px 12px;
+		background: var(--el-bg-color);
+		border-bottom: 1px solid var(--el-border-color-light);
+	}
+	:global(uni-layout.uni-app--showtopwindow .layout-delegation) {
+		display: none;
+	}
 	.layout-access-state { padding: 32px 16px; }
 	.admin-layout :deep(table) {
 		user-select: text;

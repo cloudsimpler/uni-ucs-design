@@ -236,6 +236,13 @@
 					</el-checkbox>
 				</el-checkbox-group>
 			</el-form-item>
+			<el-form-item v-if="form.menu_type === MENU_TYPE.DIRECTORY" label="功能归属" prop="feature_scope">
+				<el-radio-group v-model="form.feature_scope" :disabled="form.menu_id === 'tenant_operations'">
+					<el-radio-button value="inherit">继承上级</el-radio-button>
+					<el-radio-button value="product">产品功能</el-radio-button>
+					<el-radio-button value="platform">平台运营</el-radio-button>
+				</el-radio-group>
+			</el-form-item>
 			<el-form-item label="上级菜单" prop="parent_id">
 				<el-tree-select
 					class="menu-parent-select"
@@ -350,6 +357,7 @@
 </template>
 
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import { ElAlert, ElButton, ElCheckbox, ElCheckboxGroup, ElDialog, ElEmpty, ElForm, ElFormItem, ElIcon, ElImage, ElInput, ElInputNumber, ElOption, ElRadioButton, ElRadioGroup, ElSelect, ElSwitch, ElTable, ElTableColumn, ElTag, ElTreeSelect, ElUpload, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
@@ -404,7 +412,7 @@ const openPermissions = (row) => {
 	permissionVisible.value = true;
 };
 
-const api = uniCloud.importObject('uni-id-co', { customUI: true });
+const api = importTenantAdmin();
 const rows = ref([]),
 	permissions = ref([]),
 	loading = ref(false),
@@ -428,6 +436,7 @@ const emptyForm = () => ({
 	name: '',
 	menu_id: '',
 	menu_type: MENU_TYPE.DIRECTORY,
+	feature_scope: 'inherit',
 	parent_id: '',
 	icon: '',
 	url: '',
@@ -631,6 +640,7 @@ async function openEditor(row, parent = '') {
 		row
 			? {
 					...row,
+					feature_scope: row.feature_scope ?? (row.menu_id === 'tenant_operations' ? 'platform' : 'inherit'),
 					client_type: [...menuClients(row)],
 					menu_type: MENU_TYPE_OPTIONS.some((item) => item.value === row.menu_type) ? row.menu_type : null,
 					enable: row.enable !== false

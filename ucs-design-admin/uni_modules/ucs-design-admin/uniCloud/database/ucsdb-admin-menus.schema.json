@@ -44,6 +44,11 @@
 			],
 			"title": "菜单类型"
 		},
+		"feature_scope": {
+			"bsonType": "string",
+			"description": "目录功能归属，inherit 继承上级，product 产品功能，platform 平台运营",
+			"enum": ["inherit", "product", "platform"]
+		},
 		"_id": {
 			"description": "存储文档 ID，系统自动生成"
 		},

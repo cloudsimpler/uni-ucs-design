@@ -115,8 +115,8 @@
     "name": "菜单管理",
     "icon": "Menu",
     "url": "/uni_modules/ucs-design-admin/pages/system/menu/menu",
-    "sort": 24,
-    "parent_id": "system_management",
+    "sort": 3,
+    "parent_id": "tenant_operations",
     "enable": true,
     "create_date": 1602662469396,
     "menu_type": 1,
@@ -187,5 +187,45 @@
 
   "app_url": "",
   "app_icon": ""
-}
+},
+  {
+    "menu_id": "tenant_operations",
+    "name": "租户运营",
+    "menu_type": 0,
+    "feature_scope": "platform",
+    "parent_id": "",
+    "url": "",
+    "icon": "OfficeBuilding",
+    "sort": 3,
+    "client_type": [
+      "pc"
+    ],
+    "enable": true
+  },
+  {
+    "menu_id": "platform_tenant",
+    "name": "租户管理",
+    "menu_type": 1,
+    "parent_id": "tenant_operations",
+    "url": "/uni_modules/ucs-design-admin/pages/platform/tenant/tenant",
+    "icon": "OfficeBuilding",
+    "sort": 1,
+    "client_type": [
+      "pc"
+    ],
+    "enable": true
+  },
+  {
+    "menu_id": "platform_product_package",
+    "name": "产品包管理",
+    "menu_type": 1,
+    "parent_id": "tenant_operations",
+    "url": "/uni_modules/ucs-design-admin/pages/platform/package/package",
+    "icon": "Box",
+    "sort": 2,
+    "client_type": [
+      "pc"
+    ],
+    "enable": true
+  }
 ]

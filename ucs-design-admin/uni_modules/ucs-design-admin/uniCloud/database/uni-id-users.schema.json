@@ -11,6 +11,11 @@
 		"delete": false
 	},
 	"properties": {
+		"is_tenant_admin": {
+			"bsonType": "bool",
+			"description": "企业管理员，由平台代管时设置",
+			"permission": { "read": "doc._id == auth.uid", "write": false }
+		},
 		"tenant_id": {
 			"bsonType": "string",
 			"description": "所属租户 ID，引用租户表的 _id"

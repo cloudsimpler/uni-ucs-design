@@ -6,7 +6,7 @@
     "name"
   ],
   "permission": {
-    "read": "'READ_OPENDB_APP_LIST' in auth.permission",
+    "read": false,
     "create": false,
     "update": false,
     "delete": false
@@ -30,6 +30,15 @@
     },
     "_id": {
       "description": "ID，系统自动生成"
+    },
+    "tenant_id": {
+      "bsonType": "string",
+      "description": "应用归属的租户 ID",
+      "foreignKey": "ucsdb-tenants._id"
+    },
+    "version_revision": {
+      "bsonType": "int",
+      "description": "应用版本写入的并发控制计数"
     },
     "appid": {
       "bsonType": "string",

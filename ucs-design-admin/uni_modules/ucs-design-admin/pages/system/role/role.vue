@@ -141,6 +141,7 @@
 	</el-dialog>
 </template>
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElTable, ElTableColumn, ElTag, ElTree, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
@@ -198,7 +199,7 @@ function authorizationTree(menus, permissions, auth = { isAdmin: true, permissio
 const permissionKeys = (keys) =>
 	keys.filter((key) => key.startsWith('permission:')).map((key) => key.slice('permission:'.length));
 
-const api = uniCloud.importObject('uni-id-co', { customUI: true });
+const api = importTenantAdmin();
 const rows = ref([]),
 	menus = ref([]),
 	permissions = ref([]),

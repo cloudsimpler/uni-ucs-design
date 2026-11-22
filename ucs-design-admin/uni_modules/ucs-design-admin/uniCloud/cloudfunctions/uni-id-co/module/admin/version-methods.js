@@ -9,7 +9,8 @@ module.exports = Object.fromEntries(
 		name,
 		function (params) {
 			return createVersionAdmin({
-				db: uniCloud.database(),
+				db: this.adminDb,
+				versionDb: uniCloud.database(),
 				uid: this.authInfo.uid,
 				appId: this.getUniversalClientInfo().appId
 			})[action](params);

@@ -13,6 +13,7 @@
 			</el-breadcrumb>
 		</div>
 		<div class="header-tools">
+			<ucs-admin-delegation v-if="store.delegation" class="header-delegation" hide-exit />
 			<el-tooltip :content="isDark ? '切换浅色模式' : '切换深色模式'" placement="bottom">
 				<el-button class="header-icon" text :aria-label="isDark ? '切换浅色模式' : '切换深色模式'" @click="onDarkMode">
 					<el-icon><Sunny v-if="isDark" /><Moon v-else /></el-icon>
@@ -36,7 +37,8 @@
 				<template #dropdown>
 					<el-dropdown-menu>
 						<el-dropdown-item v-if="accountError" command="reload-profile">重新加载用户资料</el-dropdown-item>
-						<el-dropdown-item command="logout" :icon="SwitchButton" :disabled="isLoggingOut">退出登录</el-dropdown-item>
+						<el-dropdown-item v-if="store.delegation" command="exit-delegation" :icon="SwitchButton">退出代管</el-dropdown-item>
+						<el-dropdown-item v-else command="logout" :icon="SwitchButton" :disabled="isLoggingOut">退出登录</el-dropdown-item>
 					</el-dropdown-menu>
 				</template>
 			</el-dropdown>
@@ -46,6 +48,7 @@
 
 <script setup>
 import { ElAvatar, ElBreadcrumb, ElBreadcrumbItem, ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElIcon, ElTooltip } from 'element-plus';
+import UcsAdminDelegation from '../components/ucs-admin-delegation/ucs-admin-delegation.vue';
 import 'element-plus/es/components/avatar/style/css.mjs';
 import 'element-plus/es/components/breadcrumb/style/css.mjs';
 import 'element-plus/es/components/breadcrumb-item/style/css.mjs';
@@ -61,6 +64,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	import pagesJson from '@/pages.json';
 	import manifestJson from '@/manifest.json';
 	import store from '../common/store.js';
+	import { exitDelegation, setDelegation } from '../common/tenant-session.js';
 	import { sidebarWidth } from '../common/window-layout.js';
 	import { resolveUserAvatars } from '../common/avatar.js';
 	import { withSessionHandling, describeRequestError } from '../common/session-errors.js';
@@ -141,13 +145,22 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	const isLoggingOut = ref(false);
 	const onUserSelect = async (command) => {
 		if (command === 'reload-profile' && !accountLoading.value) return loadAccount();
-		if (command !== 'logout' || isLoggingOut.value) return;
+		if (command === 'exit-delegation') {
+			try {
+				await exitDelegation();
+			} catch (error) {
+				uni.showToast({ title: error?.errMsg || error?.message || '退出代管失败，请重试', icon: 'none' });
+			}
+			return;
+		}
+		if (command !== 'logout' || isLoggingOut.value || store.delegation) return;
 		isLoggingOut.value = true;
 		try {
 			const currentPages = getCurrentPages();
 			const route = currentPages[currentPages.length - 1]?.route || pagesJson.pages[0].path;
 			const uniIdCo = uniCloud.importObject('uni-id-co', { errorOptions: { type: 'toast' } });
 			await withSessionHandling(() => uniIdCo.logout());
+			setDelegation(null);
 			store.isLogin = false;
 			uni.reLaunch({ url: '/uni_modules/ucs-design-admin/pages/login/login?uniIdRedirectUrl=' + encodeURIComponent('/' + route.replace(/^\//, '')) });
 		} catch (error) {
@@ -168,6 +181,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	.header-breadcrumb { min-width: 0; overflow: hidden; white-space: nowrap; line-height: 20px; }
 	.header-breadcrumb :deep(.el-breadcrumb__inner) { font-weight: 400; }
 	.header-tools { display: flex; align-items: center; gap: 4px; padding: 0 20px 0 16px; flex-shrink: 0; }
+	.header-delegation { max-width: 300px; margin-right: 12px; }
 	.header-icon.el-button { width: 36px; height: 36px; padding: 0; margin: 0; border-radius: var(--el-border-radius-base); font-size: 19px; color: var(--el-text-color-regular); }
 	.header-icon.el-button:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
 	.tools-divider { height: 22px; width: 1px; background: var(--el-border-color-lighter); margin: 0 12px; }
@@ -184,6 +198,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	@media (max-width: 900px) {
 		.header-navigation { gap: 10px; padding-left: 10px; }
 		.header-tools { padding-right: 12px; padding-left: 8px; }
+		.header-delegation { max-width: 220px; margin-right: 4px; }
 		.account-info, .tools-divider { display: none; }
 	}
 </style>

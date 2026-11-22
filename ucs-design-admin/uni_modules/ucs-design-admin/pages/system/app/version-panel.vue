@@ -258,6 +258,7 @@
 </template>
 
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import { ElAlert, ElButton, ElDescriptions, ElDescriptionsItem, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElPagination, ElProgress, ElRadio, ElRadioGroup, ElSwitch, ElTabPane, ElTable, ElTableColumn, ElTabs, ElTag, ElUpload, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
@@ -290,7 +291,7 @@ import { Plus, Refresh } from '@element-plus/icons-vue';
 import { isCloudFile, resolveFileUrl } from '../../../common/storage.js';
 const props = defineProps({ app: { type: Object, required: true } });
 defineEmits(['close']);
-const api = uniCloud.importObject('uni-id-co', { customUI: true });
+const api = importTenantAdmin();
 const rows = ref([]),
 	page = ref(1),
     pageSize = ref(20),

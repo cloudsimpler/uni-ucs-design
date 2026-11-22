@@ -10,7 +10,8 @@ module.exports = Object.fromEntries(
 		name,
 		function (params) {
 			return createMenuAdmin({
-				db: uniCloud.database(),
+				db: this.adminDb,
+				loginScope: this.loginAdminScope,
 				uid: this.authInfo.uid,
 				appId: this.getUniversalClientInfo().appId
 			})[action](params);

@@ -17,6 +17,7 @@ const {
 } = require('./logout')
 const PasswordUtils = require('./password')
 const { registerRootWithApp } = require('./register-root')
+const { PLATFORM_TENANT_ID } = require('./platform-tenant')
 const { createNumberedUser } = require('./user-number')
 const { assertRegistration, registrationType, normalizeIdentifiers } = require('./account-policy')
 const { 
@@ -32,6 +33,7 @@ async function realPreRegister (params = {}) {
     userMatched
   } = await findUser({
     userQuery: user,
+    tenantId: this.entryTenantId,
     uniqueAccountType: registrationType(this)
   })
   if (userMatched.length > 0) {
@@ -197,6 +199,7 @@ async function postRegister (params = {}) {
     userRecord.role = []
   }
   const record = { ...userRecord,
+    tenant_id: this.entryTenantId || PLATFORM_TENANT_ID,
     create_date: registeredAt, update_date: registeredAt }
   const { id: uid } = await createNumberedUser(record, numberedRecord => this.getMethodName() === 'registerAdmin'
     ? registerRootWithApp(uniCloud.database(), numberedRecord, this.getUniversalClientInfo(), params.applicationName, params.applicationType)

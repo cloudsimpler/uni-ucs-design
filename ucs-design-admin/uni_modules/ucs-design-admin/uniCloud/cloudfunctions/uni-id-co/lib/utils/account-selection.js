@@ -3,6 +3,8 @@ const { userCollection, verifyCollection, dbCmd, LOG_TYPE } = require('../../com
 const { canEnter, accountEntry } = require('./account-policy')
 const { accountTypeOf, sameAccountTypes } = require('../../module/admin/account-types')
 const PasswordUtils = require('./password')
+const { PLATFORM_TENANT_ID } = require('./platform-tenant')
+const { ownerOf } = require('../../module/admin/tenant-scope')
 const digest = value => createHash('sha256').update(String(value || '')).digest('hex')
 const fail = () => { throw { errCode: 'ACCOUNT_SELECTION_EXPIRED', errMsg: '验证已失效，请重新验证后选择账号' } }
 
@@ -13,7 +15,7 @@ async function issueSelection(context, users, purpose, contact = {}) {
   const ticket = randomBytes(32).toString('hex')
   const client = context.getUniversalClientInfo()
   const proof = {
-    appid: client.appId, entry: accountEntry(context), purpose, contact,
+    appid: client.appId, entry: accountEntry(context), purpose, contact, tenant_id: context.entryTenantId || PLATFORM_TENANT_ID,
     accounts: users.map(user => ({ uid: user._id, type: accountTypeOf(user), password: digest(user.password) }))
   }
   await verifyCollection.add({
@@ -38,17 +40,15 @@ async function consumeSelection(context, { selectionTicket, uid }, purpose) {
   if (!candidate) fail()
   const result = await userCollection.doc(uid).get()
   const user = Array.isArray(result.data) ? result.data[0] : result.data
-  if (!user || (purpose !== 'enroll' && !canEnter(context, user)) || (user.status || 0) !== 0 || !sameAccountTypes(accountTypeOf(user), candidate.type) || digest(user.password) !== candidate.password) fail()
-  if (purpose === 'enroll') {
-    if (accountEntry(context) !== 'client') fail()
-    require('./account-policy').assertAppAuthorization(context, user)
-  }
+  if (!user || ownerOf(user) !== (context.entryTenantId || PLATFORM_TENANT_ID) ||
+    (proof.tenant_id || PLATFORM_TENANT_ID) !== ownerOf(user) || !canEnter(context, user) ||
+    (user.status || 0) !== 0 || !sameAccountTypes(accountTypeOf(user), candidate.type) || digest(user.password) !== candidate.password) fail()
   for (const [key, value] of Object.entries(proof.contact)) {
     if (user[key] !== value || user[`${key}_confirmed`] !== 1) fail()
   }
   const consumed = await verifyCollection.where({ ...query, _id: record._id }).update({ state: 1 })
   if (consumed.updated !== 1) fail()
-  return { ...user, verifiedContact: proof.contact }
+  return user
 }
 
 async function completeAccountLogin(params = {}) {
@@ -62,17 +62,13 @@ async function completeAccountRecovery(params = {}) {
   const { passwordHash, version } = new PasswordUtils({ clientInfo: this.getUniversalClientInfo(), passwordSecret: this.config.passwordSecret })
     .generatePasswordHash({ password: params.password })
   const guard = { _id: user._id }
-  for (const key of ['password', 'mobile', 'email', 'account_type', 'status']) guard[key] = user[key] === undefined ? dbCmd.exists(false) : user[key]
+  for (const key of ['password', 'mobile', 'mobile_confirmed', 'email', 'email_confirmed', 'account_type', 'status']) {
+    guard[key] = user[key] === undefined ? dbCmd.exists(false) : user[key]
+  }
   const updated = await userCollection.where(guard).update({ password: passwordHash, password_secret_version: version,
     token: [], valid_token_date: Date.now() })
   if (updated.updated !== 1) fail()
   await this.middleware.uniIdLog({ data: { user_id: user._id }, type: LOG_TYPE.RESET_PWD_BY_SMS })
   return { errCode: 0 }
 }
-async function completeCustomerEnrollment(params = {}) {
-  if (params.confirm !== true) throw { errCode: 'CUSTOMER_ENROLLMENT_REQUIRED', errMsg: '请确认开通客户身份' }
-  const user = await consumeSelection(this, params, 'enroll')
-  const enrolled = await require('./identity-lifecycle').enrollCustomer(this, user._id, { confirmed: true, contact: user.verifiedContact })
-  return require('./login').postLogin.call(this, { user: enrolled })
-}
-module.exports = { issueSelection, consumeSelection, completeAccountLogin, completeAccountRecovery, completeCustomerEnrollment }
+module.exports = { issueSelection, consumeSelection, completeAccountLogin, completeAccountRecovery }

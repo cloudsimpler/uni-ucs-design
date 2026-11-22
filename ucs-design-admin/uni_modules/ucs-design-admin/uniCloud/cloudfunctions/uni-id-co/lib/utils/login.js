@@ -24,8 +24,9 @@ async function realPreLogin (params = {}) {
     userMatched
   } = await findUser({
     userQuery: user,
+    tenantId: this.entryTenantId,
     authorizedApp: appId,
-    accountTypes: allowedAccountTypes(this).includes(1) ? undefined : allowedAccountTypes(this)
+    accountTypes: allowedAccountTypes(this)
   })
   if (userMatched.length === 0) {
     if (total > 0) {
@@ -69,7 +70,8 @@ async function preLoginWithPassword (params = {}) {
     return verifyPasswordRecord.call(this, params, userRecord)
   }
   const { userMatched } = await findUser({ userQuery: params.user,
-    accountTypes: allowedAccountTypes(this).includes(1) ? undefined : allowedAccountTypes(this), authorizedApp: this.getUniversalClientInfo().appId })
+    tenantId: this.entryTenantId,
+    accountTypes: allowedAccountTypes(this), authorizedApp: this.getUniversalClientInfo().appId })
   const verified = []
   for (const userRecord of userMatched) {
     try {
@@ -208,12 +210,6 @@ async function postLogin (params = {}) {
     extraData,
     isThirdParty = false
   } = params
-  if (allowedAccountTypes(this).includes(1) && !require('../../module/admin/account-types').hasAccountType(user, 1)) {
-    checkLoginUserRecord(user)
-    require('./account-policy').assertAppAuthorization(this, user)
-    return { ...await require('./account-selection').issueSelection(this, [user], 'enroll'),
-      needsCustomerEnrollment: true, previouslyClosed: Boolean(user.customer_closed_date) }
-  }
   assertEntry(this, user)
   checkLoginUserRecord(user)
   const {

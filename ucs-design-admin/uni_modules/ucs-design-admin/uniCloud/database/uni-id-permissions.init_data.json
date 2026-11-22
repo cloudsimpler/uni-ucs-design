@@ -251,5 +251,53 @@
   "permission_id": "DELETE_OPENDB_DEPARTMENT",
   "permission_name": "删除部门",
   "sort": 4
-}
+},
+  {
+    "menu_id": "platform_tenant",
+    "permission_id": "READ_UCSDB_TENANTS",
+    "permission_name": "查看租户",
+    "sort": 1
+  },
+  {
+    "menu_id": "platform_tenant",
+    "permission_id": "CREATE_UCSDB_TENANTS",
+    "permission_name": "开通租户",
+    "sort": 2
+  },
+  {
+    "menu_id": "platform_tenant",
+    "permission_id": "ASSIGN_UCSDB_TENANT_PACKAGE",
+    "permission_name": "分配产品包",
+    "sort": 3
+  },
+  {
+    "menu_id": "platform_tenant",
+    "permission_id": "UPDATE_UCSDB_TENANT_STATUS",
+    "permission_name": "启停租户",
+    "sort": 4
+  },
+  {
+    "menu_id": "platform_tenant",
+    "permission_id": "ENTER_UCSDB_TENANT_MANAGEMENT",
+    "permission_name": "进入代管",
+    "sort": 5
+  },
+  {
+    "menu_id": "platform_product_package",
+    "permission_id": "READ_UCSDB_PRODUCT_PACKAGES",
+    "permission_name": "查看产品包",
+    "sort": 6
+  },
+  {
+    "menu_id": "platform_product_package",
+    "permission_id": "CREATE_UCSDB_PRODUCT_PACKAGES",
+    "permission_name": "新增产品包",
+    "sort": 7
+  },
+  {
+    "menu_id": "platform_product_package",
+    "permission_id": "UPDATE_UCSDB_PRODUCT_PACKAGES",
+    "permission_name": "编辑产品包",
+    "sort": 8
+  }
 ]

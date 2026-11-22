@@ -3,10 +3,10 @@
 	"description": "标签表",
 	"required": ["tagid", "name"],
 	"permission": {
-		"read": "'READ_UNI_ID_TAG' in auth.permission",
-		"create": "'CREATE_UNI_ID_TAG' in auth.permission",
-		"update": "'UPDATE_UNI_ID_TAG' in auth.permission",
-		"delete": "'DELETE_UNI_ID_TAG' in auth.permission"
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
 	},
 	"properties": {
 		"tenant_id": {

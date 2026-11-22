@@ -4,7 +4,8 @@ module.exports = Object.fromEntries(
 		name,
 		function (params) {
 			return createAppAdmin({
-				db: uniCloud.database(),
+				db: this.adminDb,
+				referenceDb: uniCloud.database(),
 				uid: this.authInfo.uid,
 				appId: this.getUniversalClientInfo().appId
 			})[action](params);

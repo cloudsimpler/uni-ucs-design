@@ -1,4 +1,6 @@
 const { actorName, createFields, updateFields } = require('../../lib/utils/record-metadata');
+const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant');
+const { classifyPages } = require('./menu-scope');
 const fail = (errMsg, errCode = 'MENU_ADMIN_INVALID') => {
 	throw { errCode, errMsg };
 };
@@ -14,6 +16,7 @@ const clientsFor = (row) =>
 const fields = [
 	'menu_id',
 	'menu_type',
+	'feature_scope',
 	'name',
 	'parent_id',
 	'client_type',
@@ -63,7 +66,7 @@ function visibleTree(rows, auth, clientType = 'pc') {
 	return visit('');
 }
 
-function createMenuAdmin({ db, uid, appId }) {
+function createMenuAdmin({ db, uid, appId, loginScope }) {
 	const all = async (name, where = {}, projection) => {
 		const rows = [];
 		for (let offset = 0; offset < 5000; offset += 100) {
@@ -76,6 +79,14 @@ function createMenuAdmin({ db, uid, appId }) {
 		fail('数据超过 5000 条，请联系管理员整理');
 	};
 	const authorize = async (action) => {
+		if (db.tenantActor) {
+			const scope = db.tenantActor;
+			const rights = Object.fromEntries(actions.map(key => [key, scope.isAdmin || scope.permissions.includes(permissionFor(key))]));
+			const managesPermissions = actions.some(key => scope.permissions.includes(key.toUpperCase() + '_UNI_ID_PERMISSIONS'));
+			if (action === 'read' ? !Object.values(rights).some(Boolean) && !managesPermissions : action && !rights[action])
+				fail('没有此项菜单管理权限', 'MENU_ADMIN_FORBIDDEN');
+			return { ...scope, ...rights };
+		}
 		if (!uid) fail('请先登录', 'MENU_ADMIN_UNAUTHORIZED');
 		const { data } = await db.collection('uni-id-users').doc(uid).get();
 		const user = Array.isArray(data) ? data[0] : data;
@@ -132,6 +143,11 @@ function createMenuAdmin({ db, uid, appId }) {
 		}
 		if (!value.name) fail('请输入菜单名称');
 		if (![MENU_TYPE.DIRECTORY, MENU_TYPE.PAGE].includes(value.menu_type)) fail('请选择菜单类型：0 目录、1 页面');
+		value.feature_scope = value.menu_type === MENU_TYPE.DIRECTORY
+			? (value.feature_scope ?? (value.menu_id === 'tenant_operations' ? 'platform' : 'inherit'))
+			: 'inherit';
+		if (!['inherit', 'product', 'platform'].includes(value.feature_scope)) fail('请选择有效的功能归属');
+		if (value.menu_id === 'tenant_operations' && value.feature_scope !== 'platform') fail('租户运营目录属于平台功能');
 		if (
 			!Array.isArray(value.client_type) ||
 			!value.client_type.length ||
@@ -256,10 +272,17 @@ function createMenuAdmin({ db, uid, appId }) {
 		async current(params = {}) {
 			const auth = await authorize();
 			if (!params || typeof params !== 'object' || Array.isArray(params)) fail('菜单参数不正确');
+			const rows = await all(table);
+			const { product, platform } = classifyPages(rows);
+			const scopedMenus = auth.sessionId ? (auth.menuIds || []).filter(id => product.has(id)) : auth.menuIds;
+			const operations = auth.sessionId && loginScope?.tenantId === PLATFORM_TENANT_ID
+				? [...platform].filter(id => loginScope.isAdmin || loginScope.menuIds?.includes(id))
+				: [];
 			return {
 				errCode: 0,
 				isAdmin: auth.isAdmin,
-				data: visibleTree(await all(table), auth, params.client_type === undefined ? 'pc' : params.client_type)
+				data: visibleTree(rows, { ...auth, menuIds: [...new Set([...(scopedMenus || []), ...operations])] },
+					params.client_type === undefined ? 'pc' : params.client_type)
 			};
 		},
 		async create(params) {

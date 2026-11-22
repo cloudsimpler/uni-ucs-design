@@ -50,7 +50,7 @@ module.exports = async function (params = {}) {
   
   try {
     // 验证邮箱验证码，验证不通过时写入失败日志
-    await verifyEmailCode({
+    await verifyEmailCode.call(this, {
       email,
       code,
       scene: EMAIL_SCENE.REGISTER

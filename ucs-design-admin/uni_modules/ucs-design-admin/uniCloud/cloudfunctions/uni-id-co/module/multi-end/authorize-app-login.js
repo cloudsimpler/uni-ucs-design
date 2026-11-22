@@ -25,7 +25,7 @@ module.exports = async function (params = {}) {
     appIdList: [appId]
   })
   await require('../admin/root-admin').updateRootAware({
-    db: uniCloud.database(), uid,
+    db: this.adminDb, uid,
     data: user => ({ dcloud_appid: [...new Set([...(user.dcloud_appid || ['*']), appId])] })
   })
   return {

@@ -1,0 +1,15 @@
+[
+  {
+    "IndexName": "tenant_no",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "tenant_no",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": true
+    }
+  }
+]

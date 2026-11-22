@@ -144,6 +144,7 @@
 	</el-dialog>
 </template>
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElInputNumber, ElTable, ElTableColumn, ElTreeSelect, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
@@ -168,7 +169,7 @@ import store from '../../../common/store.js';
 import { MENU_TYPE, menuTree } from '../../../common/menu.js';
 const props = defineProps({ menuId: { type: String, default: '*' }, fill: { type: Boolean, default: false } });
 const emit = defineEmits(['change']);
-const api = uniCloud.importObject('uni-id-co', { customUI: true });
+const api = importTenantAdmin();
 const rows = ref([]),
 	menus = ref([]),
 	auth = ref({}),

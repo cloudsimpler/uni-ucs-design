@@ -2,7 +2,7 @@ const { accountTypeOf, hasManagementIdentity, hasAccountType } = require('../../
 const { assertRootChange } = require('../../module/admin/root-admin')
 const fail = (errMsg, errCode = 'ACCOUNT_IDENTITY_INVALID') => { throw { errCode, errMsg } }
 
-// Single-document transactions keep concurrent enrollment/removal from overwriting identities.
+// Single-document transactions keep concurrent changes from overwriting identities.
 async function mutateIdentity(db, uid, mutate) {
   const transaction = await db.startTransaction()
   try {
@@ -21,18 +21,6 @@ async function mutateIdentity(db, uid, mutate) {
   }
 }
 
-async function enrollCustomer(context, uid, { confirmed = false, contact } = {}) {
-  return mutateIdentity(uniCloud.database(), uid, user => {
-    if ((user.status || 0) !== 0) fail('账号已停用或注销，不能重新开通')
-    require('./account-policy').assertAppAuthorization(context, user)
-    if (contact && Object.entries(contact).some(([key, value]) => user[key] !== value || user[`${key}_confirmed`] !== 1))
-      fail('联系方式已变化，请重新验证')
-    if (hasAccountType(user, 1)) return {}
-    if (!confirmed) fail('请确认开通社区身份', 'CUSTOMER_ENROLLMENT_REQUIRED')
-    return { account_type: [...accountTypeOf(user), 1].sort(), customer_enrolled_date: Date.now() }
-  })
-}
-
 async function closeCustomer(db, uid) {
   const user = await mutateIdentity(db, uid, user => {
     if ((user.status || 0) !== 0 || !hasAccountType(user, 1)) fail('当前账号没有可注销的社区身份')
@@ -44,4 +32,4 @@ async function closeCustomer(db, uid) {
   return { errCode: 0, account_type: accountTypeOf(user), accountClosed: user.status === 4,
     canEnterManagement: (user.status || 0) === 0 && hasManagementIdentity(user) }
 }
-module.exports = { mutateIdentity, enrollCustomer, closeCustomer }
+module.exports = { mutateIdentity, closeCustomer }

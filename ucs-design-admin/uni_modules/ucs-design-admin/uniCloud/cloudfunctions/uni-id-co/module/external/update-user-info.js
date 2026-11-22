@@ -146,17 +146,14 @@ module.exports = async function (params = {}) {
     return res
   }, {})
 
-  // 更新用户名时验证用户名是否重新
-  if (username !== undefined || mobile !== undefined || email !== undefined) {
+  const identifiers = { username: username ?? user.username, email: email ?? user.email }
+  if ((username !== undefined || email !== undefined) && Object.values(identifiers).some(Boolean)) {
     const {
       userMatched
     } = await findUser({
-      userQuery: {
-        username: username ?? user.username,
-        mobile: mobile ?? user.mobile,
-        email: email ?? user.email
-      },
-      uniqueAccountType: accountTypeOf(user)
+      userQuery: identifiers,
+      uniqueAccountType: accountTypeOf(user),
+      tenantId: user.tenant_id
     })
     if (userMatched.some(row => row._id !== user._id)) {
       throw {
@@ -164,6 +161,8 @@ module.exports = async function (params = {}) {
       }
     }
   }
+  if (mobile !== undefined && mobile !== (user.mobile || '')) realData.mobile_confirmed = 0
+  else delete realData.mobile
   if (password) {
     const passwordUtils = new PasswordUtils({
       clientInfo: this.getUniversalClientInfo(),

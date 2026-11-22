@@ -21,6 +21,7 @@ module.exports = async function ({
     userAgent
   } = this.getUniversalClientInfo()
   const logData = {
+    tenant_id: this.entryTenantId || this.adminDb?.tenantActor?.tenantId || '00000',
     appid: appId,
     device_id: deviceId,
     ip: clientIP,

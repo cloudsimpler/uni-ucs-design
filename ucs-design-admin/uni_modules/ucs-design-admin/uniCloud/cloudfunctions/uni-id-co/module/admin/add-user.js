@@ -4,11 +4,11 @@ const {
 const {
   ERROR
 } = require('../../common/error')
-const { userCollection } = require('../../common/constants')
 const PasswordUtils = require('../../lib/utils/password')
 const { createUserAdmin } = require('./user-admin')
 const { ACCOUNT_TYPE, managementType } = require('./account-types')
 const { normalizeIdentifiers } = require('../../lib/utils/account-policy')
+const { writeSystemMobile } = require('../../lib/utils/system-mobile')
 
 /**
  * 新增用户
@@ -31,7 +31,7 @@ module.exports = async function (params = {}) {
   params = normalizeIdentifiers(params)
   const accountType = managementType(this)
   const isEmployee = accountType === ACCOUNT_TYPE.EMPLOYEE
-  const admin = createUserAdmin({ db: uniCloud.database(), uid: this.authInfo?.uid, appId: this.getUniversalClientInfo().appId, accountType })
+  const admin = createUserAdmin({ db: this.adminDb, uid: this.authInfo?.uid, appId: this.getUniversalClientInfo().appId, accountType })
   const authorized = await admin.authorize('create')
   const schema = {
     avatar: { required: false, type: 'string' },
@@ -52,7 +52,7 @@ module.exports = async function (params = {}) {
       type: 'array<string>'
     },
     mobile: {
-      required: isEmployee,
+      required: this.getMethodName() === 'addUser',
       type: 'mobile'
     },
     email: {
@@ -86,11 +86,11 @@ module.exports = async function (params = {}) {
   } = await findUser({
     userQuery: {
       username,
-      mobile,
       email
     },
     authorizedApp,
-    uniqueAccountType: accountType
+    uniqueAccountType: accountType,
+    tenantId: this.adminDb.tenantActor.tenantId
   })
   if (userMatched.length) {
     throw {
@@ -118,7 +118,7 @@ module.exports = async function (params = {}) {
     dcloud_appid: authorizedApp || [],
     nickname,
     role: role || [],
-    mobile,
+    ...(mobile ? { mobile, mobile_confirmed: 0 } : {}),
     email,
     tags: tags || [],
     status: status ?? 0,
@@ -126,9 +126,6 @@ module.exports = async function (params = {}) {
   }
   if (email) {
     data.email_confirmed = 1
-  }
-  if (mobile) {
-    data.mobile_confirmed = 1
   }
 
   // 触发 beforeRegister 钩子
@@ -142,10 +139,25 @@ module.exports = async function (params = {}) {
   }
 
   userRecord = { ...normalizeIdentifiers(userRecord), account_type: [accountType] }
+  if (userRecord.mobile) userRecord.mobile_confirmed = 0
   delete userRecord.is_root
+  delete userRecord.is_tenant_admin
+  if (params.tenantAdmin === true) {
+    if (!this.adminDb.tenantActor.sessionId || !isEmployee || status) {
+      throw { errCode: 'TENANT_ACCESS_FORBIDDEN', errMsg: '请通过代管创建启用的企业管理员' }
+    }
+    userRecord.is_tenant_admin = true
+  }
   await require('../../lib/utils/user-number').createNumberedUser(
     { ...userRecord, ...createFields(authorized, data.register_date) },
-    record => userCollection.add(record)
+    record => {
+      const tenantId = this.adminDb.tenantActor.tenantId
+      if (isEmployee && record.mobile) {
+        return writeSystemMobile({ db: uniCloud.database(), tenantId, mobile: record.mobile },
+          users => users.add({ ...record, tenant_id: tenantId }))
+      }
+      return this.adminDb.collection('uni-id-users').add(record)
+    }
   )
   return {
     errCode: 0,

@@ -12,6 +12,7 @@ const groups = [
 ];
 const names = { READ: '查看', CREATE: '新增', UPDATE: '编辑', DELETE: '删除', PUBLISH: '发布/下线' };
 module.exports = [
+	...require('./tenant-catalog').permissions,
 	{ menu_id: 'system_user', permission_id: 'DELETE_UNI_ID_USERS', permission_name: '删除系统用户', sort: 7 },
 	...groups.flatMap(([menu_id, suffix, name, actions]) =>
 		actions.map((action, index) => ({

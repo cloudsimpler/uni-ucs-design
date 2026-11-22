@@ -44,6 +44,7 @@
 				</template>
 			</el-table-column>
 			<el-table-column prop="appid" label="AppID" min-width="210" align="center" show-overflow-tooltip />
+			<el-table-column prop="tenant_no" label="租户号" width="100" align="center" />
 			<el-table-column label="应用类型" width="130" align="center">
 				<template #default="{ row }">{{ row.app_type === 1 ? 'uni-app x' : 'uni-app' }}</template>
 			</el-table-column>
@@ -194,6 +195,7 @@
 </template>
 
 <script setup>
+import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import { ElAlert, ElAvatar, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElIcon, ElImage, ElInput, ElPagination, ElRadio, ElRadioGroup, ElTable, ElTableColumn, ElTag, ElUpload, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
@@ -221,7 +223,7 @@ import VersionPanel from './version-panel.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Grid, Plus, Refresh, Search, Loading } from '@element-plus/icons-vue';
-const api = uniCloud.importObject('uni-id-co', { customUI: true });
+const api = importTenantAdmin();
 const versionApp = ref(null);
 const rows = ref([]),
 	loading = ref(false),

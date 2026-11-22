@@ -2,7 +2,13 @@
   {
     "IndexName": "user_no",
     "MgoKeySchema": {
-      "MgoIndexKeys": [{ "Name": "user_no", "Direction": "1", "Type": "varchar" }],
+      "MgoIndexKeys": [
+        {
+          "Name": "user_no",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
       "MgoIsUnique": true
     }
   },
@@ -246,6 +252,19 @@
       "MgoIndexKeys": [
         {
           "Name": "register_env.channel",
+          "Direction": "1",
+          "Type": "varchar"
+        }
+      ],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "tenant_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [
+        {
+          "Name": "tenant_id",
           "Direction": "1",
           "Type": "varchar"
         }

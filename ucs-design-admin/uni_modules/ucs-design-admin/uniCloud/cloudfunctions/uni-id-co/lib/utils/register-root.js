@@ -1,5 +1,7 @@
 const { actorName, createFields } = require('./record-metadata')
 const { ERROR } = require('../../common/error')
+const { PLATFORM_TENANT_ID, TENANTS, platformTenant } = require('./platform-tenant')
+const { readDoc } = require('../../module/admin/tenant-scope')
 
 const initialRootId = '000000000000000000000001'
 
@@ -22,22 +24,31 @@ async function registerRootWithApp(db, user, clientInfo, applicationName, applic
   const transaction = await db.startTransaction()
   try {
     // The user collection's primary key prevents concurrent first registrations.
-    const result = await transaction.collection('uni-id-users').add({ ...user, _id: initialRootId })
+    const result = await transaction.collection('uni-id-users').add({
+      ...user, _id: initialRootId, tenant_id: PLATFORM_TENANT_ID
+    })
+    const audit = createFields({ uid: result.id, name: actorName(user) })
+    if (!await readDoc(transaction, TENANTS, PLATFORM_TENANT_ID))
+      await transaction.collection(TENANTS).add({ ...platformTenant, ...audit })
+    const apps = transaction.collection('ucsdb-app-list')
     if (!data.length) {
-      await transaction.collection('ucsdb-app-list').add({
+      await apps.add({
         appid,
         name,
         app_type: applicationType,
-        ...createFields({ uid: result.id, name: actorName(user) })
+        tenant_id: PLATFORM_TENANT_ID,
+        ...audit
       })
+    } else {
+      const existing = await readDoc(transaction, 'ucsdb-app-list', data[0]._id)
+      if (existing && !existing.tenant_id) await apps.doc(existing._id).update({ tenant_id: PLATFORM_TENANT_ID })
     }
     await transaction.commit()
     return result
   } catch (error) {
     await transaction.rollback().catch(() => {})
     if (/duplicate|E11000|重复|唯一/i.test([error.message, error.errMsg].join(' '))) {
-      const { data } = await db.collection('uni-id-users').doc(initialRootId).field({ _id: true }).get()
-      if (data.length) throw { errCode: ERROR.ADMIN_EXISTS }
+      if (await readDoc(db, 'uni-id-users', initialRootId)) throw { errCode: ERROR.ADMIN_EXISTS }
     }
     throw error
   }

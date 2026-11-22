@@ -13,7 +13,7 @@ module.exports = Object.fromEntries(
 		name,
 		function (params) {
 			return createAccessAdmin({
-				db: uniCloud.database(),
+				db: this.adminDb,
 				uid: this.authInfo.uid,
 				appId: this.getUniversalClientInfo().appId
 			})[name](params);

@@ -5,6 +5,8 @@ const {
 const {
   USER_IDENTIFIER
 } = require('../../common/constants')
+const { PLATFORM_TENANT_ID } = require('./platform-tenant')
+const { tenantWhere } = require('../../module/admin/tenant-scope')
 const {
   batchFindObjctValue,
   getType,
@@ -24,14 +26,18 @@ async function findUser (params = {}) {
     authorizedApp = [],
     matchAllApps = false,
     accountTypes,
-    uniqueAccountType
+    uniqueAccountType,
+    tenantId = PLATFORM_TENANT_ID
   } = params
-  let condition = getUserQueryCondition(userQuery, uniqueAccountType !== undefined)
   const typeCondition = types => types.includes(0)
     ? dbCmd.or([{ account_type: dbCmd.in(types) }, { account_type: dbCmd.exists(false) }])
     : { account_type: dbCmd.in(types) }
-  // uniqueAccountType is kept as an internal compatibility flag for uniqueness
-  // lookups (including unconfirmed contacts); identifiers are now globally unique.
+  const uniqueTypes = Array.isArray(uniqueAccountType) ? uniqueAccountType : [uniqueAccountType]
+  const condition = getUserQueryCondition(userQuery, uniqueAccountType !== undefined).map(query =>
+    uniqueAccountType !== undefined && query.mobile
+      ? dbCmd.and([query, typeCondition(uniqueTypes)])
+      : query
+  )
   if (condition.length === 0) {
     throw new Error('Invalid user query')
   }
@@ -48,7 +54,7 @@ async function findUser (params = {}) {
     finalQuery = dbCmd.or(condition)
   }
   if (accountTypes) finalQuery = dbCmd.and([finalQuery, typeCondition(accountTypes)])
-  const userQueryRes = await userCollection.where(finalQuery).get()
+  const userQueryRes = await userCollection.where(dbCmd.and([finalQuery, tenantWhere({ command: dbCmd }, tenantId)])).get()
   return {
     total: userQueryRes.data.length,
     userMatched: userQueryRes.data.filter(item => {
@@ -76,7 +82,7 @@ function getUserQueryCondition (userRecord = {}, uniqueness = false) {
     }
     // 邮箱兼容旧数据；账号始终按原始大小写精确匹配。
     if (key === 'mobile') {
-      if (!uniqueness) queryItem.mobile_confirmed = 1
+      queryItem.mobile_confirmed = 1
     } else if (key === 'email') {
       if (!uniqueness) queryItem.email_confirmed = 1
       const email = userIdentifier.email

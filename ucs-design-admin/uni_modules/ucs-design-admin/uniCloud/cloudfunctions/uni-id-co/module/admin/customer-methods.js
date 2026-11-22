@@ -9,7 +9,7 @@ async function setCustomerStatus(params = {}) {
     typeof params.uid !== 'string' || ![0, 1].includes(params.status) || !Array.isArray(params.expectedAccountTypes) ||
     params.expectedAccountTypes.some(type => ![0, 1].includes(type)))
     throw { errCode: 'USER_ADMIN_INVALID', errMsg: '请刷新后确认账号身份及禁用范围' }
-  const db = uniCloud.database()
+  const db = this.adminDb
   const admin = createUserAdmin({ db, uid: this.authInfo.uid, appId: this.getUniversalClientInfo().appId, accountType: 1 })
   const auth = await admin.authorize('status')
   await mutateIdentity(db, params.uid, async user => {

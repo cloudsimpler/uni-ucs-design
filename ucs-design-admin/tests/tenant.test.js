@@ -1,0 +1,423 @@
+const assert = require('node:assert/strict')
+const { test } = require('node:test')
+const path = require('node:path')
+const fs = require('node:fs')
+const vm = require('node:vm')
+const { createRequire } = require('node:module')
+const root = path.resolve(__dirname, '../uni_modules/ucs-design-admin/uniCloud/cloudfunctions/uni-id-co')
+const { resolveTenantScope, resolveEntryTenant, scopedDatabase, enterpriseScope } = require(path.join(root, 'module/admin/tenant-scope'))
+const { tenantRights } = require(path.join(root, 'module/admin/tenant-catalog'))
+const { authenticateAdmin, verifyDelegation, installAdminTokenIssuer } = require(path.join(root, 'module/admin/admin-token'))
+const methods = require(path.join(root, 'module/admin/tenant-methods'))
+const { registerRootWithApp } = require(path.join(root, 'lib/utils/register-root'))
+const { migrateTenantRecords } = require(path.join(root, 'lib/utils/tenant-migration'))
+
+function memoryDatabase() {
+  const tables = new Map()
+  let sequence = 0
+  const command = {
+    and: operands => row => operands.every(filter => matches(row, filter)),
+    or: operands => row => operands.some(filter => matches(row, filter)),
+    exists: exists => value => exists === (value !== undefined),
+    in: values => value => Array.isArray(value) ? value.some(entry => values.includes(entry)) : values.includes(value),
+    neq: expected => value => value !== expected,
+    inc: amount => ({ increment: amount })
+  }
+  function matches(row, filter) {
+    return typeof filter === 'function' ? filter(row) : Object.entries(filter).every(([key, value]) => {
+      if (typeof value === 'function') return value(row[key])
+      if (value instanceof RegExp) return value.test(row[key])
+      return row[key] === value
+    })
+  }
+  function collection(name) {
+    if (!tables.has(name)) tables.set(name, new Map())
+    const table = tables.get(name)
+    function query(filter = {}, fields, offset = 0, limit = 100) {
+      const selected = () => [...table.values()].filter(row => matches(row, filter)).slice(offset, offset + limit)
+      return {
+        where: where => query(command.and([filter, where]), fields, offset, limit),
+        doc: id => query({ _id: id }),
+        field: fields => query(filter, fields, offset, limit),
+        orderBy: () => query(filter, fields, offset, limit),
+        skip: offset => query(filter, fields, offset, limit),
+        limit: limit => query(filter, fields, offset, limit),
+        async count() { return { total: [...table.values()].filter(row => matches(row, filter)).length } },
+        async get() {
+          return { data: selected().map(row => structuredClone(fields
+            ? Object.fromEntries(Object.entries(row).filter(([key]) => fields[key] || key === '_id'))
+            : row)) }
+        },
+        async add(value) {
+          const id = value._id || 'id-' + ++sequence
+          if (table.has(id) || (name === 'ucsdb-tenants' && [...table.values()].some(row => row.tenant_no === value.tenant_no)))
+            throw new Error('duplicate')
+          table.set(id, structuredClone({ ...value, _id: id }))
+          return { id }
+        },
+        async update(patch) {
+          const rows = selected()
+          for (const row of rows) {
+            for (const [key, value] of Object.entries(patch)) {
+              row[key] = value?.increment ? (row[key] || 0) + value.increment : structuredClone(value)
+            }
+          }
+          return { updated: rows.length }
+        },
+        async remove() {
+          const rows = selected()
+          rows.forEach(row => table.delete(row._id))
+          return { deleted: rows.length }
+        }
+      }
+    }
+    return query()
+  }
+  return { command, collection, async startTransaction() {
+    const snapshot = structuredClone(tables)
+    const transactionCollection = name => {
+      const raw = collection(name)
+      return { ...raw, doc(id) {
+        const ref = raw.doc(id)
+        return { ...ref, async get() { return { data: (await ref.get()).data[0] ?? null } } }
+      } }
+    }
+    return { collection: transactionCollection, async commit() {}, async rollback() {
+      tables.clear()
+      for (const [name, data] of snapshot) tables.set(name, data)
+    } }
+  } }
+}
+
+test('首次注册同事务建立平台、管理员和实际应用类型', async () => {
+  const db = memoryDatabase()
+  const root = await registerRootWithApp(db, { is_root: true, role: ['admin'], username: 'admin' }, { appId: 'test' }, '管理端', 1)
+  assert.equal((await db.collection('uni-id-users').doc(root.id).get()).data[0].tenant_id, '00000')
+  assert.equal((await db.collection('ucsdb-tenants').doc('00000').get()).data[0].type, 'platform')
+  const [app] = (await db.collection('ucsdb-app-list').where({ appid: 'test' }).get()).data
+  assert.equal(app.app_type, 1)
+  assert.equal(app.tenant_id, '00000')
+})
+
+test('签名权限按租户隔离，新的签发读取最新的产品包', async () => {
+  const db = memoryDatabase()
+  global.uniCloud = { database: () => db }
+  const users = db.collection('uni-id-users')
+  const roles = db.collection('uni-id-roles')
+  const permissions = db.collection('uni-id-permissions')
+  const menus = db.collection('ucsdb-admin-menus')
+  const credentials = new Map()
+  let sequence = 0
+  const actor = (uid, sessionId) => {
+    const appId = 'test'
+    const expiry = Math.floor(Date.now() / 1000) + 7 * 86400
+    const auth = {
+      middleware: { async auth() {} }, authInfo: { uid },
+      getUniversalClientInfo: () => ({ appId }),
+      getUniversalUniIdToken: () => 'token-' + uid,
+      getParams: () => [{}, sessionId], platformTokenExpires: expiry * 1000,
+      config: { tokenExpiresThreshold: 3 * 86400 }, response: {}, issueAdminScope: true,
+      uniIdCommon: {
+        setInterceptor(_name, issuer) { this.issuer = issuer },
+        async checkToken(token) { return credentials.get(token) || { errCode: 'INVALID' } },
+        async checkDelegationToken(token) { return credentials.get(token) || { errCode: 'INVALID' } },
+        async refreshToken({ token }) {
+          const { uid } = credentials.get(token)
+          const fresh = 'renewed-' + ++sequence
+          credentials.set(fresh, { ...await this.issuer({ uid, role: [], permission: [] }), exp: expiry })
+          return { token: fresh, tokenExpired: expiry * 1000 }
+        },
+        async createDelegationToken({ uid, scope }) {
+          const token = 'delegation-' + ++sequence
+          credentials.set(token, { uid, exp: expiry, ucsDelegation: structuredClone(scope) })
+          return { token, tokenExpired: expiry * 1000 }
+        }
+      }
+    }
+    installAdminTokenIssuer(auth)
+    return auth
+  }
+  const run = async (method, uid, arg) => {
+    const context = actor(uid)
+    context.adminScope = await resolveTenantScope(db, uid, 'test')
+    return methods[method].call(context, arg)
+  }
+  await users.add({ _id: 'root', nickname: '平台管理员', role: ['admin'], account_type: [0], tenant_id: '00000' })
+  await users.add({ _id: 'operator', nickname: '运营', role: ['ops'], account_type: [0], tenant_id: '00000' })
+  await roles.add({ role_id: 'ops', tenant_id: '00000', menu_ids: ['platform_tenant'], permission: [tenantRights.enter] })
+  await run('installTenantManagement', 'root')
+  await run('installTenantManagement', 'root')
+  assert.equal((await menus.where({ menu_id: 'platform_tenant' }).get()).data.length, 1)
+  await menus.add({ menu_id: 'system', menu_type: 0, enable: true })
+  await menus.add({ menu_id: 'custom_ops', menu_type: 0, enable: true, feature_scope: 'platform' })
+  await menus.add({ menu_id: 'custom_ops_sub', parent_id: 'custom_ops', menu_type: 0, feature_scope: 'inherit' })
+  await menus.add({ menu_id: 'custom_report', parent_id: 'custom_ops_sub', menu_type: 1, url: '/ops/report' })
+  await menus.add({ menu_id: 'system_menu', parent_id: 'system', menu_type: 1, enable: true, url: '/system/menu' })
+  await menus.add({ menu_id: 'system_user', parent_id: 'system', menu_type: 1, enable: true })
+  await permissions.add({ menu_id: 'system_user', permission_id: 'READ_UNI_ID_USERS' })
+  await permissions.add({ menu_id: 'system_user', permission_id: 'CREATE_UNI_ID_USERS' })
+  const { id: pkg } = await run('saveProductPackage', 'root', {
+    name: '系统人员', remark: '  用于人员管理  ', menu_ids: ['system_user']
+  })
+  const packageData = await run('listProductPackages', 'root')
+  assert.deepEqual(packageData.menus.map(row => row.menu_id).sort(), ['system', 'system_user'])
+  assert.deepEqual(packageData.data.find(row => row._id === pkg).permission_ids, ['READ_UNI_ID_USERS', 'CREATE_UNI_ID_USERS'])
+  await assert.rejects(run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['system'] }), { errCode: 'TENANT_INVALID' })
+  const fullMenuIds = ['platform_tenant', 'platform_product_package', 'system_menu']
+  await assert.rejects(run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['platform_tenant'] }), { errCode: 'TENANT_INVALID' })
+  await assert.rejects(run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['custom_report'] }), { errCode: 'TENANT_INVALID' })
+  const { id: operationsPackage } = await db.collection('ucsdb-product-packages').add({
+    name: '历史运营菜单', menu_ids: fullMenuIds, permission_ids: [tenantRights.enter]
+  })
+  const productRemark = async () => (await run('listProductPackages', 'root')).data.find(row => row._id === pkg).remark
+  assert.equal(await productRemark(), '用于人员管理')
+  const { id: a } = await run('createTenant', 'root', { tenant_no: '00001', name: '企业甲' })
+  const { id: b } = await run('createTenant', 'root', { tenant_no: '00002', name: '企业乙' })
+  const { id: addOn } = await run('saveProductPackage', 'root', {
+    name: '增值包', menu_ids: ['system_user'], permission_ids: ['READ_UNI_ID_USERS']
+  })
+  const page = await run('listTenants', 'root', { tenant_no: '0000', name: '企业', current: 2, size: 1 })
+  assert.deepEqual(page.pagination, { current: 2, size: 1, count: 2 })
+  assert.deepEqual(page.data.map(row => row._id), [b])
+  const numberMatch = await run('listTenants', 'root', { keyword: '00002' })
+  const nameMatch = await run('listTenants', 'root', { keyword: '企业乙' })
+  assert.deepEqual(numberMatch.data.map(row => row._id), [b])
+  assert.deepEqual(nameMatch.data.map(row => row._id), [b])
+  const noMatch = await run('listTenants', 'root', { name: '.*', size: 1 })
+  assert.deepEqual(noMatch.pagination, { current: 1, size: 1, count: 0 })
+  await assert.rejects(run('createTenant', 'operator', { tenant_no: '00003', name: '企业丙' }), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+  for (const _id of [a, b]) await run('assignTenantPackage', 'root', { _id, product_package_id: pkg })
+  await run('assignTenantPackage', 'root', { _id: a, product_package_ids: [pkg, addOn, addOn] })
+  assert.deepEqual((await db.collection('ucsdb-tenants').doc(a).get()).data[0].product_package_ids, [pkg, addOn])
+  assert.equal(await resolveEntryTenant(db, '00001'), a)
+  assert.equal(await resolveEntryTenant(db, '00002'), b)
+  await users.add({ _id: 'a-admin', username: 'admin', tenant_id: a, account_type: [0], is_tenant_admin: true })
+  await users.add({ _id: 'b-admin', username: 'admin', tenant_id: b, account_type: [0], is_tenant_admin: true })
+  await users.add({ _id: 'a-community', tenant_id: a, account_type: [1] })
+  await users.add({ _id: 'b-community', tenant_id: b, account_type: [1] })
+  const session = await run('enterTenantManagement', 'operator', { _id: a })
+  const operator = actor('operator')
+  const platform = await operator.uniIdCommon.issuer({ uid: 'operator', role: [], permission: [] })
+  credentials.set('token-operator', { ...platform, exp: operator.platformTokenExpires / 1000 })
+  const scope = () => authenticateAdmin(actor('operator'), session.delegationToken)
+  global.uniCloud.database = () => { throw new Error('普通鉴权不应读取数据库') }
+  assert.equal((await scope()).tenantId, a)
+  await assert.rejects(authenticateAdmin(actor('operator'), session.sessionId), { errCode: 'TENANT_SESSION_INVALID' })
+  global.uniCloud.database = () => db
+  const tenantDb = scopedDatabase(db, await scope())
+  assert.deepEqual((await tenantDb.collection('uni-id-users').where({}).get()).data.map(row => row._id), ['a-admin', 'a-community'])
+  assert.equal((await tenantDb.collection('uni-id-users').doc('b-admin').get()).data.length, 0)
+  assert.equal((await tenantDb.collection('uni-id-users').doc('b-admin').update({ nickname: '不应生效' })).updated, 0)
+  const addUserFile = path.join(root, 'module/admin/add-user.js')
+  const addUserModule = { exports: {} }
+  const localRequire = createRequire(addUserFile)
+  const addUserSource = fs.readFileSync(addUserFile, 'utf8')
+  vm.runInThisContext('(function(require,module){' + addUserSource + '\n})')((name) =>
+    name === '../../lib/utils/password' ? class {
+      generatePasswordHash() { return { passwordHash: 'stub-hash', version: 1 } }
+    } : localRequire(name), addUserModule)
+  const addUser = addUserModule.exports
+  const createAdmin = {
+    username: 'enterprise_admin', nickname: '首任管理员', gender: 1,
+    mobile: '13900000000', password: 'test-password', tenantAdmin: true, authorizedApp: ['test']
+  }
+  await users.add({ _id: 'b-employee', username: createAdmin.username, mobile: createAdmin.mobile, tenant_id: b, account_type: [0] })
+  await users.doc('a-community').update({ mobile: createAdmin.mobile, mobile_confirmed: 1 })
+  const { Validator } = require(path.join(root, 'common/validator'))
+  const validate = require(path.join(root, 'middleware/validate')).bind({ validator: new Validator() })
+  const createSystemUser = (params, method = 'addUser') => addUser.call({
+    ...actor('operator', session.sessionId), adminDb: tenantDb, middleware: { validate },
+    getMethodName: () => method, hooks: {}, config: {}
+  }, params)
+  await createSystemUser(createAdmin)
+  await assert.rejects(createSystemUser({ ...createAdmin, username: 'another_employee', tenantAdmin: false }), {
+    errCode: 'SYSTEM_MOBILE_EXISTS'
+  })
+  const noMobile = { ...createAdmin, username: 'no_mobile', mobile: undefined, tenantAdmin: false }
+  await assert.rejects(createSystemUser(noMobile), {
+    errCode: 'uni-id-param-required', errMsgValue: { param: 'mobile' }
+  })
+  await assert.rejects(createSystemUser({ ...noMobile, mobile: '  ' }), {
+    errCode: 'uni-id-param-required', errMsgValue: { param: 'mobile' }
+  })
+  await createSystemUser(noMobile, 'addDeveloper')
+  const { data: created } = await tenantDb.collection('uni-id-users').where({ username: createAdmin.username }).get()
+  assert.equal(created[0].tenant_id, a)
+  assert.equal(created[0].creator_id, 'operator')
+  assert.equal(created[0].is_tenant_admin, true)
+  assert.equal(created[0].is_root, undefined)
+  assert.deepEqual(created[0].account_type, [0])
+  const updateRootAware = require(path.join(root, 'module/admin/root-admin')).updateRootAware
+  const { data: developer } = await tenantDb.collection('uni-id-users').where({ username: 'no_mobile' }).get()
+  await assert.rejects(updateRootAware({ db: tenantDb, uid: developer[0]._id, current: developer[0], data: { mobile: createAdmin.mobile } }), {
+    errCode: 'SYSTEM_MOBILE_EXISTS'
+  })
+  await updateRootAware({ db: tenantDb, uid: created[0]._id, current: created[0], data: { mobile: createAdmin.mobile } })
+  assert.equal(created[0].mobile_confirmed, 0)
+  assert.equal((await users.doc('a-community').get()).data[0].mobile_confirmed, 1)
+  assert.equal((await tenantDb.collection('uni-id-users').where({ username: 'no_mobile' }).get()).data[0].mobile, undefined)
+  const { findUser } = require(path.join(root, 'lib/utils/account'))
+  const mobileQuery = { userQuery: { mobile: createAdmin.mobile }, tenantId: a, matchAllApps: true }
+  assert.deepEqual((await findUser({ ...mobileQuery, accountTypes: [0] })).userMatched, [])
+  assert.deepEqual((await findUser({ ...mobileQuery, accountTypes: [1] })).userMatched.map(user => user._id), ['a-community'])
+  assert.deepEqual((await findUser({ ...mobileQuery, uniqueAccountType: 0 })).userMatched, [])
+  assert.deepEqual((await findUser({ ...mobileQuery, uniqueAccountType: 1 })).userMatched.map(user => user._id), ['a-community'])
+  const contactFile = path.join(root, 'lib/utils/contact-auth.js')
+  const contactModule = { exports: {} }
+  const requireContact = createRequire(contactFile)
+  vm.runInThisContext('(function(require,module){' + fs.readFileSync(contactFile, 'utf8') + '\n})')(name => {
+    if (name === './verify-code') return { async verifyMobileCode() {} }
+    if (name === './captcha') return { async getNeedCaptcha() { return false } }
+    if (name === './account-selection') return {
+      issueSelection(_context, users) { return users.map(user => user._id) }
+    }
+    return requireContact(name)
+  }, contactModule)
+  const recover = method => contactModule.exports.beginAccountRecovery.call({
+    entryTenantId: a, getMethodName: () => method, middleware: { validate() {} },
+    getUniversalClientInfo: () => ({ appId: 'test' })
+  }, { channel: 'mobile', mobile: createAdmin.mobile, code: '123456' })
+  assert.deepEqual(await recover('adminBeginAccountRecovery'), [])
+  assert.deepEqual(await recover('beginAccountRecovery'), ['a-community'])
+  await users.doc(created[0]._id).update({ mobile_confirmed: 1 })
+  assert.deepEqual(await recover('adminBeginAccountRecovery'), [created[0]._id])
+  assert.deepEqual(await recover('beginAccountRecovery'), ['a-community'])
+  const added = await tenantDb.collection('ucsdb-department').add({ name: '部门' })
+  assert.equal((await db.collection('ucsdb-department').doc(added.id).get()).data[0].tenant_id, a)
+  assert.throws(() => tenantDb.collection('ucsdb-department').add({ tenant_id: b }), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+  const tx = await tenantDb.startTransaction()
+  await assert.rejects(tx.collection('uni-id-users').doc('b-community').remove(), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+  await tx.rollback()
+  await assert.rejects(verifyDelegation(actor('root'), session.delegationToken), { errCode: 'TENANT_SESSION_INVALID' })
+  assert.deepEqual((await resolveTenantScope(db, 'a-admin', 'test')).permissions, ['READ_UNI_ID_USERS', 'CREATE_UNI_ID_USERS'])
+  await assert.rejects(run('listTenants', 'a-admin'), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+  await run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['system_user'], permission_ids: [] })
+  assert.equal(await productRemark(), '用于人员管理')
+  assert.deepEqual((await scope()).permissions, ['READ_UNI_ID_USERS', 'CREATE_UNI_ID_USERS'])
+  await run('saveProductPackage', 'root', { _id: pkg, name: '系统人员·更新', remark: '' })
+  assert.equal(await productRemark(), '')
+  assert.deepEqual((await scope()).permissions, ['READ_UNI_ID_USERS', 'CREATE_UNI_ID_USERS'])
+  assert.deepEqual((await scope()).menuIds, ['system_user'])
+  const originalDelegation = credentials.get(session.delegationToken)
+  credentials.set(session.delegationToken, { ...originalDelegation, exp: Math.floor(Date.now() / 1000) + 3600 })
+  const renewal = actor('operator')
+  assert.deepEqual((await authenticateAdmin(renewal, session.delegationToken)).permissions, ['READ_UNI_ID_USERS'])
+  assert.ok(renewal.response.newDelegation.delegationToken)
+  credentials.set(session.delegationToken, originalDelegation)
+  assert.equal((await run('exitTenantManagement', 'operator', { delegationToken: session.delegationToken })).errCode, 0)
+  assert.equal((await scope()).tenantId, a)
+  const second = await run('enterTenantManagement', 'operator', { _id: a })
+  assert.deepEqual((await verifyDelegation(actor('operator'), second.delegationToken)).scope.permissions, ['READ_UNI_ID_USERS'])
+  await run('setTenantStatus', 'root', { _id: a, enabled: false })
+  await assert.rejects(resolveEntryTenant(db, '00001'), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+  await run('setTenantStatus', 'root', { _id: a, enabled: true })
+  await run('assignTenantPackage', 'root', { _id: a, product_package_ids: [pkg] })
+  const third = await run('enterTenantManagement', 'operator', { _id: a })
+  assert.deepEqual((await verifyDelegation(actor('operator'), third.delegationToken)).scope.permissions, [])
+  const originalPlatform = credentials.get('token-operator')
+  await db.collection('uni-id-roles').where({ role_id: 'ops' }).update({ permission: [] })
+  credentials.set('token-operator', { ...originalPlatform, exp: Math.floor(Date.now() / 1000) + 3600 })
+  const platformRenewal = actor('operator')
+  assert.deepEqual((await authenticateAdmin(platformRenewal)).permissions, [])
+  assert.ok(platformRenewal.response.newToken.token)
+  await run('assignTenantPackage', 'root', { _id: b, product_package_ids: [operationsPackage] })
+  const operationsSession = await run('enterTenantManagement', 'root', { _id: b })
+  const rootActor = actor('root')
+  credentials.set('token-root', {
+    ...await rootActor.uniIdCommon.issuer({ uid: 'root', role: [], permission: [] }),
+    exp: rootActor.platformTokenExpires / 1000
+  })
+  const operationsScope = await authenticateAdmin(rootActor, operationsSession.delegationToken)
+  assert.equal(operationsScope.tenantId, b)
+  assert.equal(operationsScope.isAdmin, false)
+  assert.deepEqual(operationsScope.menuIds, [])
+  assert.ok(!operationsScope.permissions.includes(tenantRights.enter))
+  const { createMenuAdmin } = require(path.join(root, 'module/admin/menu-admin'))
+  const menuService = createMenuAdmin({ db: scopedDatabase(db, operationsScope), uid: 'root', appId: 'test', loginScope: rootActor.loginAdminScope })
+  const { data: sidebar } = await menuService.current()
+  assert.deepEqual(sidebar.flatMap(directory => directory.children.map(page => page.menu_id)).sort(),
+    [...fullMenuIds, 'custom_ops_sub'].sort())
+  const fromDelegation = await methods.listTenants.call(rootActor, { tenant_no: '00002' })
+  assert.deepEqual(fromDelegation.data.map(row => row._id), [b])
+  assert.equal(fromDelegation.currentTenantId, b)
+  assert.equal(fromDelegation.auth.create, true)
+  for (const [method, params] of [
+    ['assignTenantPackage', { _id: b, product_package_ids: [] }],
+    ['setTenantStatus', { _id: b, enabled: false }],
+    ['enterTenantManagement', { _id: b }]
+  ]) await assert.rejects(methods[method].call(rootActor, params), { errCode: 'TENANT_CURRENT_FORBIDDEN' })
+  assert.equal((await methods.setTenantStatus.call(rootActor, { _id: a, enabled: true })).errCode, 0)
+  assert.equal((await methods.listProductPackages.call(rootActor)).errCode, 0)
+  const readOnlyOperator = {
+    ...rootActor,
+    loginAdminScope: { ...rootActor.loginAdminScope, isAdmin: false, permissions: [tenantRights.read] }
+  }
+  assert.equal((await methods.listTenants.call(readOnlyOperator)).auth.create, false)
+  await assert.rejects(methods.createTenant.call(readOnlyOperator, { tenant_no: '00003', name: '企业丙' }), {
+    errCode: 'TENANT_ACCESS_FORBIDDEN'
+  })
+  const withoutOperationsPermission = {
+    ...rootActor, loginAdminScope: { ...rootActor.loginAdminScope, isAdmin: false, permissions: [] }
+  }
+  await assert.rejects(methods.listTenants.call(withoutOperationsPermission), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+  assert.deepEqual((await resolveTenantScope(db, 'b-admin', 'test')).menuIds, [])
+})
+
+test('应用归属登录租户，版本访问受所属应用限制', async () => {
+  const db = memoryDatabase()
+  const createAppAdmin = require(path.join(root, 'module/admin/app-admin')).createAppAdmin
+  const createVersionAdmin = require(path.join(root, 'module/admin/version-admin')).createVersionAdmin
+  const appId = 'platform-app'
+  await db.collection('ucsdb-app-list').add({ appid: appId, name: '历史平台应用' })
+  const permissions = ['CREATE_OPENDB_APP_LIST', 'READ_OPENDB_APP_VERSIONS', 'CREATE_OPENDB_APP_VERSIONS', 'DELETE_OPENDB_APP_LIST']
+  await db.collection('ucsdb-admin-menus').add({ menu_id: 'system_app', menu_type: 1, enable: true })
+  for (const permission_id of permissions)
+    await db.collection('uni-id-permissions').add({ menu_id: 'system_app', permission_id })
+  const { id: packageId } = await db.collection('ucsdb-product-packages')
+    .add({ menu_ids: ['system_app'], permission_ids: permissions })
+  const entry = async (tenantId, tenantNo) => {
+    const tenant = { _id: tenantId, tenant_no: tenantNo, type: 'enterprise', enabled: true, product_package_ids: [packageId] }
+    const actor = { uid: tenantId, name: tenantNo, user: { is_tenant_admin: true } }
+    const scope = await enterpriseScope(db, actor, tenant)
+    assert.ok(scope.permissions.includes('CREATE_OPENDB_APP_LIST'))
+    assert.deepEqual((await enterpriseScope(db, actor, tenant, 'delegated')).menuIds, ['system_app'])
+    return { uid: tenantId, appId, db: scopedDatabase(db, scope) }
+  }
+  const a = await entry('enterprise-a', '00001')
+  const b = await entry('enterprise-b', '00002')
+  const aApps = createAppAdmin({ ...a, referenceDb: db })
+  const bApps = createAppAdmin({ ...b, referenceDb: db })
+  const saved = await aApps.save({ appid: 'enterprise-app', name: '企业应用', tenant_id: 'enterprise-b' })
+  const [app] = (await aApps.list()).data
+  assert.equal(app.tenant_id, a.uid)
+  assert.equal(app.tenant_no, '00001')
+  assert.deepEqual((await bApps.list()).data, [])
+  assert.deepEqual((await b.db.appCatalog({}).get()).data.map(row => row.appid), [appId])
+  assert.deepEqual((await a.db.appCatalog({}).get()).data.map(row => row.appid), [appId, 'enterprise-app'])
+  await assert.rejects(bApps.remove({ _id: saved.id }), { errCode: 'APP_ADMIN_NOT_FOUND' })
+  const aVersions = createVersionAdmin({ ...a, versionDb: db })
+  const bVersions = createVersionAdmin({ ...b, versionDb: db })
+  const version = { appid: app.appid, version: '1.0.0', platform: ['Android'], type: 'native_app',
+    contents: '首次发布', url: 'https://example.com/app.apk' }
+  await aVersions.save(version)
+  const [stored] = (await db.collection('ucsdb-app-versions').where({ appid: app.appid }).get()).data
+  assert.equal(stored.tenant_id, undefined)
+  await assert.rejects(bVersions.list({ appid: app.appid }), { errMsg: '应用不存在或已被删除' })
+  await assert.rejects(aApps.remove({ _id: saved.id }), { errMsg: '应用存在版本记录，不能删除' })
+})
+
+test('历史数据迁移保留 ID，预览不写入，禁止改写已有租户归属', async () => {
+  const db = memoryDatabase()
+  const users = db.collection('uni-id-users')
+  await users.add({ _id: 'legacy', username: 'admin' })
+  const input = { assignments: [{ collection: 'uni-id-users', id: 'legacy', tenant_id: '00000' }], actor: { uid: 'root', name: '平台管理员' } }
+  const [row] = await migrateTenantRecords(db, input)
+  assert.equal(row.alreadyAssigned, false)
+  assert.equal((await users.doc('legacy').get()).data[0].tenant_id, undefined)
+  await migrateTenantRecords(db, { ...input, preview: false })
+  const saved = (await users.doc('legacy').get()).data[0]
+  assert.equal(saved._id, 'legacy')
+  assert.equal(saved.tenant_id, '00000')
+  assert.equal(saved.updater_id, 'root')
+  await assert.rejects(migrateTenantRecords(db, { ...input, assignments: [{ ...input.assignments[0], tenant_id: 'other' }] }), /已有其他租户归属/)
+})

@@ -14,6 +14,7 @@ const fields = Object.fromEntries(
     '_id',
     'user_no',
     'is_root',
+    'is_tenant_admin',
     'account_type',
     'username',
     'nickname',
@@ -48,7 +49,8 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
   const all = async (name, where = {}, projection) => {
     const result = []
     for (let offset = 0; offset < 5000; offset += 100) {
-      let query = db.collection(name).where(where).orderBy('_id', 'asc').skip(offset).limit(100)
+      const source = name === 'ucsdb-app-list' && db.appCatalog ? db.appCatalog(where) : db.collection(name).where(where)
+      let query = source.orderBy('_id', 'asc').skip(offset).limit(100)
       if (projection) query = query.field(projection)
       const { data } = await query.get()
       result.push(...data)
@@ -58,14 +60,16 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
   }
   const authorize = async (write = false) => {
     if (!uid) fail('请先登录', 'USER_ADMIN_UNAUTHORIZED')
-    const user = await getUser(uid)
+    const scope = db.tenantActor
+    const user = scope?.user || await getUser(uid)
     if (!user || !hasManagementIdentity(user) || (user.status || 0) !== 0 || !allowsApp(user.dcloud_appid, appId))
       fail('当前账号已停用或无权登录此应用', 'USER_ADMIN_FORBIDDEN')
-    const isAdmin = (user.role || []).includes('admin')
-    if (initializeRoot && isAdmin && !user.is_root) await initializeLegacyRoot(db, appId)
-    const roles = !isAdmin && user.role?.length ? await (readRoles ? readRoles(user.role) : all('uni-id-roles', { role_id: cmd.in(user.role) })) : []
-    const permissions = [...new Set(roles.flatMap(role => role.permission || []))]
-    const auth = { uid, name: actorName(user), isAdmin, permissions, apps: user.dcloud_appid, menuIds: [...new Set(roles.flatMap(role => role.menu_ids || []))],
+    const isAdmin = scope ? scope.isAdmin : (user.role || []).includes('admin')
+    if (!scope && initializeRoot && isAdmin && !user.is_root) await initializeLegacyRoot(db, appId)
+    const roles = !scope && !isAdmin && user.role?.length ? await (readRoles ? readRoles(user.role) : all('uni-id-roles', { role_id: cmd.in(user.role) })) : []
+    const permissions = scope?.permissions || [...new Set(roles.flatMap(role => role.permission || []))]
+    const auth = { uid, name: scope?.name ?? actorName(user), isAdmin, permissions,
+      apps: scope ? scope.apps : user.dcloud_appid, menuIds: scope?.menuIds || [...new Set(roles.flatMap(role => role.menu_ids || []))],
       create: isAdmin || permissions.includes(`CREATE_${suffix}`),
       update: isAdmin || permissions.includes(`UPDATE_${suffix}`),
       delete: isAdmin || permissions.includes(`DELETE_${suffix}`),
@@ -81,6 +85,8 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
   }
   const validateChange = async (params, old, authorized) => {
     rejectRootInput(params)
+    if (old?.is_tenant_admin && !db.tenantActor?.sessionId && !db.tenantActor?.user.is_tenant_admin)
+      fail('没有维护企业管理员的权限', 'USER_ADMIN_FORBIDDEN')
     if (Object.prototype.hasOwnProperty.call(params, 'id_card')) fail('已移除身份证号字段，不支持录入')
     if (params.user_no !== undefined) fail('UID由系统分配，不允许修改')
     if (params.account_type !== undefined) fail('账号类型由管理入口指定，不允许修改')
@@ -110,9 +116,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
       // Partial actions (avatar upload, password reset, status changes) omit profile fields.
       if ((!params.uid || params.gender !== undefined) && !(old?.is_root && params.gender === 0) && ![1, 2].includes(params.gender)) fail('请选择男或女')
     }
-    if ((accountType === ACCOUNT_TYPE.EMPLOYEE && (!params.uid || params.mobile !== undefined) && !(old?.is_root && !old.mobile && !params.mobile)) || params.mobile) {
-      if (!/^1\d{10}$/.test(params.mobile || '')) fail('请输入有效的 11 位手机号')
-    }
+    if (params.mobile && !/^1\d{10}$/.test(params.mobile)) fail('请输入有效的 11 位手机号')
     if (params.status !== undefined && (!Number.isInteger(params.status) || params.status < 0 || params.status > 4))
       fail('用户状态不正确')
     if (params.gender !== undefined && ![0, 1, 2].includes(params.gender)) fail('性别不正确')
@@ -207,13 +211,14 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
           }
           return rows
         }
-        const transactionDb = { command: cmd, collection: name => transaction.collection(name) }
+        const transactionDb = { command: cmd, tenantActor: db.tenantActor, collection: name => transaction.collection(name) }
         const scoped = createUserAdmin({ db: transactionDb, uid, appId, accountType, readRoles: transactionRoles, initializeRoot: false })
         const auth = await scoped.authorize('delete')
         const user = await scoped.getUser(targetId)
         if (!user) fail('账号不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
         assertAccountType(user)
         if (user.is_root && accountType === 0) fail('初始超级管理员不可移除系统身份', 'USER_ADMIN_FORBIDDEN')
+        if (user.is_tenant_admin && accountType === 0) fail('企业管理员不可移除系统身份', 'USER_ADMIN_FORBIDDEN')
         if (user.role?.includes('admin') && !auth.isAdmin) fail('只有超级管理员可以删除其他超级管理员', 'USER_ADMIN_FORBIDDEN')
         if (!auth.isAdmin && user.role?.length) {
           const roles = await transactionRoles(user.role)

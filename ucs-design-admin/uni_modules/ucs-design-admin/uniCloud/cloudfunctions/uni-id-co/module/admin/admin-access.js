@@ -4,16 +4,17 @@ const fail = (errMsg, errCode = 'ADMIN_ACCESS_INVALID') => {
 };
 const { accountTypeOf, hasManagementIdentity, hasAccountType } = require('./account-types');
 function accessContext({ db, uid, appId }) {
-	const all = async (table, where = {}) => {
+	const all = async (table, where = {}, collection = db.collection(table)) => {
 		const rows = [];
 		for (let skip = 0; skip < 5000; skip += 100) {
-			const { data } = await db.collection(table).where(where).orderBy('_id', 'asc').skip(skip).limit(100).get();
+			const { data } = await collection.where(where).orderBy('_id', 'asc').skip(skip).limit(100).get();
 			rows.push(...data);
 			if (data.length < 100) return rows;
 		}
 		fail('数据超过 5000 条，请联系管理员整理');
 	};
 	const actor = async () => {
+		if (db.tenantActor) return db.tenantActor;
 		if (!uid) fail('请先登录', 'ADMIN_ACCESS_UNAUTHORIZED');
 		const { data } = await db.collection('uni-id-users').doc(uid).get();
 		const user = Array.isArray(data) ? data[0] : data;

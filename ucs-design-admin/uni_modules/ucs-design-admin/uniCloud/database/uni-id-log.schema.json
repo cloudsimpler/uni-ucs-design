@@ -3,9 +3,10 @@
 	"description": "登录登出日志表",
 	"required": ["user_id"],
 	"permission": {
-		"read": "'READ_UNI_ID_LOG' in auth.permission"
+		"read": false
 	},
 	"properties": {
+		"tenant_id": { "bsonType": "string" },
 		"_id": {
 			"description": "ID，系统自动生成"
 		},

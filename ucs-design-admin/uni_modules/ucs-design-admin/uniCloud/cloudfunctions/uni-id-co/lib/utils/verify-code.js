@@ -8,6 +8,9 @@ const {
 const {
   getVerifyCode
 } = require('../../common/utils')
+const { tenantWhere } = require('../../module/admin/tenant-scope')
+const { PLATFORM_TENANT_ID } = require('./platform-tenant')
+const scopedCode = (context, filter) => dbCmd.and([filter, tenantWhere({ command: dbCmd }, context?.entryTenantId || PLATFORM_TENANT_ID)])
 
 async function setVerifyCode ({
   mobile,
@@ -18,6 +21,7 @@ async function setVerifyCode ({
 } = {}) {
   const now = Date.now()
   const record = {
+    tenant_id: this.entryTenantId || PLATFORM_TENANT_ID,
     mobile,
     email,
     scene,
@@ -88,13 +92,13 @@ async function verifyEmailCode ({
   email = email.toLowerCase()
   const {
     data: codeRecord
-  } = await verifyCollection.where({
+  } = await verifyCollection.where(scopedCode(this, {
     email,
     scene,
     code,
     state: 0,
     expired_date: dbCmd.gt(Date.now())
-  }).limit(1).get()
+  })).limit(1).get()
 
   if (codeRecord.length === 0) {
     throw {
@@ -123,13 +127,13 @@ async function verifyMobileCode ({
   }
   const {
     data: codeRecord
-  } = await verifyCollection.where({
+  } = await verifyCollection.where(scopedCode(this, {
     mobile,
     scene,
     code,
     state: 0,
     expired_date: dbCmd.gt(Date.now())
-  }).limit(1).get()
+  })).limit(1).get()
 
   if (codeRecord.length === 0) {
     throw {

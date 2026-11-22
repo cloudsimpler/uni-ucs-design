@@ -1,5 +1,6 @@
 import store from './store.js';
 import { withSessionHandling } from './session-errors.js';
+import { importTenantAdmin } from './tenant-session.js';
 
 let cachedKey = '', cachedRequest;
 // Share a single request between the sidebar and page layouts; never persist authorization locally.
@@ -14,12 +15,12 @@ export function loadNavigation(force = false) {
 	if (force || key !== cachedKey || !cachedRequest) {
 		cachedKey = key;
 		const request = withSessionHandling(async () => {
-            const api = uniCloud.importObject('uni-id-co', { customUI: true });
+            const api = importTenantAdmin();
             const result = await api.getCurrentMenus({ client_type: 'pc' });
             const containsMenu = (rows, id) => (rows || []).some(row => row.menu_id === id || containsMenu(row.children, id));
             let changed = false;
             if (!result.errCode && result.isAdmin) {
-                for (const [id, method] of [['system_dictionary', 'installDictionaryManagement'], ['system_department', 'installDepartmentManagement']]) {
+                for (const [id, method] of [['system_dictionary', 'installDictionaryManagement'], ['system_department', 'installDepartmentManagement'], ['platform_tenant', 'installTenantManagement']]) {
                     if (containsMenu(result.data, id)) continue;
                     try { const installed = await api[method](); if (!installed.errCode && installed.changed) changed = true; }
                     catch (error) { console.error('管理菜单安装失败，请更新 uni-id-co 后重试', error); }

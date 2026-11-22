@@ -1,0 +1,66 @@
+{
+  "bsonType": "object",
+  "description": "租户",
+  "required": [
+    "tenant_no",
+    "name",
+    "type",
+    "enabled"
+  ],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "文档 ID"
+    },
+    "tenant_no": {
+      "bsonType": "string"
+    },
+    "name": {
+      "bsonType": "string"
+    },
+    "type": {
+      "bsonType": "string",
+      "enum": [
+        "platform",
+        "enterprise"
+      ]
+    },
+    "enabled": {
+      "bsonType": "bool"
+    },
+    "system_mobile_revision": {
+      "bsonType": "int"
+    },
+    "product_package_id": {
+      "bsonType": "string",
+      "foreignKey": "ucsdb-product-packages._id"
+    },
+    "product_package_ids": {
+      "bsonType": "array",
+      "items": { "bsonType": "string", "foreignKey": "ucsdb-product-packages._id" }
+    },
+    "creator_id": {
+      "bsonType": "string"
+    },
+    "creator_name": {
+      "bsonType": "string"
+    },
+    "updater_id": {
+      "bsonType": "string"
+    },
+    "updater_name": {
+      "bsonType": "string"
+    },
+    "create_date": {
+      "bsonType": "timestamp"
+    },
+    "update_date": {
+      "bsonType": "timestamp"
+    }
+  }
+}

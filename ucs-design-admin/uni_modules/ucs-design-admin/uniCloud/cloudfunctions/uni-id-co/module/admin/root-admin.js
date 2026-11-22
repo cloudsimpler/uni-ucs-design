@@ -1,4 +1,6 @@
 const { hasAccountType } = require('./account-types')
+const { writeSystemMobile } = require('../../lib/utils/system-mobile')
+const { ownerOf } = require('./tenant-scope')
 const fail = (errMsg) => { throw { errCode: 'USER_ADMIN_FORBIDDEN', errMsg } }
 function rejectRootInput(params) {
   if (Object.hasOwn(params, 'is_root')) fail('初始管理员标记只能由系统设置')
@@ -50,12 +52,23 @@ async function updateRootAware({ db, uid, data, current }) {
   const users = db.collection('uni-id-users')
   let user = current || (await users.doc(uid).get()).data[0]
   if (!user) fail('账号不存在或已被删除')
-  if (!user.is_root && user.username === 'admin' && hasAccountType(user, 0)) {
+  if (!user.is_root && (!user.tenant_id || user.tenant_id === '00000') && user.username === 'admin' && hasAccountType(user, 0)) {
     const root = await initializeLegacyRoot(db, user.dcloud_appid?.find(id => id !== '*'))
     if (root?._id === uid) user = root
   }
   const patch = typeof data === 'function' ? data(user) : data
   assertRootChange(user, patch)
+  if (patch.mobile && hasAccountType(user, 0)) {
+    const tenantId = ownerOf(user)
+    return writeSystemMobile({ db: uniCloud.database(), tenantId, mobile: patch.mobile, uid }, async users => {
+      const ref = users.doc(uid)
+      const { data } = await ref.get()
+      const latest = Array.isArray(data) ? data[0] : data
+      if (!latest || ownerOf(latest) !== tenantId) fail('账号不存在或已被删除')
+      assertRootChange(latest, patch)
+      return ref.update(db.tenantActor ? { ...patch, tenant_id: tenantId } : patch)
+    })
+  }
   // Avoid overwriting a root promotion made between the read and the write.
   const result = await users.where({ _id: uid, is_root: user.is_root === true ? true : db.command.neq(true) }).update(patch)
   if (!result.updated) {

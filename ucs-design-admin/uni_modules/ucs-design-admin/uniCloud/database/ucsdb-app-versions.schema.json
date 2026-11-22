@@ -4,7 +4,7 @@
   "description": "应用版本管理表",
   "required": ["appid", "uni_platform", "version", "type", "create_env"],
   "permission": {
-    "read": "'READ_OPENDB_APP_VERSIONS' in auth.permission",
+    "read": false,
     "create": false,
     "update": false,
     "delete": false

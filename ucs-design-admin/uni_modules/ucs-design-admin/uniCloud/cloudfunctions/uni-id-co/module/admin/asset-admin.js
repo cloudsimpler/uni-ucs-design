@@ -125,7 +125,10 @@ function createAssetAdmin({ db, uid, appId, storage }) {
    if (!format) fail('不支持此文件格式');
    if (!Number.isSafeInteger(size) || size <= 0 || size > 200 * 1024 * 1024) fail('文件大小需在 0 至 200 MB 之间');
    await group(group_id);
-   const cloud_path = `assets/${crypto.randomBytes(24).toString('hex')}.${ext}`;
+   const directory = auth.tenant?.type === 'enterprise' ? `tenant-assets/${auth.tenant.tenant_no}` : 'assets';
+   if (auth.tenant?.type === 'enterprise' && process.env.UCS_TENANT_ASSETS_PRIVATE !== 'true')
+    fail('服务空间尚未启用租户私有素材存储');
+   const cloud_path = `${directory}/${crypto.randomBytes(24).toString('hex')}.${ext}`;
    const { id } = await db.collection(ASSETS).add({ name, size, group_id, type: format[0], mime: format[1], ext, cloud_path,
     file_id: '', state: 'uploading', ...createFields(auth) });
    return { errCode: 0, id, cloudPath: cloud_path, type: format[0], ...(format[0] === 'video' ? { coverPath: cloud_path + '.cover.jpg' } : {}) };

@@ -1,0 +1,58 @@
+{
+  "bsonType": "object",
+  "description": "租户产品包",
+  "required": [
+    "name",
+    "menu_ids",
+    "permission_ids"
+  ],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "文档 ID"
+    },
+    "name": {
+      "bsonType": "string"
+    },
+    "remark": {
+      "bsonType": "string",
+      "maxLength": 500,
+      "description": "产品包备注"
+    },
+    "menu_ids": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "permission_ids": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "creator_id": {
+      "bsonType": "string"
+    },
+    "creator_name": {
+      "bsonType": "string"
+    },
+    "updater_id": {
+      "bsonType": "string"
+    },
+    "updater_name": {
+      "bsonType": "string"
+    },
+    "create_date": {
+      "bsonType": "timestamp"
+    },
+    "update_date": {
+      "bsonType": "timestamp"
+    }
+  }
+}

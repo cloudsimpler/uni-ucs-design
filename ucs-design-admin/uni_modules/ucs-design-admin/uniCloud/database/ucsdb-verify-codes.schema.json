@@ -4,6 +4,7 @@
 	"permission": { "read": false, "create": false, "update": false, "delete": false },
 	"properties": {
 		"account_selection": { "bsonType": "object", "description": "服务端验证后的短期账号选择凭据，不向客户端开放" },
+		"tenant_id": { "bsonType": "string" },
 		"_id": {
 			"description": "ID，系统自动生成"
 		},
