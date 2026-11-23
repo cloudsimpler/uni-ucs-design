@@ -159,7 +159,7 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   await menus.add({ menu_id: 'custom_ops', menu_type: 0, enable: true, feature_scope: 'platform' })
   await menus.add({ menu_id: 'custom_ops_sub', parent_id: 'custom_ops', menu_type: 0, feature_scope: 'inherit' })
   await menus.add({ menu_id: 'custom_report', parent_id: 'custom_ops_sub', menu_type: 1, url: '/ops/report' })
-  await menus.add({ menu_id: 'system_user', parent_id: 'system', menu_type: 1, enable: true })
+  await menus.add({ menu_id: 'system_user', parent_id: 'system', menu_type: 1, enable: true, url: '/system/user' })
   await permissions.add({ menu_id: 'system_user', permission_id: 'READ_UNI_ID_USERS' })
   await permissions.add({ menu_id: 'system_user', permission_id: 'CREATE_UNI_ID_USERS' })
   const { id: pkg } = await run('saveProductPackage', 'root', {
@@ -356,10 +356,16 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   assert.deepEqual(operationsScope.menuIds, [])
   assert.ok(!operationsScope.permissions.includes(tenantRights.enter))
   const { createMenuAdmin } = require(path.join(root, 'module/admin/menu-admin'))
-  const menuService = createMenuAdmin({ db: scopedDatabase(db, operationsScope), uid: 'root', appId: 'test', loginScope: rootActor.loginAdminScope })
-  const { data: sidebar } = await menuService.current()
-  assert.deepEqual(sidebar.flatMap(directory => directory.children.map(page => page.menu_id)).sort(),
-    [...fullMenuIds, 'custom_ops_sub'].sort())
+  const menusFor = async scope => (await createMenuAdmin({
+    db: scopedDatabase(db, scope), uid: 'root', appId: 'test'
+  }).current()).data
+  assert.deepEqual(await menusFor(operationsScope), [])
+  const sidebar = await menusFor({ ...operationsScope, menuIds: ['system_user', ...fullMenuIds] })
+  assert.deepEqual(sidebar.map(directory => directory.menu_id), ['system'])
+  assert.deepEqual(sidebar[0].children.map(page => page.menu_id), ['system_user'])
+  const platformSidebar = await menusFor(rootActor.loginAdminScope)
+  assert.deepEqual(platformSidebar.find(directory => directory.menu_id === 'tenant_operations')
+    .children.map(page => page.menu_id).sort(), [...fullMenuIds].sort())
   const fromDelegation = await methods.listTenants.call(rootActor, { tenant_no: '00002' })
   assert.deepEqual(fromDelegation.data.map(row => row._id), [b])
   assert.equal(fromDelegation.currentTenantId, b)

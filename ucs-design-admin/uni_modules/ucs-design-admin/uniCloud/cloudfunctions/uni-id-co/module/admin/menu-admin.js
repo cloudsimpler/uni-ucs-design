@@ -67,7 +67,7 @@ function visibleTree(rows, auth, clientType = 'pc') {
 	return visit('');
 }
 
-function createMenuAdmin({ db, uid, appId, loginScope }) {
+function createMenuAdmin({ db, uid, appId }) {
 	const all = async (name, where = {}, projection) => {
 		const rows = [];
 		for (let offset = 0; offset < 5000; offset += 100) {
@@ -288,16 +288,13 @@ function createMenuAdmin({ db, uid, appId, loginScope }) {
 			const auth = await authorize();
 			if (!params || typeof params !== 'object' || Array.isArray(params)) fail('菜单参数不正确');
 			const rows = await all(table);
-			const { product, platform } = classifyPages(rows);
-			const scopedMenus = auth.tenantId && auth.tenantId !== PLATFORM_TENANT_ID
+			const { product } = classifyPages(rows);
+			const menuIds = auth.tenantId && auth.tenantId !== PLATFORM_TENANT_ID
 				? (auth.menuIds || []).filter(id => product.has(id)) : auth.menuIds;
-			const operations = auth.sessionId && loginScope?.tenantId === PLATFORM_TENANT_ID
-				? [...platform].filter(id => loginScope.isAdmin || loginScope.menuIds?.includes(id))
-				: [];
 			return {
 				errCode: 0,
 				isAdmin: auth.isAdmin,
-				data: visibleTree(rows, { ...auth, menuIds: [...new Set([...(scopedMenus || []), ...operations])] },
+				data: visibleTree(rows, { ...auth, menuIds },
 					params.client_type === undefined ? 'pc' : params.client_type)
 			};
 		},

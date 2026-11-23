@@ -11,7 +11,6 @@ module.exports = Object.fromEntries(
 		function (params) {
 			return createMenuAdmin({
 				db: this.adminDb,
-				loginScope: this.loginAdminScope,
 				uid: this.authInfo.uid,
 				appId: this.getUniversalClientInfo().appId
 			})[action](params);

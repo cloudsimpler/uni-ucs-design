@@ -884,7 +884,6 @@ onBeforeUnmount(() => {
 .menu-note {
 	padding: 12px 16px;
 	line-height: 20px;
-	border-top: 1px solid var(--el-border-color-lighter);
 }
 .field {
 	width: 100%;

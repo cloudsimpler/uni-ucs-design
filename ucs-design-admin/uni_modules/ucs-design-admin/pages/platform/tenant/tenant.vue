@@ -168,7 +168,8 @@ async function enter(row) {
 			const navigation = resultOf(await loadNavigation());
 			const routes = allowedMenuRoutes(navigation.data, 'pages/needLogin/index/index');
 			const url = routes.includes(userRoute) ? userRoute : routes[0];
-			if (url) uni.redirectTo({ url });
+			if (!url) throw new Error('该租户的产品包没有可访问的页面');
+			uni.redirectTo({ url });
 		} catch (e) {
 			await exitDelegation();
 			throw e;
