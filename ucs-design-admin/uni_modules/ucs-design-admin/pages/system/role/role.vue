@@ -2,7 +2,7 @@
 	<ucs-admin-layout class="role-layout" title="角色管理" mode="card" :padding="false">
 		<template #header />
 		<template #button>
-			<el-button v-if="auth.create" type="primary" :icon="Plus" :disabled="saving || loading" @click="edit()">
+			<el-button v-if="auth.create" type="primary" :disabled="saving || loading" @click="edit()">
 				新增角色
 			</el-button>
 			<el-button :icon="Refresh" :loading="loading" :disabled="saving" aria-label="刷新角色" @click="load" />
@@ -161,7 +161,7 @@ import 'element-plus/es/components/message-box/style/css.mjs';
 
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus, Refresh } from '@element-plus/icons-vue';
+import { Refresh } from '@element-plus/icons-vue';
 import { menuTree } from '../../../common/menu.js';
 import store from '../../../common/store.js';
 function authorizationTree(menus, permissions, auth = { isAdmin: true, permission: [] }) {

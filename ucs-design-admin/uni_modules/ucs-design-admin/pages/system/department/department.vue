@@ -5,7 +5,7 @@
    <el-form-item><el-select v-model="status" placeholder="全部状态" clearable><el-option label="启用" value="enabled" /><el-option label="停用" value="disabled" /></el-select></el-form-item>
    <el-form-item><el-button type="primary" native-type="submit" :loading="loading">查询</el-button><el-button @click="reset">重置</el-button></el-form-item>
   </el-form></template>
-  <template #button><el-button v-if="auth.create" type="primary" :icon="Plus" @click="edit()">新增部门</el-button><el-button :icon="Refresh" :loading="loading" aria-label="刷新部门" @click="load" /></template>
+  <template #button><el-button v-if="auth.create" type="primary" @click="edit()">新增部门</el-button><el-button :icon="Refresh" :loading="loading" aria-label="刷新部门" @click="load" /></template>
   <div class="department-content">
    <el-alert v-if="error" :title="error" type="error" :closable="false" />
    <el-table class="department-table" v-loading="loading" :data="filteredTree" row-key="_id" height="100%" default-expand-all>
@@ -44,7 +44,7 @@ import '../../../common/form-dialog.css';
 import UcsAdminUserPicker from '../../../components/ucs-admin-userPicker/ucs-admin-userPicker.vue';
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElInputNumber, ElMessage, ElMessageBox, ElOption, ElSelect, ElSwitch, ElTable, ElTableColumn, ElTag, ElTreeSelect, vLoading } from 'element-plus';
-import { Search, Plus, Refresh } from '@element-plus/icons-vue';
+import { Search, Refresh } from '@element-plus/icons-vue';
 import { withSessionHandling } from '../../../common/session-errors.js';
 import 'element-plus/es/components/alert/style/css.mjs';
 import 'element-plus/es/components/button/style/css.mjs';

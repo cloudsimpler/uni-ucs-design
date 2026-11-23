@@ -2,7 +2,7 @@
 	<ucs-admin-layout :title="accountLabel + '管理'" mode="table" :pagination="pagination" @change="onPaginationChange">
 		<template #button>
 			<el-button v-if="selectedUsers.length" @click="clearSelection">清空选择</el-button>
-			<el-button v-if="canCreate" type="primary" :icon="Plus" :disabled="saving || preparing" @click="openEditor()">
+			<el-button v-if="canCreate" type="primary" :disabled="saving || preparing" @click="openEditor()">
 				新增{{ accountLabel }}
 			</el-button>
 			<el-button :icon="Refresh" :loading="loading" :disabled="saving" :aria-label="'刷新' + accountLabel + '列表'" @click="refresh" />

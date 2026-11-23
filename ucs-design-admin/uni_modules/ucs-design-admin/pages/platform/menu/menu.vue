@@ -27,7 +27,7 @@
 			</el-form>
 		</template>
 		<template #button>
-			<el-button v-if="auth.create" type="primary" :icon="Plus" :disabled="loading || busy" @click="openEditor()">
+			<el-button v-if="auth.create" type="primary" :disabled="loading || busy" @click="openEditor()">
 				新增菜单
 			</el-button>
 			<el-button :icon="Refresh" :loading="loading" :disabled="busy" aria-label="刷新菜单" @click="load" />

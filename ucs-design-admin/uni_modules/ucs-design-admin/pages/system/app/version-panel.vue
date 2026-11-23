@@ -23,7 +23,7 @@
 				/>
 			</el-tabs>
 			<div class="version-toolbar-actions">
-				<el-button v-if="auth.create" type="primary" :icon="Plus" :disabled="busy || loading" @click="edit()">
+				<el-button v-if="auth.create" type="primary" :disabled="busy || loading" @click="edit()">
 					新增版本
 				</el-button>
 				<el-button :icon="Refresh" :loading="loading" :disabled="busy" aria-label="刷新版本" @click="load" />
@@ -287,7 +287,7 @@ import 'element-plus/es/components/message-box/style/css.mjs';
 
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus, Refresh } from '@element-plus/icons-vue';
+import { Refresh } from '@element-plus/icons-vue';
 import { isCloudFile, resolveFileUrl } from '../../../common/storage.js';
 const props = defineProps({ app: { type: Object, required: true } });
 defineEmits(['close']);

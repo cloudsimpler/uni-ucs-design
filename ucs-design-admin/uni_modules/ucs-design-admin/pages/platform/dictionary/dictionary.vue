@@ -1,7 +1,7 @@
 <template>
  <ucs-admin-layout title="系统字典" mode="table" :pagination="{ current: page, size, count: filtered.length }" :page-sizes="sizes" @change="changePagination">
   <template #header><el-form class="dict-search" inline @submit.prevent="search"><el-form-item><el-input v-model="keyword" :prefix-icon="Search" placeholder="字典名称或编码" aria-label="字典名称或编码" clearable @clear="search" /></el-form-item><el-form-item><el-button type="primary" :loading="loading" native-type="submit">查询</el-button><el-button @click="keyword = ''; search()">重置</el-button></el-form-item></el-form></template>
-  <template #button><el-button v-if="auth.create" type="primary" :icon="Plus" @click="editType()">新增字典</el-button><el-button :icon="Refresh" :loading="loading" aria-label="刷新字典" @click="loadTypes" /></template>
+  <template #button><el-button v-if="auth.create" type="primary" @click="editType()">新增字典</el-button><el-button :icon="Refresh" :loading="loading" aria-label="刷新字典" @click="loadTypes" /></template>
   <div class="dict-content">
   <el-alert v-if="error" :title="error" type="error" :closable="false" />
   <el-table v-loading="loading" :data="pageRows" row-key="_id" height="100%" class="dict-table">
@@ -19,7 +19,7 @@
   <div class="dict-toolbar">
    <div class="dict-context"><span>字典编码</span><code>{{ active?.code }}</code></div>
    <div class="dict-item-actions">
-    <el-button v-if="auth.create" type="primary" :icon="Plus" :disabled="!active?.enabled || itemsLoading" @click="editItem()">新增字典项</el-button>
+    <el-button v-if="auth.create" type="primary" :disabled="!active?.enabled || itemsLoading" @click="editItem()">新增字典项</el-button>
     <el-button :icon="Refresh" :loading="itemsLoading" aria-label="刷新字典项" @click="loadItems" />
    </div>
   </div>
@@ -57,7 +57,7 @@ import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import {ref,reactive,computed,onMounted,onBeforeUnmount} from 'vue';
 import {ElAlert,ElButton,ElColorPicker,ElDialog,ElEmpty,ElForm,ElFormItem,ElInput,ElInputNumber,ElMessage,ElMessageBox,ElPagination,ElSwitch,ElTable,ElTableColumn,ElTag,vLoading} from 'element-plus';
-import {Search,Plus,Refresh} from '@element-plus/icons-vue';
+import {Search,Refresh} from '@element-plus/icons-vue';
 import {withSessionHandling} from '../../../common/session-errors.js';
 import 'element-plus/es/components/alert/style/css.mjs';
 import 'element-plus/es/components/button/style/css.mjs';

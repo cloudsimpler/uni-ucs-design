@@ -15,7 +15,7 @@
 				:render-after-expand="false"
 				class="menu-filter"
 			/>
-			<el-button v-if="auth.create" type="primary" :icon="Plus" :disabled="loading || saving" @click="edit()">
+			<el-button v-if="auth.create" type="primary" :disabled="loading || saving" @click="edit()">
 				新增权限
 			</el-button>
 			<el-button
@@ -164,7 +164,7 @@ import 'element-plus/es/components/message-box/style/css.mjs';
 
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Plus, Refresh } from '@element-plus/icons-vue';
+import { Refresh } from '@element-plus/icons-vue';
 import store from '../../../common/store.js';
 import { MENU_TYPE, menuTree } from '../../../common/menu.js';
 const props = defineProps({ menuId: { type: String, default: '*' }, fill: { type: Boolean, default: false } });

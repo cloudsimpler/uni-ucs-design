@@ -12,7 +12,7 @@
 			</el-form>
 		</template>
 		<template #button>
-			<el-button v-if="auth.create" type="primary" :icon="Plus" :disabled="loading || busy" @click="edit()">
+			<el-button v-if="auth.create" type="primary" :disabled="loading || busy" @click="edit()">
 				新增应用
 			</el-button>
 			<el-button :icon="Refresh" :loading="loading" :disabled="busy" aria-label="刷新应用" @click="load" />

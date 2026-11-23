@@ -12,7 +12,7 @@
 			</el-form>
 		</template>
 		<template #button>
-			<el-button v-if="auth.create" type="primary" :icon="Plus" @click="open()">新增产品包</el-button>
+			<el-button v-if="auth.create" type="primary" @click="open()">新增产品包</el-button>
 			<el-button :icon="Refresh" :loading="loading" aria-label="刷新产品包" @click="load" />
 		</template>
 		<div v-loading="loading" class="platform-table">
@@ -73,7 +73,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElTable, ElTableColumn, ElTree, vLoading } from 'element-plus';
-import { Plus, Refresh, Search } from '@element-plus/icons-vue';
+import { Refresh, Search } from '@element-plus/icons-vue';
 import 'element-plus/es/components/tree/style/css.mjs';
 import { menuTree, MENU_TYPE } from '../../../common/menu.js';
 import { importTenantAdmin } from '../../../common/tenant-session.js';
