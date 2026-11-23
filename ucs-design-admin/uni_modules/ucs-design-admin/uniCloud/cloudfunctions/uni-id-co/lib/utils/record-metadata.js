@@ -4,16 +4,16 @@ function actorName(user) {
   )?.trim() || ''
 }
 
-function updateFields({ uid, name }, now = Date.now()) {
-  return { updater_id: uid, updater_name: name, update_date: now }
+function updateFields({ uid = '', name = '' } = {}, now = Date.now()) {
+  return { update_id: uid, update_name: name, update_date: now }
 }
 
-function createFields(actor, now = Date.now()) {
+function createFields({ uid = '', name = '' } = {}, now = Date.now()) {
   return {
-    creator_id: actor.uid,
-    creator_name: actor.name,
+    create_id: uid,
+    create_name: name,
     create_date: now,
-    ...updateFields(actor, now)
+    ...updateFields({ uid, name }, now)
   }
 }
 

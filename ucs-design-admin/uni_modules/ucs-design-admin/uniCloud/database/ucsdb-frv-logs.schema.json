@@ -33,12 +33,32 @@
 			"maximum": 3,
 			"minimum": 0
 		},
-		"created_date": {
+		"create_id": {
+			"bsonType": "string",
+			"description": "创建人 ID"
+		},
+		"create_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
+		"create_date": {
 			"bsonType": "timestamp",
 			"description": "创建时间",
 			"forceDefaultValue": {
 				"$env": "now"
 			}
+		},
+		"update_id": {
+			"bsonType": "string",
+			"description": "更新人 ID"
+		},
+		"update_name": {
+			"bsonType": "string",
+			"description": "更新人姓名"
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "更新时间"
 		}
 	},
 	"required": []

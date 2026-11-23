@@ -4,6 +4,7 @@ const {
 const {
   ERROR
 } = require('../../common/error')
+const { createFields, updateFields } = require('../../lib/utils/record-metadata')
 
 async function setOpendbDevice ({
   pushClientId
@@ -28,6 +29,7 @@ async function setOpendbDevice ({
   } = this.getUniversalClientInfo()
   const platform = this.clientPlatform
   const now = Date.now()
+  const actor = { uid: this.authInfo.uid }
 
   const db = uniCloud.database()
   const opendbDeviceCollection = db.collection('ucsdb-device')
@@ -57,11 +59,10 @@ async function setOpendbDevice ({
   if (getDeviceRes.data.length > 0) {
     await opendbDeviceCollection.where({
       device_id: deviceId
-    }).update(data)
+    }).update({ ...data, ...updateFields(actor, now) })
     return
   }
-  data.create_date = now
-  await opendbDeviceCollection.add(data)
+  await opendbDeviceCollection.add({ ...data, ...createFields(actor, now) })
 }
 
 /**
@@ -111,7 +112,8 @@ module.exports = async function (params = {}) {
       device_id: deviceId,
       token_expired: tokenExpired,
       push_clientid: pushClientId,
-      appid: appId
+      appid: appId,
+      ...createFields({ uid })
     })
     return {
       errCode: 0
@@ -124,7 +126,8 @@ module.exports = async function (params = {}) {
     user_id: uid,
     token_expired: tokenExpired,
     push_clientid: pushClientId,
-    appid: appId
+    appid: appId,
+    ...updateFields({ uid })
   })
   return {
     errCode: 0

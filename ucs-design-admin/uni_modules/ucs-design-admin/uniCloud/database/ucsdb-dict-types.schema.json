@@ -1,5 +1,6 @@
 {
   "bsonType": "object",
+  "description": "系统字典类型表，记录平台共享字典的名称和编码",
   "required": [
     "name",
     "code",
@@ -13,45 +14,48 @@
     "delete": false
   },
   "properties": {
-    "tenant_id": {
-      "bsonType": "string",
-      "description": "所属租户 ID，引用租户表的 _id"
-    },
-    "creator_id": {
-      "bsonType": "string",
-      "description": "创建人账号 ID"
-    },
-    "creator_name": {
-      "bsonType": "string",
-      "description": "创建人姓名"
-    },
-    "updater_id": {
-      "bsonType": "string",
-      "description": "最后修改人账号 ID"
-    },
-    "updater_name": {
-      "bsonType": "string",
-      "description": "最后修改人姓名"
-    },
     "name": {
+      "description": "系统字典名称",
       "bsonType": "string"
     },
     "code": {
+      "description": "系统字典编码，全局唯一",
       "bsonType": "string"
     },
     "description": {
+      "description": "系统字典的用途说明",
       "bsonType": "string"
     },
     "enabled": {
+      "description": "系统字典是否启用",
       "bsonType": "bool"
     },
     "sort": {
+      "description": "系统字典显示顺序，数值越小越靠前",
       "bsonType": "int"
     },
+    "create_id": {
+      "bsonType": "string",
+      "description": "创建人账号 ID"
+    },
+    "create_name": {
+      "bsonType": "string",
+      "description": "创建人姓名"
+    },
     "create_date": {
+      "description": "创建时间",
       "bsonType": "timestamp"
     },
+    "update_id": {
+      "bsonType": "string",
+      "description": "最后修改人账号 ID"
+    },
+    "update_name": {
+      "bsonType": "string",
+      "description": "最后修改人姓名"
+    },
     "update_date": {
+      "description": "最后更新时间",
       "bsonType": "timestamp"
     }
   }

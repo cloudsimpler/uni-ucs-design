@@ -21,15 +21,17 @@ const { PLATFORM_TENANT_ID } = require('./lib/utils/platform-tenant')
 const adminMethods = require('./module/admin/index')
 const scopedMethods = new Set(Object.keys(adminMethods))
 const tenantMethods = require('./module/admin/tenant-methods')
+const dictionaryMethods = require('./module/admin/dictionary-methods')
+const dictionaryManagementMethods = Object.keys(dictionaryMethods).filter(method => method !== 'getDictionaryOptions')
 const managementLogin = new Set(['adminLogin', 'adminLoginBySms', 'adminLoginByEmailCode', 'adminCompleteAccountLogin', 'registerAdmin'])
 const directLoginAppMethods = new Set([
   ...Object.keys(require('./module/admin/app-methods')),
   ...Object.keys(require('./module/admin/version-methods'))
 ])
 const globalMenuMethods = new Set(['listMenus', 'createMenu', 'updateMenu', 'deleteMenu',
-  'listPermissions', 'savePermission', 'deletePermission', 'initializeMenuPermissions'])
+  'listPermissions', 'savePermission', 'deletePermission', 'initializeMenuPermissions', ...dictionaryManagementMethods])
 const platformOnlyMethods = new Set([
-  'installAssetManagement', 'installDepartmentManagement', 'installDictionaryManagement',
+  'installAssetManagement', 'installDepartmentManagement', ...dictionaryManagementMethods,
   'createMenu', 'updateMenu', 'deleteMenu', 'savePermission', 'deletePermission', 'initializeMenuPermissions',
   'authorizeAppLogin', 'removeAuthorizedApp', 'setAuthorizedApp'
 ])
@@ -137,7 +139,7 @@ module.exports = {
   getCurrentUserProfile: require('./module/account/get-current-user-profile'),
   ...require('./module/admin/customer-methods'),
   ...require('./module/admin/asset-methods'),
-  ...require('./module/admin/dictionary-methods'),
+  ...dictionaryMethods,
   ...require('./module/admin/department-methods'),
   // Management entry; the existing unprefixed login/recovery methods serve client accounts.
   adminLogin: login,

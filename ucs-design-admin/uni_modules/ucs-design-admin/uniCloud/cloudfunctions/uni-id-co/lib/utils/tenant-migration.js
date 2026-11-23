@@ -4,7 +4,7 @@ const { readDoc } = require('../../module/admin/tenant-scope')
 
 const collections = [
   'uni-id-users', 'uni-id-roles', 'uni-id-tag', 'uni-id-log',
-  'ucsdb-department', 'ucsdb-dict-types', 'ucsdb-dict-items',
+  'ucsdb-department',
   'ucsdb-assets', 'ucsdb-asset-groups', 'ucsdb-asset-references'
 ]
 

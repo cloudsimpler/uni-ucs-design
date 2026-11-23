@@ -6,16 +6,8 @@
 		"read": false
 	},
 	"properties": {
-		"tenant_id": { "bsonType": "string" },
 		"_id": {
 			"description": "ID，系统自动生成"
-		},
-		"create_date": {
-			"bsonType": "timestamp",
-			"description": "创建时间",
-			"forceDefaultValue": {
-				"$env": "now"
-			}
 		},
 		"device_uuid": {
 			"bsonType": "string",
@@ -46,7 +38,7 @@
 		},
 		"ua": {
 			"bsonType": "string",
-			"description": "userAgent"
+			"description": "客户端用户代理字符串"
 		},
 		"user_id": {
 			"bsonType": "string",
@@ -68,6 +60,34 @@
 		"appid": {
 			"bsonType": "string",
 			"description": "客户端DCloud AppId"
+		},
+		"tenant_id": { "description": "登录或登出事件所属的租户 ID", "bsonType": "string" },
+		"create_id": {
+			"bsonType": "string",
+			"description": "创建人 ID"
+		},
+		"create_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"bsonType": "string",
+			"description": "更新人 ID"
+		},
+		"update_name": {
+			"bsonType": "string",
+			"description": "更新人姓名"
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "更新时间"
 		}
 	}
 }

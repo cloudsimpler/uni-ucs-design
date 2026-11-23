@@ -12,26 +12,6 @@
     "delete": false
   },
   "properties": {
-    "tenant_id": {
-      "bsonType": "string",
-      "description": "所属租户 ID，引用租户表的 _id"
-    },
-    "creator_id": {
-      "bsonType": "string",
-      "description": "创建人账号 ID"
-    },
-    "creator_name": {
-      "bsonType": "string",
-      "description": "创建人姓名"
-    },
-    "updater_id": {
-      "bsonType": "string",
-      "description": "最后修改人账号 ID"
-    },
-    "updater_name": {
-      "bsonType": "string",
-      "description": "最后修改人姓名"
-    },
     "_id": {
       "description": "ID，系统自动生成"
     },
@@ -60,13 +40,6 @@
       "description": "部门主管的userid， 参考`uni-id-users` 表",
       "foreignKey": "uni-id-users._id"
     },
-    "create_date": {
-      "bsonType": "timestamp",
-      "description": "部门创建时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
     "code": {
       "bsonType": "string",
       "description": "部门编码，必填，保存后固定",
@@ -82,6 +55,33 @@
       "bsonType": "string",
       "maxLength": 300,
       "description": "部门说明"
+    },
+    "tenant_id": {
+      "bsonType": "string",
+      "description": "所属租户 ID，引用租户表的 _id"
+    },
+    "create_id": {
+      "bsonType": "string",
+      "description": "创建人账号 ID"
+    },
+    "create_name": {
+      "bsonType": "string",
+      "description": "创建人姓名"
+    },
+    "create_date": {
+      "bsonType": "timestamp",
+      "description": "部门创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "update_id": {
+      "bsonType": "string",
+      "description": "最后修改人账号 ID"
+    },
+    "update_name": {
+      "bsonType": "string",
+      "description": "最后修改人姓名"
     },
     "update_date": {
       "bsonType": "timestamp",

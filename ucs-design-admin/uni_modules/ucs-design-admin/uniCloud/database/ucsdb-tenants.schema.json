@@ -18,12 +18,15 @@
       "description": "文档 ID"
     },
     "tenant_no": {
+      "description": "五位租户号，平台租户固定为 00000",
       "bsonType": "string"
     },
     "name": {
+      "description": "租户名称",
       "bsonType": "string"
     },
     "type": {
+      "description": "租户类型，platform 为平台租户，enterprise 为企业租户",
       "bsonType": "string",
       "enum": [
         "platform",
@@ -31,35 +34,40 @@
       ]
     },
     "enabled": {
+      "description": "租户是否启用",
       "bsonType": "bool"
     },
     "system_mobile_revision": {
+      "description": "系统用户手机号写入版本号，用于串行处理同一租户内的手机号修改",
       "bsonType": "int"
     },
-    "product_package_id": {
-      "bsonType": "string",
-      "foreignKey": "ucsdb-product-packages._id"
-    },
     "product_package_ids": {
+      "description": "已分配给租户的产品包文档 ID 列表",
       "bsonType": "array",
       "items": { "bsonType": "string", "foreignKey": "ucsdb-product-packages._id" }
     },
-    "creator_id": {
+    "create_id": {
+      "description": "创建人账号 ID",
       "bsonType": "string"
     },
-    "creator_name": {
-      "bsonType": "string"
-    },
-    "updater_id": {
-      "bsonType": "string"
-    },
-    "updater_name": {
+    "create_name": {
+      "description": "创建人姓名",
       "bsonType": "string"
     },
     "create_date": {
+      "description": "创建时间",
       "bsonType": "timestamp"
     },
+    "update_id": {
+      "description": "最后更新人账号 ID",
+      "bsonType": "string"
+    },
+    "update_name": {
+      "description": "最后更新人姓名",
+      "bsonType": "string"
+    },
     "update_date": {
+      "description": "最后更新时间",
       "bsonType": "timestamp"
     }
   }

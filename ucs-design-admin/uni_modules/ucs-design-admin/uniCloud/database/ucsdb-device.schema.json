@@ -14,7 +14,7 @@
 		},
 		"appid": {
 			"bsonType": "string",
-			"description": "DCloud appid"
+			"description": "DCloud 应用 ID"
 		},
 		"device_id": {
 			"bsonType": "string",
@@ -58,7 +58,7 @@
 		},
 		"os_name": {
 			"bsonType": "string",
-			"description": "ios|android|windows|mac|linux "
+			"description": "操作系统名称，如 iOS、Android、Windows、macOS 或 Linux"
 		},
 		"os_version": {
 			"bsonType": "string",
@@ -124,6 +124,21 @@
 			"bsonType": "string",
 			"description": "城市"
 		},
+		"last_update_date": {
+			"bsonType": "timestamp",
+			"description": "最后一次修改时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"create_id": {
+			"bsonType": "string",
+			"description": "创建人 ID"
+		},
+		"create_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
 		"create_date": {
 			"bsonType": "timestamp",
 			"description": "创建时间",
@@ -131,12 +146,17 @@
 				"$env": "now"
 			}
 		},
-		"last_update_date": {
+		"update_id": {
+			"bsonType": "string",
+			"description": "更新人 ID"
+		},
+		"update_name": {
+			"bsonType": "string",
+			"description": "更新人姓名"
+		},
+		"update_date": {
 			"bsonType": "timestamp",
-			"description": "最后一次修改时间",
-			"forceDefaultValue": {
-				"$env": "now"
-			}
+			"description": "更新时间"
 		}
 	},
 	"version": "0.0.1"

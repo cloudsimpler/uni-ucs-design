@@ -72,49 +72,49 @@
     "sort": 4
   },
   {
-    "menu_id": "system_menu",
+    "menu_id": "platform_menu",
     "permission_id": "READ_UNI_ID_PERMISSIONS",
     "permission_name": "查看权限",
     "sort": 5
   },
   {
-    "menu_id": "system_menu",
+    "menu_id": "platform_menu",
     "permission_id": "CREATE_UNI_ID_PERMISSIONS",
     "permission_name": "新增权限",
     "sort": 6
   },
   {
-    "menu_id": "system_menu",
+    "menu_id": "platform_menu",
     "permission_id": "UPDATE_UNI_ID_PERMISSIONS",
     "permission_name": "编辑权限",
     "sort": 7
   },
   {
-    "menu_id": "system_menu",
+    "menu_id": "platform_menu",
     "permission_id": "DELETE_UNI_ID_PERMISSIONS",
     "permission_name": "删除权限",
     "sort": 8
   },
   {
-    "menu_id": "system_menu",
+    "menu_id": "platform_menu",
     "permission_id": "READ_OPENDB_ADMIN_MENUS",
     "permission_name": "查看菜单",
     "sort": 1
   },
   {
-    "menu_id": "system_menu",
+    "menu_id": "platform_menu",
     "permission_id": "CREATE_OPENDB_ADMIN_MENUS",
     "permission_name": "新增菜单",
     "sort": 2
   },
   {
-    "menu_id": "system_menu",
+    "menu_id": "platform_menu",
     "permission_id": "UPDATE_OPENDB_ADMIN_MENUS",
     "permission_name": "编辑菜单",
     "sort": 3
   },
   {
-    "menu_id": "system_menu",
+    "menu_id": "platform_menu",
     "permission_id": "DELETE_OPENDB_ADMIN_MENUS",
     "permission_name": "删除菜单",
     "sort": 4
@@ -210,24 +210,24 @@
     "sort": 4
   },
   {
-    "menu_id": "system_dictionary",
+    "menu_id": "platform_dictionary",
     "permission_id": "READ_UCSDB_DICT",
-    "permission_name": "查看数据字典",
+    "permission_name": "查看系统字典",
     "sort": 1
   },
   {
-    "menu_id": "system_dictionary",
+    "menu_id": "platform_dictionary",
     "permission_id": "CREATE_UCSDB_DICT",
-    "permission_name": "新增数据字典",
+    "permission_name": "新增系统字典",
     "sort": 2
   },
   {
-    "menu_id": "system_dictionary",
+    "menu_id": "platform_dictionary",
     "permission_id": "UPDATE_UCSDB_DICT",
-    "permission_name": "编辑数据字典",
+    "permission_name": "编辑系统字典",
     "sort": 3
   },
-  {"permission_id":"DELETE_UCSDB_DICT","permission_name":"删除数据字典","menu_id":"system_dictionary","sort":4},
+  {"permission_id":"DELETE_UCSDB_DICT","permission_name":"删除系统字典","menu_id":"platform_dictionary","sort":4},
 {
   "menu_id": "system_department",
   "permission_id": "READ_OPENDB_DEPARTMENT",

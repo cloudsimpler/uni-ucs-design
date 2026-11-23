@@ -17,6 +17,7 @@
       "description": "文档 ID"
     },
     "name": {
+      "description": "租户产品包名称",
       "bsonType": "string"
     },
     "remark": {
@@ -25,33 +26,41 @@
       "description": "产品包备注"
     },
     "menu_ids": {
+      "description": "产品包包含的产品功能页面标识列表",
       "bsonType": "array",
       "items": {
         "bsonType": "string"
       }
     },
     "permission_ids": {
+      "description": "产品包包含的操作权限标识列表",
       "bsonType": "array",
       "items": {
         "bsonType": "string"
       }
     },
-    "creator_id": {
+    "create_id": {
+      "description": "创建人账号 ID",
       "bsonType": "string"
     },
-    "creator_name": {
-      "bsonType": "string"
-    },
-    "updater_id": {
-      "bsonType": "string"
-    },
-    "updater_name": {
+    "create_name": {
+      "description": "创建人姓名",
       "bsonType": "string"
     },
     "create_date": {
+      "description": "创建时间",
       "bsonType": "timestamp"
     },
+    "update_id": {
+      "description": "最后更新人账号 ID",
+      "bsonType": "string"
+    },
+    "update_name": {
+      "description": "最后更新人姓名",
+      "bsonType": "string"
+    },
     "update_date": {
+      "description": "最后更新时间",
       "bsonType": "timestamp"
     }
   }

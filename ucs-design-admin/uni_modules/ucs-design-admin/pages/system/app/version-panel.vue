@@ -573,6 +573,7 @@ onBeforeUnmount(() => {
 .version-toolbar-actions {
 	display: flex;
 	align-items: center;
+	gap: 8px;
 	flex-shrink: 0;
 }
 .hint {
@@ -586,6 +587,7 @@ onBeforeUnmount(() => {
 	justify-content: center;
 	gap: 6px;
 }
+.version-toolbar-actions :deep(.el-button + .el-button),
 .version-actions :deep(.el-button + .el-button) {
 	margin-left: 0;
 }

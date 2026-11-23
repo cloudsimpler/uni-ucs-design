@@ -12,29 +12,8 @@
     "delete": false
   },
   "properties": {
-    "creator_name": {
-      "bsonType": "string",
-      "description": "创建人姓名"
-    },
-    "updater_id": {
-      "bsonType": "string",
-      "description": "最后修改人账号 ID"
-    },
-    "updater_name": {
-      "bsonType": "string",
-      "description": "最后修改人姓名"
-    },
-    "update_date": {
-      "bsonType": "timestamp",
-      "description": "最后修改时间"
-    },
     "_id": {
       "description": "ID，系统自动生成"
-    },
-    "tenant_id": {
-      "bsonType": "string",
-      "description": "应用归属的租户 ID",
-      "foreignKey": "ucsdb-tenants._id"
     },
     "version_revision": {
       "bsonType": "int",
@@ -84,10 +63,6 @@
         }
       },
       "maxLength": 500
-    },
-    "creator_id": {
-      "description": "创建者的user_id，创建者必然是用户，不随应用转让而改变",
-      "bsonType": "string"
     },
     "owner_type": {
       "bsonType": "int",
@@ -317,6 +292,7 @@
       }
     },
     "h5": {
+      "description": "应用的 H5 配置",
       "bsonType": "object",
       "properties": {
         "url": {
@@ -326,6 +302,7 @@
       }
     },
     "quickapp": {
+      "description": "应用的快应用配置",
       "bsonType": "object",
       "properties": {
         "name": {
@@ -384,7 +361,21 @@
         }
       }
     },
+    "tenant_id": {
+      "bsonType": "string",
+      "description": "应用归属的租户 ID",
+      "foreignKey": "ucsdb-tenants._id"
+    },
+    "create_id": {
+      "description": "创建者的user_id，创建者必然是用户，不随应用转让而改变",
+      "bsonType": "string"
+    },
+    "create_name": {
+      "bsonType": "string",
+      "description": "创建人姓名"
+    },
     "create_date": {
+      "description": "创建时间",
       "bsonType": "timestamp",
       "label": "创建时间",
       "forceDefaultValue": {
@@ -393,6 +384,18 @@
       "componentForEdit": {
         "name": "uni-dateformat"
       }
+    },
+    "update_id": {
+      "bsonType": "string",
+      "description": "最后修改人账号 ID"
+    },
+    "update_name": {
+      "bsonType": "string",
+      "description": "最后修改人姓名"
+    },
+    "update_date": {
+      "bsonType": "timestamp",
+      "description": "最后修改时间"
     }
   },
   "version": "0.0.1"

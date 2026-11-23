@@ -17,6 +17,7 @@
   },
   {
     "menu_id": "index",
+    "feature_scope": "product",
     "name": "主页面",
     "icon": "HomeFilled",
     "url": "/",
@@ -33,10 +34,11 @@
   },
   {
     "menu_id": "test",
+    "feature_scope": "product",
     "name": "测试页面",
     "icon": "Monitor",
     "url": "/pages/noLogin/test/test",
-    "sort": 1,
+    "sort": 2,
     "parent_id": "home",
     "enable": true,
     "create_date": 1602662469396,
@@ -65,6 +67,7 @@
   },
   {
     "menu_id": "system_user",
+    "feature_scope": "product",
     "name": "系统用户",
     "icon": "User",
     "url": "/uni_modules/ucs-design-admin/pages/system/user/user",
@@ -81,6 +84,7 @@
   },
   {
     "menu_id": "system_customer",
+    "feature_scope": "product",
     "name": "社区用户",
     "icon": "Avatar",
     "url": "/uni_modules/ucs-design-admin/pages/system/customer/customer",
@@ -95,11 +99,28 @@
     "app_icon": ""
   },
   {
+    "menu_id": "system_department",
+    "feature_scope": "product",
+    "name": "部门管理",
+    "icon": "OfficeBuilding",
+    "url": "/uni_modules/ucs-design-admin/pages/system/department/department",
+    "parent_id": "system_management",
+    "sort": 23,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "enable": true,
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
     "menu_id": "system_role",
+    "feature_scope": "product",
     "name": "角色管理",
     "icon": "UserFilled",
     "url": "/uni_modules/ucs-design-admin/pages/system/role/role",
-    "sort": 23,
+    "sort": 24,
     "parent_id": "system_management",
     "enable": true,
     "create_date": 1602662469397,
@@ -111,23 +132,8 @@
     "app_icon": ""
   },
   {
-    "menu_id": "system_menu",
-    "name": "菜单管理",
-    "icon": "Menu",
-    "url": "/uni_modules/ucs-design-admin/pages/system/menu/menu",
-    "sort": 3,
-    "parent_id": "tenant_operations",
-    "enable": true,
-    "create_date": 1602662469396,
-    "menu_type": 1,
-    "client_type": [
-      "pc"
-    ],
-    "app_url": "",
-    "app_icon": ""
-  },
-  {
     "menu_id": "system_app",
+    "feature_scope": "product",
     "name": "应用管理",
     "icon": "Grid",
     "url": "/uni_modules/ucs-design-admin/pages/system/app/app",
@@ -143,6 +149,7 @@
   },
   {
     "menu_id": "system_asset",
+    "feature_scope": "product",
     "name": "素材管理",
     "icon": "Folder",
     "url": "/uni_modules/ucs-design-admin/pages/system/asset/asset",
@@ -157,42 +164,9 @@
     "app_icon": ""
   },
   {
-    "menu_id": "system_dictionary",
-    "name": "数据字典",
-    "icon": "Collection",
-    "url": "/uni_modules/ucs-design-admin/pages/system/dictionary/dictionary",
-    "parent_id": "system_management",
-    "sort": 27,
-    "menu_type": 1,
-    "client_type": [
-      "pc"
-    ],
-    "enable": true,
-
-    "app_url": "",
-    "app_icon": ""
-  },
-{
-  "menu_id": "system_department",
-  "name": "部门管理",
-  "icon": "OfficeBuilding",
-  "url": "/uni_modules/ucs-design-admin/pages/system/department/department",
-  "parent_id": "system_management",
-  "sort": 22,
-  "menu_type": 1,
-  "client_type": [
-    "pc"
-  ],
-  "enable": true,
-
-  "app_url": "",
-  "app_icon": ""
-},
-  {
     "menu_id": "tenant_operations",
-    "name": "租户运营",
+    "name": "系统运维",
     "menu_type": 0,
-    "feature_scope": "platform",
     "parent_id": "",
     "url": "",
     "icon": "OfficeBuilding",
@@ -204,6 +178,7 @@
   },
   {
     "menu_id": "platform_tenant",
+    "feature_scope": "platform",
     "name": "租户管理",
     "menu_type": 1,
     "parent_id": "tenant_operations",
@@ -217,7 +192,8 @@
   },
   {
     "menu_id": "platform_product_package",
-    "name": "产品包管理",
+    "feature_scope": "platform",
+    "name": "租户产品包",
     "menu_type": 1,
     "parent_id": "tenant_operations",
     "url": "/uni_modules/ucs-design-admin/pages/platform/package/package",
@@ -227,5 +203,38 @@
       "pc"
     ],
     "enable": true
+  },
+  {
+    "menu_id": "platform_menu",
+    "feature_scope": "platform",
+    "name": "菜单管理",
+    "icon": "Menu",
+    "url": "/uni_modules/ucs-design-admin/pages/platform/menu/menu",
+    "sort": 3,
+    "parent_id": "tenant_operations",
+    "enable": true,
+    "create_date": 1602662469396,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "app_url": "",
+    "app_icon": ""
+  },
+  {
+    "menu_id": "platform_dictionary",
+    "feature_scope": "platform",
+    "name": "系统字典",
+    "icon": "Collection",
+    "url": "/uni_modules/ucs-design-admin/pages/platform/dictionary/dictionary",
+    "parent_id": "tenant_operations",
+    "sort": 4,
+    "menu_type": 1,
+    "client_type": [
+      "pc"
+    ],
+    "enable": true,
+    "app_url": "",
+    "app_icon": ""
   }
 ]

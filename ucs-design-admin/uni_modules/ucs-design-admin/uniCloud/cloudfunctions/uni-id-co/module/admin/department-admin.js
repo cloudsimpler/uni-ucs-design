@@ -27,7 +27,7 @@ function createDepartmentAdmin({ db, uid, appId }) {
     try { await db.collection(table).add({ ...data, ...createFields(auth) }); changed = true; } catch (e) { if (!one(await query())) throw e; }
    };
    for (const row of require('./permission-catalog').filter(row => row.menu_id === 'system_department')) await ensure('uni-id-permissions', 'permission_id', row);
-   await ensure('ucsdb-admin-menus', 'menu_id', { menu_id: 'system_department', name: '部门管理', icon: 'OfficeBuilding', url: '/uni_modules/ucs-design-admin/pages/system/department/department', parent_id: 'system_management', sort: 22, menu_type: 1, client_type: ['pc'], enable: true, app_url: '', app_icon: '' });
+   await ensure('ucsdb-admin-menus', 'menu_id', { menu_id: 'system_department', name: '部门管理', icon: 'OfficeBuilding', url: '/uni_modules/ucs-design-admin/pages/system/department/department', parent_id: 'system_management', sort: 23, menu_type: 1, feature_scope: 'product', client_type: ['pc'], enable: true, app_url: '', app_icon: '' });
    return { errCode: 0, changed };
   },
   async list() {

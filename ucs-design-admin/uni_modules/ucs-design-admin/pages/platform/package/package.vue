@@ -1,5 +1,5 @@
 <template>
-	<ucs-admin-layout title="产品包管理" mode="table" :pagination="pagination" @change="changePage">
+	<ucs-admin-layout title="租户产品包" mode="table" :pagination="pagination" @change="changePage">
 		<template #header>
 			<el-form class="platform-search" inline @submit.prevent="search">
 				<el-form-item>

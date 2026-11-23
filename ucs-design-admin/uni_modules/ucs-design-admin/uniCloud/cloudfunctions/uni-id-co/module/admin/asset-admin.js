@@ -64,7 +64,7 @@ function createAssetAdmin({ db, uid, appId, storage }) {
     await insertMissing('uni-id-permissions', 'permission_id', { ...permission });
    }
    await insertMissing('ucsdb-admin-menus', 'menu_id', {
-    menu_id: 'system_asset', name: '素材管理', parent_id: 'system_management', menu_type: 1,
+    menu_id: 'system_asset', name: '素材管理', parent_id: 'system_management', menu_type: 1, feature_scope: 'product',
     client_type: ['pc'], url: '/uni_modules/ucs-design-admin/pages/system/asset/asset', icon: 'Folder',
     app_url: '', app_icon: '', sort: 26, enable: true
    });
@@ -83,12 +83,16 @@ function createAssetAdmin({ db, uid, appId, storage }) {
    page = Math.min(page, Math.max(1, Math.ceil(total / pageSize)));
    const { data } = await query().orderBy('create_date', 'desc').orderBy('_id', 'asc').skip((page - 1) * pageSize).limit(pageSize).get();
    // Only resolve uploaders on this page, with one projected query.
-   const creatorIds = [...new Set(data.filter(row => !row.creator_name).map(row => row.creator_id).filter(Boolean))];
+   for (const row of data) {
+    row.create_id ??= row.creator_id;
+    row.create_name ??= row.creator_name;
+   }
+   const creatorIds = [...new Set(data.filter(row => !row.create_name).map(row => row.create_id).filter(Boolean))];
    const creators = creatorIds.length ? (await db.collection('uni-id-users')
     .where({ _id: db.command.in(creatorIds) }).field({ _id: true, nickname: true, username: true })
     .limit(creatorIds.length).get()).data : [];
    const creatorNames = new Map(creators.map(user => [user._id, actorName(user)]));
-   for (const row of data) row.creator_name ||= creatorNames.get(row.creator_id) || '';
+   for (const row of data) row.create_name ||= creatorNames.get(row.create_id) || '';
    return { errCode: 0, data, total, page, pageSize, auth: ctx.capabilities(auth, 'OPENDB_ASSETS') };
   },
   async references({ _id, page = 1, pageSize = 20 } = {}) {
@@ -135,7 +139,7 @@ function createAssetAdmin({ db, uid, appId, storage }) {
   },
   async complete({ _id, file_id, cover_file_id = '', width, height } = {}) {
    const auth = await authorize('create'); const row = await find(ASSETS, _id);
-   if (row.creator_id !== uid) fail('上传记录已失效');
+   if ((row.create_id ?? row.creator_id) !== uid) fail('上传记录已失效');
    if (row.state === 'ready' && row.file_id === file_id && (row.cover_file_id || '') === cover_file_id) return { errCode: 0 };
    if (row.state !== 'uploading') fail('上传记录已失效');
    file_id = text(file_id, 2048);
@@ -154,7 +158,7 @@ function createAssetAdmin({ db, uid, appId, storage }) {
   },
   async cancel({ _id } = {}) {
    await authorize('create'); const row = await find(ASSETS, _id);
-   if (row.creator_id !== uid || row.state !== 'uploading') fail('不能取消该上传');
+   if ((row.create_id ?? row.creator_id) !== uid || row.state !== 'uploading') fail('不能取消该上传');
    await db.collection(ASSETS).doc(_id).remove(); return { errCode: 0 };
   },
   async save({ _id, name, group_id } = {}) {

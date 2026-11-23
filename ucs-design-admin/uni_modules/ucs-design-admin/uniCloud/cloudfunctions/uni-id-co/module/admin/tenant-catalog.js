@@ -1,13 +1,17 @@
 const DIRECTORY = 'tenant_operations'
 const TENANT_MENU = 'platform_tenant'
 const PACKAGE_MENU = 'platform_product_package'
+const MENU_MANAGEMENT = 'platform_menu'
+const DICTIONARY = 'platform_dictionary'
+const legacyMenuNames = { [DIRECTORY]: '租户运营', [PACKAGE_MENU]: '产品包管理' }
 
-const platformMenuIds = new Set([DIRECTORY, TENANT_MENU, PACKAGE_MENU, 'system_menu'])
+const defaultPlatformPageIds = new Set([TENANT_MENU, PACKAGE_MENU, MENU_MANAGEMENT, DICTIONARY])
 const pageRoot = '/uni_modules/ucs-design-admin/pages/platform'
 const menus = [
-  { menu_id: DIRECTORY, name: '租户运营', menu_type: 0, feature_scope: 'platform', parent_id: '', url: '', icon: 'OfficeBuilding', sort: 3 },
-  { menu_id: TENANT_MENU, name: '租户管理', menu_type: 1, parent_id: DIRECTORY, url: pageRoot + '/tenant/tenant', icon: 'OfficeBuilding', sort: 1 },
-  { menu_id: PACKAGE_MENU, name: '产品包管理', menu_type: 1, parent_id: DIRECTORY, url: pageRoot + '/package/package', icon: 'Box', sort: 2 }
+  { menu_id: DIRECTORY, name: '系统运维', menu_type: 0, parent_id: '', url: '', icon: 'OfficeBuilding', sort: 3 },
+  { menu_id: TENANT_MENU, name: '租户管理', menu_type: 1, feature_scope: 'platform', parent_id: DIRECTORY, url: pageRoot + '/tenant/tenant', icon: 'OfficeBuilding', sort: 1 },
+  { menu_id: PACKAGE_MENU, name: '租户产品包', menu_type: 1, feature_scope: 'platform', parent_id: DIRECTORY, url: pageRoot + '/package/package', icon: 'Box', sort: 2 },
+  { menu_id: MENU_MANAGEMENT, name: '菜单管理', menu_type: 1, feature_scope: 'platform', parent_id: DIRECTORY, url: pageRoot + '/menu/menu', icon: 'Menu', sort: 3 }
 ].map(row => ({ ...row, client_type: ['pc'], enable: true }))
 
 const tenantRights = {
@@ -33,4 +37,4 @@ const permissions = [
   [PACKAGE_MENU, packageRights.update, '编辑产品包']
 ].map(([menu_id, permission_id, permission_name], index) => ({ menu_id, permission_id, permission_name, sort: index + 1 }))
 
-module.exports = { menus, permissions, platformMenuIds, tenantRights, packageRights }
+module.exports = { DIRECTORY, MENU_MANAGEMENT, DICTIONARY, menus, legacyMenuNames, permissions, defaultPlatformPageIds, tenantRights, packageRights }

@@ -5,10 +5,10 @@ const { classifyPages, readMenuCatalog } = require('./menu-scope')
 
 const tenantTables = new Set([
   'uni-id-users', 'uni-id-roles', 'uni-id-tag', 'uni-id-log',
-  'ucsdb-department', 'ucsdb-dict-types', 'ucsdb-dict-items',
+  'ucsdb-department',
   'ucsdb-assets', 'ucsdb-asset-groups', 'ucsdb-asset-references', 'ucsdb-app-list'
 ])
-const sharedTables = new Set(['ucsdb-admin-menus', 'uni-id-permissions'])
+const sharedTables = new Set(['ucsdb-admin-menus', 'uni-id-permissions', 'ucsdb-dict-types', 'ucsdb-dict-items'])
 const fail = (errMsg, errCode = 'TENANT_ACCESS_FORBIDDEN') => { throw { errCode, errMsg } }
 const first = result => Array.isArray(result.data) ? result.data[0] : result.data
 const readDoc = async (db, name, id) => first(await db.collection(name).doc(id).get())
@@ -48,8 +48,7 @@ async function resolveTenantScope(db, uid, appId) {
 }
 
 function tenantPackageIds(tenant) {
-  return Array.isArray(tenant.product_package_ids) ? tenant.product_package_ids :
-    tenant.product_package_id ? [tenant.product_package_id] : []
+  return Array.isArray(tenant.product_package_ids) ? tenant.product_package_ids : []
 }
 
 async function readByIds(db, collection, field, ids) {

@@ -35,12 +35,6 @@
 			}
 		},
 		{
-			"path": "uni_modules/ucs-design-admin/pages/system/menu/menu",
-			"style": {
-				"navigationBarTitleText": "菜单管理"
-			}
-		},
-		{
 			"path": "uni_modules/ucs-design-admin/pages/system/app/app",
 			"style": {
 				"navigationBarTitleText": "应用管理"
@@ -51,9 +45,10 @@
 			"style": { "navigationBarTitleText": "素材管理" }
 		},
 		{ "path": "uni_modules/ucs-design-admin/pages/system/department/department", "style": { "navigationBarTitleText": "部门管理" } },
-		{ "path": "uni_modules/ucs-design-admin/pages/system/dictionary/dictionary", "style": { "navigationBarTitleText": "数据字典" } },
 		{ "path": "uni_modules/ucs-design-admin/pages/platform/tenant/tenant", "style": { "navigationBarTitleText": "租户管理" } },
 		{ "path": "uni_modules/ucs-design-admin/pages/platform/package/package", "style": { "navigationBarTitleText": "产品包管理" } },
+		{ "path": "uni_modules/ucs-design-admin/pages/platform/menu/menu", "style": { "navigationBarTitleText": "菜单管理" } },
+		{ "path": "uni_modules/ucs-design-admin/pages/platform/dictionary/dictionary", "style": { "navigationBarTitleText": "系统字典" } },
 		{
 			"path": "uni_modules/ucs-design-admin/pages/login/login",
 			"style": {

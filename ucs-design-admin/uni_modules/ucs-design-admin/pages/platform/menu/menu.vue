@@ -236,11 +236,10 @@
 					</el-checkbox>
 				</el-checkbox-group>
 			</el-form-item>
-			<el-form-item v-if="form.menu_type === MENU_TYPE.DIRECTORY" label="功能归属" prop="feature_scope">
-				<el-radio-group v-model="form.feature_scope" :disabled="form.menu_id === 'tenant_operations'">
-					<el-radio-button value="inherit">继承上级</el-radio-button>
+			<el-form-item v-if="form.menu_type === MENU_TYPE.PAGE" label="功能归属" prop="feature_scope">
+				<el-radio-group v-model="form.feature_scope">
 					<el-radio-button value="product">产品功能</el-radio-button>
-					<el-radio-button value="platform">平台运营</el-radio-button>
+					<el-radio-button value="platform">平台功能</el-radio-button>
 				</el-radio-group>
 			</el-form-item>
 			<el-form-item label="上级菜单" prop="parent_id">
@@ -402,7 +401,7 @@ import {
 	filterTree,
 	descendantIds
 } from '../../../common/menu.js';
-import PermissionPanel from '../permission/permission-panel.vue';
+import PermissionPanel from '../../system/permission/permission-panel.vue';
 const permissionVisible = ref(false),
 	permissionMenuId = ref(''),
 	permissionTitle = ref('');
@@ -436,7 +435,7 @@ const emptyForm = () => ({
 	name: '',
 	menu_id: '',
 	menu_type: MENU_TYPE.DIRECTORY,
-	feature_scope: 'inherit',
+	feature_scope: 'product',
 	parent_id: '',
 	icon: '',
 	url: '',
@@ -640,7 +639,7 @@ async function openEditor(row, parent = '') {
 		row
 			? {
 					...row,
-					feature_scope: row.feature_scope ?? (row.menu_id === 'tenant_operations' ? 'platform' : 'inherit'),
+					feature_scope: row.menu_type === MENU_TYPE.PAGE && row.feature_scope === 'platform' ? 'platform' : 'product',
 					client_type: [...menuClients(row)],
 					menu_type: MENU_TYPE_OPTIONS.some((item) => item.value === row.menu_type) ? row.menu_type : null,
 					enable: row.enable !== false
@@ -701,6 +700,7 @@ async function save() {
 	saveError.value = '';
 	try {
 		const payload = Object.fromEntries(Object.keys(emptyForm()).map((key) => [key, form[key]]));
+		if (form.menu_type !== MENU_TYPE.PAGE) delete payload.feature_scope;
 		check(await (editing.value ? api.updateMenu(payload) : api.createMenu(payload)));
 		editorVisible.value = false;
 		ElMessage.success(editing.value ? '菜单已更新' : '菜单已创建');
@@ -839,14 +839,6 @@ onBeforeUnmount(() => {
 	display: flex;
 	min-height: 0;
 	overflow: hidden;
-}
-.menu-search {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 10px 14px;
-}
-.menu-search :deep(.el-form-item) {
-	margin: 0;
 }
 .menu-search :deep(.el-input) {
 	width: 230px;

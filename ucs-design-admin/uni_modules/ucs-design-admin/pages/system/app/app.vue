@@ -417,14 +417,6 @@ onBeforeUnmount(() => {
 	min-height: 0;
 	overflow: hidden;
 }
-.app-search {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
-}
-.app-search :deep(.el-form-item) {
-	margin: 0;
-}
 .app-search :deep(.el-input) {
 	width: 240px;
 }

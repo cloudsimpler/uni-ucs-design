@@ -190,7 +190,7 @@ const editMenus = computed(() => {
 	return visit(menuTree(menus.value));
 });
 const filterMenus = computed(() => [{ menu_id: '*', name: '全部权限' }, ...menuTree(menus.value)]);
-const builtinMenus = ['system_customer', 'system_developer', 'system_user', 'system_role', 'system_menu', 'system_app'];
+const builtinMenus = ['system_customer', 'system_developer', 'system_user', 'system_role', 'platform_menu', 'system_app'];
 const menuName = (id) => menus.value.find((menu) => menu.menu_id === id)?.name || '归属异常，请编辑修正';
 const filtered = computed(() =>
 	rows.value
@@ -347,7 +347,7 @@ onBeforeUnmount(() => {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 10px;
+	gap: 8px;
 	margin-bottom: 16px;
 }
 .permission-toolbar .keyword {

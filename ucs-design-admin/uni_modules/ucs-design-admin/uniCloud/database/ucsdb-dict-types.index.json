@@ -1,13 +1,8 @@
 [
   {
-    "IndexName": "tenant_id_code",
+    "IndexName": "code",
     "MgoKeySchema": {
       "MgoIndexKeys": [
-        {
-          "Name": "tenant_id",
-          "Direction": "1",
-          "Type": "varchar"
-        },
         {
           "Name": "code",
           "Direction": "1",

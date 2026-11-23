@@ -1,6 +1,7 @@
 // 文档教程: https://uniapp.dcloud.net.cn/uniCloud/schema
 {
   "bsonType": "object",
+  "description": "应用开放数据缓存表，记录会话等临时数据及过期时间",
   "required": ["_id", "value"],
   "properties": {
     "_id": {
@@ -14,6 +15,30 @@
     "expired": {
       "bsonType": "date",
       "description": "过期时间"
+    },
+    "create_id": {
+      "bsonType": "string",
+      "description": "创建人 ID"
+    },
+    "create_name": {
+      "bsonType": "string",
+      "description": "创建人姓名"
+    },
+    "create_date": {
+      "bsonType": "timestamp",
+      "description": "创建时间"
+    },
+    "update_id": {
+      "bsonType": "string",
+      "description": "更新人 ID"
+    },
+    "update_name": {
+      "bsonType": "string",
+      "description": "更新人姓名"
+    },
+    "update_date": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
     }
   }
 }

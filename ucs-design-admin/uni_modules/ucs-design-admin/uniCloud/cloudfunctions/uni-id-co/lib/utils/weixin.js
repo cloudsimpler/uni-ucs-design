@@ -2,6 +2,7 @@ const crypto = require('crypto')
 const {
   userCollection
 } = require('../../common/constants')
+const { createFields } = require('./record-metadata')
 const {
   ERROR
 } = require('../../common/error')
@@ -110,10 +111,12 @@ async function saveSecureNetworkCache ({
   })
   // 此处存储的是code的缓存，设置有效期和token一致
   const expiredSeconds = this.config.tokenExpiresIn || 3 * 24 * 60 * 60
+  const now = Date.now()
 
   await openDataCollection.doc(key).set({
     value,
-    expired: Date.now() + expiredSeconds * 1000
+    expired: now + expiredSeconds * 1000,
+    ...createFields({ uid: this.authInfo?.uid }, now)
   })
   const isRedisEnable = getRedisEnable()
   if (isRedisEnable) {

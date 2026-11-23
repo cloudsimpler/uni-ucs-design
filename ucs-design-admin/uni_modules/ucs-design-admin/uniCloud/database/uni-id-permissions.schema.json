@@ -9,26 +9,6 @@
 		"delete": false
 	},
 	"properties": {
-		"creator_id": {
-			"bsonType": "string",
-			"description": "创建人账号 ID"
-		},
-		"creator_name": {
-			"bsonType": "string",
-			"description": "创建人姓名"
-		},
-		"updater_id": {
-			"bsonType": "string",
-			"description": "最后修改人账号 ID"
-		},
-		"updater_name": {
-			"bsonType": "string",
-			"description": "最后修改人姓名"
-		},
-		"update_date": {
-			"bsonType": "timestamp",
-			"description": "最后修改时间"
-		},
 		"menu_id": {
 			"bsonType": "string",
 			"description": "所属页面的 menu_id，必填且必须指向页面，不能归属目录",
@@ -54,13 +34,6 @@
 			"title": "备注",
 			"trim": "both"
 		},
-		"create_date": {
-			"bsonType": "timestamp",
-			"description": "创建时间",
-			"forceDefaultValue": {
-				"$env": "now"
-			}
-		},
 		"permission_id": {
 			"bsonType": "string",
 			"component": {
@@ -80,6 +53,33 @@
 			"label": "权限名称",
 			"title": "权限名称",
 			"trim": "both"
+		},
+		"create_id": {
+			"bsonType": "string",
+			"description": "创建人账号 ID"
+		},
+		"create_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"bsonType": "string",
+			"description": "最后修改人账号 ID"
+		},
+		"update_name": {
+			"bsonType": "string",
+			"description": "最后修改人姓名"
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "最后修改时间"
 		}
 	}
 }

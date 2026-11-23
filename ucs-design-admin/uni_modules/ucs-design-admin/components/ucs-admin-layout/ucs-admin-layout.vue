@@ -215,6 +215,14 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 	.layout-header--custom { align-items: center; }
 	.layout-header-main { flex: 1 1 max-content; min-width: 0; max-width: 100%; }
 	.layout-header-main:empty { display: none; }
+	.layout-header-main > :deep(.el-form.el-form--inline) {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.layout-header-main > :deep(.el-form--inline > .el-form-item) { margin: 0; }
+	.layout-header-main > :deep(.el-form--inline .el-button + .el-button) { margin-left: 8px; }
 	.layout-actions {
 		display: flex;
 		align-items: center;

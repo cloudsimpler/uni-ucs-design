@@ -10,6 +10,7 @@ const {
 } = require('../../common/utils')
 const { tenantWhere } = require('../../module/admin/tenant-scope')
 const { PLATFORM_TENANT_ID } = require('./platform-tenant')
+const { createFields, updateFields } = require('./record-metadata')
 const scopedCode = (context, filter) => dbCmd.and([filter, tenantWhere({ command: dbCmd }, context?.entryTenantId || PLATFORM_TENANT_ID)])
 
 async function setVerifyCode ({
@@ -28,7 +29,7 @@ async function setVerifyCode ({
     code: code || getVerifyCode(),
     state: 0,
     ip: this.getUniversalClientInfo().clientIP,
-    created_date: now,
+    ...createFields({ uid: this.authInfo?.uid }, now),
     expired_date: now + expiresIn * 1000
   }
   await verifyCollection.add(record)
@@ -106,7 +107,7 @@ async function verifyEmailCode ({
     }
   }
   const consumed = await verifyCollection.where({ _id: codeRecord[0]._id, state: 0, expired_date: dbCmd.gt(Date.now()) }).update({
-    state: 1
+    state: 1, ...updateFields({ uid: this.authInfo?.uid })
   })
   if (consumed.updated !== 1) throw { errCode: ERROR.EMAIL_VERIFY_CODE_ERROR }
   return {
@@ -142,7 +143,7 @@ async function verifyMobileCode ({
   }
 
   const consumed = await verifyCollection.where({ _id: codeRecord[0]._id, state: 0, expired_date: dbCmd.gt(Date.now()) }).update({
-    state: 1
+    state: 1, ...updateFields({ uid: this.authInfo?.uid })
   })
   if (consumed.updated !== 1) throw { errCode: ERROR.MOBILE_VERIFY_CODE_ERROR }
   return {

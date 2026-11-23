@@ -1016,14 +1016,6 @@ const resetPassword = async () => {
 	height: 100%;
 	min-height: 0;
 }
-.user-search {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
-}
-.user-search .el-form-item {
-	margin: 0;
-}
 .user-search .el-input {
 	width: 240px;
 	max-width: 100%;

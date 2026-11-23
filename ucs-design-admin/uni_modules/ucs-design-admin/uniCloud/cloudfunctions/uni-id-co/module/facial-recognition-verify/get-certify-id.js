@@ -2,6 +2,7 @@ const { userCollection, REAL_NAME_STATUS, frvLogsCollection, dbCmd } = require('
 const { ERROR } = require('../../common/error')
 const { encryptData } = require('../../common/sensitive-aes-cipher')
 const { getCurrentDateTimestamp } = require('../../common/utils')
+const { actorName, createFields } = require('../../lib/utils/record-metadata')
 
 // const CertifyIdExpired = 25 * 60 * 1000 // certifyId 过期时间为30分钟，在25分时置为过期
 
@@ -58,10 +59,11 @@ module.exports = async function (params) {
   }
 
   // 查询用户今天已经进行的实名认证次数，如果超过限制则不能认证
-  const userFrvLogs = await frvLogsCollection.where({
-    user_id: uid,
-    created_date: dbCmd.gt(getCurrentDateTimestamp()) // 查询今天的认证记录
-  }).get()
+  const today = getCurrentDateTimestamp()
+  const userFrvLogs = await frvLogsCollection.where(dbCmd.and([
+    { user_id: uid },
+    dbCmd.or([{ create_date: dbCmd.gt(today) }, { created_date: dbCmd.gt(today) }])
+  ])).get()
 
   // 限制用户每日认证次数
   if (userFrvLogs.data && userFrvLogs.data.length >= realNameCertifyLimit) {
@@ -89,7 +91,7 @@ module.exports = async function (params) {
     real_name: realName,
     identity: idCard,
     status: REAL_NAME_STATUS.WAITING_CERTIFIED,
-    created_date: Date.now()
+    ...createFields({ uid, name: actorName(userInfo) })
   })
 
   // 返回认证ID

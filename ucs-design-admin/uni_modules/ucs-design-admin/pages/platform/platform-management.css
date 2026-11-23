@@ -14,8 +14,6 @@
 @import 'element-plus/theme-chalk/el-tag.css';
 @import '../../common/form-dialog.css';
 
-.platform-search { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.platform-search .el-form-item { margin: 0; }
 .platform-search .el-input { width: 240px; max-width: 100%; }
 .platform-table { display: flex; flex-direction: column; height: 100%; min-height: 0; }
 .platform-table > .el-alert { flex-shrink: 0; }

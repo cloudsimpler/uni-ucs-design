@@ -1,5 +1,6 @@
 {
   "bsonType": "object",
+  "description": "素材表，记录文件信息和上传状态",
   "required": [
     "name",
     "state",
@@ -12,22 +13,6 @@
     "delete": false
   },
   "properties": {
-    "tenant_id": {
-      "bsonType": "string",
-      "description": "所属租户 ID，引用租户表的 _id"
-    },
-    "creator_name": {
-      "bsonType": "string",
-      "description": "创建人姓名"
-    },
-    "updater_id": {
-      "bsonType": "string",
-      "description": "最后修改人账号 ID"
-    },
-    "updater_name": {
-      "bsonType": "string",
-      "description": "最后修改人姓名"
-    },
     "width": { "bsonType": "int", "description": "图片宽度，单位像素", "minimum": 1, "maximum": 1000000 },
     "height": { "bsonType": "int", "description": "图片高度，单位像素", "minimum": 1, "maximum": 1000000 },
     "cover_file_id": {
@@ -52,7 +37,7 @@
     },
     "type": {
       "bsonType": "string",
-      "description": "image/video/audio/document"
+      "description": "素材类型，image 为图片、video 为视频、audio 为音频、document 为文档"
     },
     "mime": {
       "bsonType": "string",
@@ -64,20 +49,38 @@
     },
     "state": {
       "bsonType": "string",
-      "description": "uploading/ready"
-    },
-    "creator_id": {
-      "bsonType": "string",
-      "description": "上传人 ID"
+      "description": "素材上传状态，uploading 为上传中，ready 为可用"
     },
     "size": {
       "bsonType": "long",
       "description": "文件字节数"
     },
+    "tenant_id": {
+      "bsonType": "string",
+      "description": "所属租户 ID，引用租户表的 _id"
+    },
+    "create_id": {
+      "bsonType": "string",
+      "description": "上传人 ID"
+    },
+    "create_name": {
+      "bsonType": "string",
+      "description": "创建人姓名"
+    },
     "create_date": {
+      "description": "创建时间",
       "bsonType": "timestamp"
     },
+    "update_id": {
+      "bsonType": "string",
+      "description": "最后修改人账号 ID"
+    },
+    "update_name": {
+      "bsonType": "string",
+      "description": "最后修改人姓名"
+    },
     "update_date": {
+      "description": "最后更新时间",
       "bsonType": "timestamp"
     }
   }

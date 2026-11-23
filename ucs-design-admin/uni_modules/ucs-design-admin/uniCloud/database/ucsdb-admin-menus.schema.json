@@ -9,26 +9,6 @@
 		"delete": false
 	},
 	"properties": {
-		"creator_id": {
-			"bsonType": "string",
-			"description": "创建人账号 ID"
-		},
-		"creator_name": {
-			"bsonType": "string",
-			"description": "创建人姓名"
-		},
-		"updater_id": {
-			"bsonType": "string",
-			"description": "最后修改人账号 ID"
-		},
-		"updater_name": {
-			"bsonType": "string",
-			"description": "最后修改人姓名"
-		},
-		"update_date": {
-			"bsonType": "timestamp",
-			"description": "最后修改时间"
-		},
 		"menu_type": {
 			"bsonType": "int",
 			"description": "菜单类型：0 目录，1 页面",
@@ -46,7 +26,7 @@
 		},
 		"feature_scope": {
 			"bsonType": "string",
-			"description": "目录功能归属，inherit 继承上级，product 产品功能，platform 平台运营",
+		"description": "页面功能归属，product 产品功能，platform 平台功能，inherit 兼容历史记录",
 			"enum": ["inherit", "product", "platform"]
 		},
 		"_id": {
@@ -85,13 +65,6 @@
 			"bsonType": "bool",
 			"description": "是否启用菜单，true启用、false禁用"
 		},
-		"create_date": {
-			"bsonType": "timestamp",
-			"description": "菜单创建时间",
-			"forceDefaultValue": {
-				"$env": "now"
-			}
-		},
 		"client_type": {
 			"bsonType": "array",
 			"title": "显示端",
@@ -122,6 +95,33 @@
 			"bsonType": "string",
 			"description": "App端上传图标的永久文件ID或图片地址",
 			"trim": "both"
+		},
+		"create_id": {
+			"bsonType": "string",
+			"description": "创建人账号 ID"
+		},
+		"create_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "菜单创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"bsonType": "string",
+			"description": "最后修改人账号 ID"
+		},
+		"update_name": {
+			"bsonType": "string",
+			"description": "最后修改人姓名"
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "最后修改时间"
 		}
 	}
 }

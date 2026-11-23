@@ -1,5 +1,5 @@
 <template>
- <ucs-admin-layout title="数据字典" mode="table" :pagination="{ current: page, size, count: filtered.length }" :page-sizes="sizes" @change="changePagination">
+ <ucs-admin-layout title="系统字典" mode="table" :pagination="{ current: page, size, count: filtered.length }" :page-sizes="sizes" @change="changePagination">
   <template #header><el-form class="dict-search" inline @submit.prevent="search"><el-form-item><el-input v-model="keyword" :prefix-icon="Search" placeholder="字典名称或编码" aria-label="字典名称或编码" clearable @clear="search" /></el-form-item><el-form-item><el-button type="primary" :loading="loading" native-type="submit">查询</el-button><el-button @click="keyword = ''; search()">重置</el-button></el-form-item></el-form></template>
   <template #button><el-button v-if="auth.create" type="primary" :icon="Plus" @click="editType()">新增字典</el-button><el-button :icon="Refresh" :loading="loading" aria-label="刷新字典" @click="loadTypes" /></template>
   <div class="dict-content">
@@ -139,8 +139,6 @@ async function save(){
 onMounted(loadTypes);onBeforeUnmount(()=>{listRequest++;itemRequest++;});
 </script>
 <style scoped>
-.dict-search{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.dict-search :deep(.el-form-item){margin:0;}
 .dict-search :deep(.el-input){width:240px;max-width:100%;}
 .dict-content{height:100%;min-height:0;display:flex;flex-direction:column;}
 .dict-content > .el-alert{flex-shrink:0;}

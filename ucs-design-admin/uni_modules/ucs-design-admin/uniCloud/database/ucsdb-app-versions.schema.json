@@ -10,26 +10,6 @@
     "delete": false
   },
   "properties": {
-    "creator_id": {
-      "bsonType": "string",
-      "description": "创建人账号 ID"
-    },
-    "creator_name": {
-      "bsonType": "string",
-      "description": "创建人姓名"
-    },
-    "updater_id": {
-      "bsonType": "string",
-      "description": "最后修改人账号 ID"
-    },
-    "updater_name": {
-      "bsonType": "string",
-      "description": "最后修改人姓名"
-    },
-    "update_date": {
-      "bsonType": "timestamp",
-      "description": "最后修改时间"
-    },
     "_id": {
       "description": "记录id,自动生成"
     },
@@ -147,16 +127,6 @@
       "label": "强制更新",
       "defaultValue": false
     },
-    "create_date": {
-      "bsonType": "timestamp",
-      "label": "上传时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      },
-      "componentForEdit": {
-        "name": "uni-dateformat"
-      }
-    },
     "uni_platform": {
       "bsonType": "string",
       "description": "uni平台信息，如：mp-weixin/web/ios/android",
@@ -196,6 +166,37 @@
           "label": "优先级"
         }
       }
+    },
+    "create_id": {
+      "bsonType": "string",
+      "description": "创建人账号 ID"
+    },
+    "create_name": {
+      "bsonType": "string",
+      "description": "创建人姓名"
+    },
+    "create_date": {
+      "description": "创建时间",
+      "bsonType": "timestamp",
+      "label": "上传时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      },
+      "componentForEdit": {
+        "name": "uni-dateformat"
+      }
+    },
+    "update_id": {
+      "bsonType": "string",
+      "description": "最后修改人账号 ID"
+    },
+    "update_name": {
+      "bsonType": "string",
+      "description": "最后修改人姓名"
+    },
+    "update_date": {
+      "bsonType": "timestamp",
+      "description": "最后修改时间"
     }
   },
   "version": "0.0.1"

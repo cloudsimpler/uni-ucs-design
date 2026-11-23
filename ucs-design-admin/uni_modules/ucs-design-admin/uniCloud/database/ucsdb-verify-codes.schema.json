@@ -4,17 +4,12 @@
 	"permission": { "read": false, "create": false, "update": false, "delete": false },
 	"properties": {
 		"account_selection": { "bsonType": "object", "description": "服务端验证后的短期账号选择凭据，不向客户端开放" },
-		"tenant_id": { "bsonType": "string" },
 		"_id": {
 			"description": "ID，系统自动生成"
 		},
 		"code": {
 			"bsonType": "string",
 			"description": "验证码"
-		},
-		"create_date": {
-			"bsonType": "timestamp",
-			"description": "创建时间"
 		},
 		"device_uuid": {
 			"bsonType": "string",
@@ -43,6 +38,31 @@
 		"state": {
 			"bsonType": "int",
 			"description": "验证状态：0 未验证、1 已验证、2 已作废"
+		},
+		"tenant_id": { "description": "发送和校验验证码时使用的租户 ID", "bsonType": "string" },
+		"create_id": {
+			"bsonType": "string",
+			"description": "创建人 ID"
+		},
+		"create_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间"
+		},
+		"update_id": {
+			"bsonType": "string",
+			"description": "更新人 ID"
+		},
+		"update_name": {
+			"bsonType": "string",
+			"description": "更新人姓名"
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "更新时间"
 		}
 	},
 	"required": []

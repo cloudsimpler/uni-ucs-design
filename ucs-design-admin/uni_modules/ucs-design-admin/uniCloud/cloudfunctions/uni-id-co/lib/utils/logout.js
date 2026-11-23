@@ -4,6 +4,7 @@ const {
   deviceCollection,
   userCollection
 } = require('../../common/constants')
+const { updateFields } = require('./record-metadata')
 
 async function logout () {
   const {
@@ -31,7 +32,8 @@ async function logout () {
     device_id: deviceId,
     user_id: uid
   }).update({
-    token_expired: 0
+    token_expired: 0,
+    ...updateFields({ uid })
   })
   await this.middleware.uniIdLog({
     data: {

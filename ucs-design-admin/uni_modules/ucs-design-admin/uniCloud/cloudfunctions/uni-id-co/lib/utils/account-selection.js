@@ -5,6 +5,7 @@ const { accountTypeOf, sameAccountTypes } = require('../../module/admin/account-
 const PasswordUtils = require('./password')
 const { PLATFORM_TENANT_ID } = require('./platform-tenant')
 const { ownerOf } = require('../../module/admin/tenant-scope')
+const { createFields, updateFields } = require('./record-metadata')
 const digest = value => createHash('sha256').update(String(value || '')).digest('hex')
 const fail = () => { throw { errCode: 'ACCOUNT_SELECTION_EXPIRED', errMsg: '验证已失效，请重新验证后选择账号' } }
 
@@ -18,9 +19,10 @@ async function issueSelection(context, users, purpose, contact = {}) {
     appid: client.appId, entry: accountEntry(context), purpose, contact, tenant_id: context.entryTenantId || PLATFORM_TENANT_ID,
     accounts: users.map(user => ({ uid: user._id, type: accountTypeOf(user), password: digest(user.password) }))
   }
+  const now = Date.now()
   await verifyCollection.add({
     code: digest(ticket), scene: `account-selection-${purpose}`, state: 0,
-    created_date: Date.now(), expired_date: Date.now() + 5 * 60 * 1000,
+    ...createFields(undefined, now), expired_date: now + 5 * 60 * 1000,
     ip: client.clientIP || '', account_selection: proof
   })
   return {
@@ -46,7 +48,7 @@ async function consumeSelection(context, { selectionTicket, uid }, purpose) {
   for (const [key, value] of Object.entries(proof.contact)) {
     if (user[key] !== value || user[`${key}_confirmed`] !== 1) fail()
   }
-  const consumed = await verifyCollection.where({ ...query, _id: record._id }).update({ state: 1 })
+  const consumed = await verifyCollection.where({ ...query, _id: record._id }).update({ state: 1, ...updateFields({ uid }) })
   if (consumed.updated !== 1) fail()
   return user
 }

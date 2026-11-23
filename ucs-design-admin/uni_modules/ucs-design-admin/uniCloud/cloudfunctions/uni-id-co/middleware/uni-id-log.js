@@ -1,4 +1,5 @@
 const db = uniCloud.database()
+const { createFields } = require('../lib/utils/record-metadata')
 module.exports = async function ({
   data = {},
   success = true,
@@ -27,7 +28,7 @@ module.exports = async function ({
     ip: clientIP,
     type,
     ua: userAgent,
-    create_date: now,
+    ...createFields({ uid: dataCopy.user_id, name: dataCopy.username }, now),
     ...dataCopy
   }
 

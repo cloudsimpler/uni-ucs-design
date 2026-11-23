@@ -1,5 +1,6 @@
 const { accessContext, fail } = require('./admin-access');
 const { createFields, updateFields } = require('../../lib/utils/record-metadata');
+const { DIRECTORY, DICTIONARY } = require('./tenant-catalog');
 const TYPES = 'ucsdb-dict-types', ITEMS = 'ucsdb-dict-items', SUFFIX = 'UCSDB_DICT';
 const one = result => Array.isArray(result.data) ? result.data[0] : result.data;
 function createDictionaryAdmin({db, uid, appId}) {
@@ -14,15 +15,18 @@ function createDictionaryAdmin({db, uid, appId}) {
  return {
   async install() {
    const auth=await ctx.actor(); if(!auth.isAdmin) fail('仅超级管理员可安装字典菜单');
-   const parent=one(await db.collection('ucsdb-admin-menus').where({menu_id:'system_management'}).limit(1).get());
-   if(!parent) fail('请先建立系统管理目录');
+   const menuTable=db.collection('ucsdb-admin-menus');
+   const parent=one(await menuTable.where({menu_id:DIRECTORY}).limit(1).get());
+   if(!parent) fail('请先建立系统运维目录');
    let changed=false;
    const ensure=async(table,key,data)=>{
     if(one(await db.collection(table).where({[key]:data[key]}).limit(1).get())) return;
     try { await db.collection(table).add({...data,...createFields(auth)}); changed=true; } catch(e) { if(!one(await db.collection(table).where({[key]:data[key]}).limit(1).get())) throw e; }
    };
-   for(const row of require('./permission-catalog').filter(x=>x.menu_id==='system_dictionary')) await ensure('uni-id-permissions','permission_id',row);
-   await ensure('ucsdb-admin-menus','menu_id',{menu_id:'system_dictionary',name:'数据字典',icon:'Collection',url:'/uni_modules/ucs-design-admin/pages/system/dictionary/dictionary',parent_id:'system_management',sort:27,menu_type:1,client_type:['pc'],enable:true,app_url:'',app_icon:''});
+   for(const row of require('./permission-catalog').filter(x=>x.menu_id===DICTIONARY)) {
+    await ensure('uni-id-permissions','permission_id',row);
+   }
+   await ensure('ucsdb-admin-menus','menu_id',{menu_id:DICTIONARY,name:'系统字典',icon:'Collection',url:'/uni_modules/ucs-design-admin/pages/platform/dictionary/dictionary',parent_id:DIRECTORY,feature_scope:'platform',sort:4,menu_type:1,client_type:['pc'],enable:true,app_url:'',app_icon:''});
    return {errCode:0,changed};
   },
   async types() { const auth=await authorize('read'); if(auth.isAdmin) { const permission=require('./permission-catalog').find(x=>x.permission_id==='DELETE_UCSDB_DICT'); const table=db.collection('uni-id-permissions'); if(!one(await table.where({permission_id:permission.permission_id}).limit(1).get())) { try { await table.add({...permission,...createFields(auth)}); } catch(e) { if(!one(await table.where({permission_id:permission.permission_id}).limit(1).get())) throw e; } } } const data=await ctx.all(TYPES); data.sort((a,b)=>a.sort-b.sort||a.code.localeCompare(b.code)); return {errCode:0,data,auth:ctx.capabilities(auth,SUFFIX)}; },

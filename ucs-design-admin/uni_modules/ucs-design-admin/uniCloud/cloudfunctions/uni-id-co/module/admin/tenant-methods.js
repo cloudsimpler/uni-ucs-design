@@ -3,7 +3,7 @@ const { createFields, updateFields } = require('../../lib/utils/record-metadata'
 const { PLATFORM_TENANT_ID, TENANTS, PACKAGES, platformTenant } = require('../../lib/utils/platform-tenant')
 const { fail, readDoc, readByIds, enterpriseScope } = require('./tenant-scope')
 const { signDelegation, verifyDelegation } = require('./admin-token')
-const { menus, permissions, tenantRights, packageRights } = require('./tenant-catalog')
+const { menus, legacyMenuNames, permissions, tenantRights, packageRights } = require('./tenant-catalog')
 const { classifyPages } = require('./menu-scope')
 
 const allow = (actor, right) => actor.isAdmin || actor.permissions.includes(right)
@@ -88,7 +88,15 @@ module.exports = {
       await db.collection('uni-id-users').where({ _id: actor.uid, tenant_id: db.command.exists(false) })
         .update({ tenant_id: PLATFORM_TENANT_ID, ...updateFields(actor) })
     }
-    for (const row of menus) changed = (await ensureRecord(db, 'ucsdb-admin-menus', 'menu_id', row, actor)) || changed
+    const menuTable = db.collection('ucsdb-admin-menus')
+    for (const row of menus) {
+      changed = (await ensureRecord(db, 'ucsdb-admin-menus', 'menu_id', row, actor)) || changed
+      const legacyName = legacyMenuNames[row.menu_id]
+      if (!legacyName) continue
+      const renamed = await menuTable.where({ menu_id: row.menu_id, name: legacyName })
+        .update({ name: row.name, ...updateFields(actor) })
+      changed = changed || renamed.updated > 0
+    }
     for (const row of permissions) changed = (await ensureRecord(db, 'uni-id-permissions', 'permission_id', row, actor)) || changed
     return { errCode: 0, changed }
   },
@@ -113,24 +121,26 @@ module.exports = {
     if (typeof tenant_no !== 'string' || !/^\d{5}$/.test(tenant_no) || tenant_no === PLATFORM_TENANT_ID)
       invalid('请输入除 00000 之外的五位数字租户号')
     try {
-      const { id } = await db.collection(TENANTS).add({ tenant_no, name: nameOf(name), type: 'enterprise', enabled: true, ...createFields(actor) })
+      const { id } = await db.collection(TENANTS).add({
+        tenant_no, name: nameOf(name), type: 'enterprise', enabled: true, product_package_ids: [], ...createFields(actor)
+      })
       return { errCode: 0, id }
     } catch (error) {
       if (duplicate(error)) invalid('租户号已存在')
       throw error
     }
   },
-  async assignTenantPackage({ _id, product_package_ids, product_package_id } = {}) {
+  async assignTenantPackage({ _id, product_package_ids } = {}) {
     const { db, actor } = await platform(this)
     required(actor, tenantRights.assign)
     const tenant = await otherEnterprise(db, _id, this.adminScope.tenantId)
-    const selected = product_package_ids ?? (product_package_id === undefined ? undefined : [product_package_id])
-    if (!Array.isArray(selected) || selected.some(id => typeof id !== 'string' || !id || id.length > 100))
+    if (!Array.isArray(product_package_ids) ||
+      product_package_ids.some(id => typeof id !== 'string' || !id || id.length > 100))
       invalid('请选择有效的产品包')
-    const ids = [...new Set(selected)]
+    const ids = [...new Set(product_package_ids)]
     if ((await readByIds(db, PACKAGES, '_id', ids)).length !== ids.length) invalid('请选择有效的产品包')
     await db.collection(TENANTS).doc(tenant._id).update({
-      product_package_ids: ids, product_package_id: ids[0] || '', ...updateFields(actor)
+      product_package_ids: ids, ...updateFields(actor)
     })
     return { errCode: 0 }
   },
@@ -147,7 +157,7 @@ module.exports = {
   async listProductPackages() {
     const { db, actor } = await platform(this)
     const auth = capabilities(actor, packageRights)
-    if (!Object.values(auth).some(Boolean)) fail('没有产品包管理权限')
+    if (!Object.values(auth).some(Boolean)) fail('没有租户产品包操作权限')
     const [data, menuRows, allPermissions] = await Promise.all([list(db, PACKAGES), list(db, 'ucsdb-admin-menus'), list(db, 'uni-id-permissions')])
     const { product, productMenus } = classifyPages(menuRows)
     return { errCode: 0, data, auth, menus: menuRows.filter(row => productMenus.has(row.menu_id)),

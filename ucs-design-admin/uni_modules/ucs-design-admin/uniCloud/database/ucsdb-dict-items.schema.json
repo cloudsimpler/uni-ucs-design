@@ -1,5 +1,6 @@
 {
   "bsonType": "object",
+  "description": "系统字典项表，记录各字典的显示选项和存储值",
   "required": [
     "dict_id",
     "label",
@@ -14,48 +15,52 @@
     "delete": false
   },
   "properties": {
-    "tenant_id": {
-      "bsonType": "string",
-      "description": "所属租户 ID，引用租户表的 _id"
-    },
-    "creator_id": {
-      "bsonType": "string",
-      "description": "创建人账号 ID"
-    },
-    "creator_name": {
-      "bsonType": "string",
-      "description": "创建人姓名"
-    },
-    "updater_id": {
-      "bsonType": "string",
-      "description": "最后修改人账号 ID"
-    },
-    "updater_name": {
-      "bsonType": "string",
-      "description": "最后修改人姓名"
-    },
     "dict_id": {
+      "description": "所属系统字典类型的文档 ID",
       "bsonType": "string"
     },
     "label": {
+      "description": "字典项显示名称",
       "bsonType": "string"
     },
     "value": {
+      "description": "字典项存储值，同一字典内唯一",
       "bsonType": "string"
     },
     "color": {
+      "description": "字典项标签颜色，使用十六进制色值",
       "bsonType": "string"
     },
     "enabled": {
+      "description": "字典项是否启用",
       "bsonType": "bool"
     },
     "sort": {
+      "description": "字典项显示顺序，数值越小越靠前",
       "bsonType": "int"
     },
+    "create_id": {
+      "bsonType": "string",
+      "description": "创建人账号 ID"
+    },
+    "create_name": {
+      "bsonType": "string",
+      "description": "创建人姓名"
+    },
     "create_date": {
+      "description": "创建时间",
       "bsonType": "timestamp"
     },
+    "update_id": {
+      "bsonType": "string",
+      "description": "最后修改人账号 ID"
+    },
+    "update_name": {
+      "bsonType": "string",
+      "description": "最后修改人姓名"
+    },
     "update_date": {
+      "description": "最后更新时间",
       "bsonType": "timestamp"
     }
   }

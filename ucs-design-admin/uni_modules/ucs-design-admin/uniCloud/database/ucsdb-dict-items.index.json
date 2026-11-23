@@ -23,14 +23,9 @@
     }
   },
   {
-    "IndexName": "tenant_id_dict_id_value",
+    "IndexName": "dict_id_value",
     "MgoKeySchema": {
       "MgoIndexKeys": [
-        {
-          "Name": "tenant_id",
-          "Direction": "1",
-          "Type": "varchar"
-        },
         {
           "Name": "dict_id",
           "Direction": "1",

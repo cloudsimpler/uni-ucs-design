@@ -1,6 +1,7 @@
 const { actorName, createFields, updateFields } = require('../../lib/utils/record-metadata');
 const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant');
-const { classifyPages } = require('./menu-scope');
+const { classifyPages, isPageScope } = require('./menu-scope');
+const { defaultPlatformPageIds } = require('./tenant-catalog');
 const fail = (errMsg, errCode = 'MENU_ADMIN_INVALID') => {
 	throw { errCode, errMsg };
 };
@@ -143,11 +144,18 @@ function createMenuAdmin({ db, uid, appId, loginScope }) {
 		}
 		if (!value.name) fail('请输入菜单名称');
 		if (![MENU_TYPE.DIRECTORY, MENU_TYPE.PAGE].includes(value.menu_type)) fail('请选择菜单类型：0 目录、1 页面');
-		value.feature_scope = value.menu_type === MENU_TYPE.DIRECTORY
-			? (value.feature_scope ?? (value.menu_id === 'tenant_operations' ? 'platform' : 'inherit'))
-			: 'inherit';
-		if (!['inherit', 'product', 'platform'].includes(value.feature_scope)) fail('请选择有效的功能归属');
-		if (value.menu_id === 'tenant_operations' && value.feature_scope !== 'platform') fail('租户运营目录属于平台功能');
+		if (value.menu_type === MENU_TYPE.PAGE) {
+			if (params.feature_scope != null && params.feature_scope !== 'inherit' && !isPageScope(params.feature_scope))
+				fail('请选择有效的功能归属');
+			if (isPageScope(params.feature_scope)) value.feature_scope = params.feature_scope;
+			else if (old?.menu_type === MENU_TYPE.PAGE)
+				value.feature_scope = classifyPages(rows).platform.has(old.menu_id) ? 'platform' : 'product';
+			else value.feature_scope = defaultPlatformPageIds.has(value.menu_id) ? 'platform' : 'product';
+		} else if (old?.menu_type === MENU_TYPE.PAGE) {
+			value.feature_scope = 'inherit';
+		} else {
+			delete value.feature_scope;
+		}
 		if (
 			!Array.isArray(value.client_type) ||
 			!value.client_type.length ||
@@ -201,7 +209,7 @@ function createMenuAdmin({ db, uid, appId, loginScope }) {
 			)
 		)
 			fail('请先调整下级菜单的显示端，再取消目录的显示端');
-		return Object.fromEntries(fields.map((key) => [key, value[key]]));
+		return Object.fromEntries(fields.filter((key) => Object.hasOwn(value, key)).map((key) => [key, value[key]]));
 	};
 	const find = (rows, id) => {
 		if (typeof id !== 'string' || !id || id.length > 100) fail('菜单 ID 不正确');
@@ -254,6 +262,13 @@ function createMenuAdmin({ db, uid, appId, loginScope }) {
 					includePermissions ? all('uni-id-permissions', {}, { permission_id: true, permission_name: true, menu_id: true }) : []
 				]);
 			}
+			const legacyPages = rows.some(row => row.menu_type === MENU_TYPE.PAGE && !isPageScope(row.feature_scope));
+			if (legacyPages) {
+				const { platform } = classifyPages(lazy ? await all(table) : rows);
+				rows = rows.map(row => row.menu_type === MENU_TYPE.PAGE && !isPageScope(row.feature_scope)
+					? { ...row, feature_scope: platform.has(row.menu_id) ? 'platform' : 'product' }
+					: row);
+			}
 			return {
 				errCode: 0,
 				data: sortMenus(rows),
@@ -274,7 +289,8 @@ function createMenuAdmin({ db, uid, appId, loginScope }) {
 			if (!params || typeof params !== 'object' || Array.isArray(params)) fail('菜单参数不正确');
 			const rows = await all(table);
 			const { product, platform } = classifyPages(rows);
-			const scopedMenus = auth.sessionId ? (auth.menuIds || []).filter(id => product.has(id)) : auth.menuIds;
+			const scopedMenus = auth.tenantId && auth.tenantId !== PLATFORM_TENANT_ID
+				? (auth.menuIds || []).filter(id => product.has(id)) : auth.menuIds;
 			const operations = auth.sessionId && loginScope?.tenantId === PLATFORM_TENANT_ID
 				? [...platform].filter(id => loginScope.isAdmin || loginScope.menuIds?.includes(id))
 				: [];
@@ -301,6 +317,18 @@ function createMenuAdmin({ db, uid, appId, loginScope }) {
 			const rows = await all(table);
 			const old = find(rows, params._id);
 			const value = await validate(params, rows, old);
+			if (old.menu_type === MENU_TYPE.DIRECTORY && value.parent_id !== (old.parent_id || '')) {
+				const before = classifyPages(rows).platform;
+				const after = classifyPages(rows.map(row => row === old ? { ...row, parent_id: value.parent_id } : row)).platform;
+				// Keep legacy pages in their current product packages when moving a directory.
+				for (const row of rows) {
+					if (row.menu_type !== MENU_TYPE.PAGE || isPageScope(row.feature_scope) ||
+						before.has(row.menu_id) === after.has(row.menu_id)) continue;
+					const storedScope = row.feature_scope === undefined ? db.command.exists(false) : row.feature_scope;
+					await db.collection(table).where({ _id: row._id, feature_scope: storedScope })
+						.update({ feature_scope: before.has(row.menu_id) ? 'platform' : 'product', ...updateFields(auth) });
+				}
+			}
 			const result = await db.collection(table).doc(old._id).update({ ...value, ...updateFields(auth) });
 			if (result.updated === 0) {
 				// Some database adapters report zero modified rows for an unchanged form.

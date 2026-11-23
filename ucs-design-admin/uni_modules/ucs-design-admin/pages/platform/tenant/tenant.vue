@@ -80,8 +80,7 @@ let requestId = 0;
 const loading = ref(false), busy = ref(false), editor = ref(false), selected = ref(null);
 const error = ref(''), editorError = ref('');
 const form = reactive({ tenant_no: '', name: '', product_package_ids: [] });
-const packageIds = row => Array.isArray(row.product_package_ids) ? row.product_package_ids :
-	row.product_package_id ? [row.product_package_id] : [];
+const packageIds = row => Array.isArray(row.product_package_ids) ? row.product_package_ids : [];
 const userRoute = '/uni_modules/ucs-design-admin/pages/system/user/user';
 const message = e => e?.errMsg || e?.message || '操作失败，请重试';
 const resultOf = result => { if (result.errCode) throw result; return result; };

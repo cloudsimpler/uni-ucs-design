@@ -14,7 +14,7 @@
 		},
 		"ua": {
 			"bsonType": "string",
-			"description": "userAgent"
+			"description": "客户端用户代理字符串"
 		},
 		"uuid": {
 			"bsonType": "string",
@@ -22,7 +22,7 @@
 		},
 		"os_name": {
 			"bsonType": "string",
-			"description": "ios|android|windows|mac|linux "
+			"description": "操作系统名称，如 iOS、Android、Windows、macOS 或 Linux"
 		},
 		"os_version": {
 			"bsonType": "string",
@@ -64,13 +64,6 @@
 			"bsonType": "string",
 			"description": "平台类型"
 		},
-		"create_date": {
-			"bsonType": "timestamp",
-			"description": "创建时间",
-			"forceDefaultValue": {
-				"$env": "now"
-			}
-		},
 		"last_active_date": {
 			"bsonType": "timestamp",
 			"description": "最后登录时间"
@@ -78,6 +71,33 @@
 		"last_active_ip": {
 			"bsonType": "string",
 			"description": "最后登录IP"
+		},
+		"create_id": {
+			"bsonType": "string",
+			"description": "创建人 ID"
+		},
+		"create_name": {
+			"bsonType": "string",
+			"description": "创建人姓名"
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"bsonType": "string",
+			"description": "更新人 ID"
+		},
+		"update_name": {
+			"bsonType": "string",
+			"description": "更新人姓名"
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "更新时间"
 		}
 	},
 	"version": "0.0.1"

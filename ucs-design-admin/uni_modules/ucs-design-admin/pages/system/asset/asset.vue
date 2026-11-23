@@ -56,7 +56,7 @@
         <el-icon v-else :size="42"><component :is="fileIcons[row.type] || Document" /></el-icon>
         <span class="file-kind">{{ types[row.type] }}</span>
        </button>
-       <div class="asset-info"><strong :title="row.name">{{ row.name }}</strong><span>{{ sizeLabel(row.size) }} · {{ dateLabel(row.create_date) }}<template v-if="row.creator_name"> · {{ row.creator_name }}</template></span></div>
+       <div class="asset-info"><strong :title="row.name">{{ row.name }}</strong><span>{{ sizeLabel(row.size) }} · {{ dateLabel(row.create_date) }}<template v-if="row.create_name"> · {{ row.create_name }}</template></span></div>
        <div class="asset-actions"><el-button size="small" text type="primary" @click="preview(row)">详情</el-button><el-button size="small" text type="primary" @click="showReferences(row)">使用记录</el-button><el-button v-if="auth.update" size="small" text type="warning" :disabled="busy" @click="edit(row)">编辑</el-button><el-button v-if="auth.delete" size="small" text type="danger" :disabled="busy" @click="remove(row)">删除</el-button></div>
       </article>
      </div>
@@ -90,7 +90,7 @@
  <el-dialog v-model="previewVisible" title="素材详情" width="760px" align-center class="asset-dialog" @closed="selected = null">
   <template v-if="selected">
    <div class="preview-content"><img v-if="selected.type === 'image'" :src="urls[selected.file_id]" :alt="selected.name" /><video v-else-if="selected.type === 'video'" :src="urls[selected.file_id]" :poster="urls[selected.cover_file_id]" controls /><audio v-else-if="selected.type === 'audio'" :src="urls[selected.file_id]" controls /><el-icon v-else :size="64"><Document /></el-icon></div>
-   <el-descriptions :column="1" border class="asset-detail-info"><el-descriptions-item label="fileID"><div class="file-id-row"><span class="file-id-value">{{ selected.file_id }}</span><el-button link type="primary" @click="copyId(selected)">复制</el-button></div></el-descriptions-item><el-descriptions-item label="素材名称">{{ selected.name }}</el-descriptions-item><el-descriptions-item label="文件类型">{{ selected.ext.toUpperCase() }}</el-descriptions-item><el-descriptions-item label="文件大小">{{ sizeLabel(selected.size) }}</el-descriptions-item><el-descriptions-item v-if="selected.type === 'image' && resolution(selected)" label="分辨率">{{ resolution(selected) }}</el-descriptions-item><el-descriptions-item label="所属分组">{{ groups.find(item => item._id === selected.group_id)?.name || types[selected.type] }}</el-descriptions-item><el-descriptions-item v-if="selected.creator_name" label="上传人">{{ selected.creator_name }}</el-descriptions-item><el-descriptions-item label="上传时间">{{ dateLabel(selected.create_date, true) }}</el-descriptions-item></el-descriptions>
+   <el-descriptions :column="1" border class="asset-detail-info"><el-descriptions-item label="fileID"><div class="file-id-row"><span class="file-id-value">{{ selected.file_id }}</span><el-button link type="primary" @click="copyId(selected)">复制</el-button></div></el-descriptions-item><el-descriptions-item label="素材名称">{{ selected.name }}</el-descriptions-item><el-descriptions-item label="文件类型">{{ selected.ext.toUpperCase() }}</el-descriptions-item><el-descriptions-item label="文件大小">{{ sizeLabel(selected.size) }}</el-descriptions-item><el-descriptions-item v-if="selected.type === 'image' && resolution(selected)" label="分辨率">{{ resolution(selected) }}</el-descriptions-item><el-descriptions-item label="所属分组">{{ groups.find(item => item._id === selected.group_id)?.name || types[selected.type] }}</el-descriptions-item><el-descriptions-item v-if="selected.create_name" label="上传人">{{ selected.create_name }}</el-descriptions-item><el-descriptions-item label="上传时间">{{ dateLabel(selected.create_date, true) }}</el-descriptions-item></el-descriptions>
 
   </template>
   <template #footer><el-button :loading="copyingAddress" :disabled="!selected" @click="copyAddress(selected)">复制临时地址</el-button><el-button type="primary" :loading="downloading" @click="downloadFile(selected)">下载文件</el-button></template>
@@ -399,7 +399,7 @@ onBeforeUnmount(() => { sequence++; });
 <style scoped>
 .asset-layout { height: calc(100dvh - var(--top-window-height, 56px)); min-height: 0; }
 .asset-layout :deep(.layout-card) { display: flex; min-height: 0; overflow: hidden; }
-.search-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.search-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .search-bar .el-input { width: 240px; }
 .search-bar .el-select { width: 130px; }
 .asset-workspace { display: flex; flex: 1; min-width: 0; min-height: 0; }

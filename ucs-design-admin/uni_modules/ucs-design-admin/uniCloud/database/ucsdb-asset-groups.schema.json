@@ -1,5 +1,6 @@
 {
   "bsonType": "object",
+  "description": "素材分组表",
   "required": [
     "name"
   ],
@@ -10,36 +11,37 @@
     "delete": false
   },
   "properties": {
+    "name": {
+      "bsonType": "string",
+      "description": "分组名称"
+    },
     "tenant_id": {
       "bsonType": "string",
       "description": "所属租户 ID，引用租户表的 _id"
     },
-    "creator_name": {
+    "create_id": {
+      "bsonType": "string",
+      "description": "创建人 ID"
+    },
+    "create_name": {
       "bsonType": "string",
       "description": "创建人姓名"
     },
-    "updater_id": {
+    "create_date": {
+      "description": "创建时间",
+      "bsonType": "timestamp"
+    },
+    "update_id": {
       "bsonType": "string",
       "description": "最后修改人账号 ID"
     },
-    "updater_name": {
+    "update_name": {
       "bsonType": "string",
       "description": "最后修改人姓名"
     },
     "update_date": {
       "bsonType": "timestamp",
       "description": "最后修改时间"
-    },
-    "name": {
-      "bsonType": "string",
-      "description": "分组名称"
-    },
-    "creator_id": {
-      "bsonType": "string",
-      "description": "创建人 ID"
-    },
-    "create_date": {
-      "bsonType": "timestamp"
     }
   }
 }

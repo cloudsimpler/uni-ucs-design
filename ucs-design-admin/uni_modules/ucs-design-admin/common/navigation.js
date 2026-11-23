@@ -17,11 +17,20 @@ export function loadNavigation(force = false) {
 		const request = withSessionHandling(async () => {
             const api = importTenantAdmin();
             const result = await api.getCurrentMenus({ client_type: 'pc' });
-            const containsMenu = (rows, id) => (rows || []).some(row => row.menu_id === id || containsMenu(row.children, id));
+            const containsMenu = (rows, id, name) => (rows || []).some(row =>
+                (row.menu_id === id && (name === undefined || row.name === name)) || containsMenu(row.children, id, name));
             let changed = false;
             if (!result.errCode && result.isAdmin) {
-                for (const [id, method] of [['system_dictionary', 'installDictionaryManagement'], ['system_department', 'installDepartmentManagement'], ['platform_tenant', 'installTenantManagement']]) {
-                    if (containsMenu(result.data, id)) continue;
+                const operations = result.data.find(row => row.menu_id === 'tenant_operations');
+                const installs = [
+                    [!containsMenu(result.data, 'platform_tenant') || operations?.name === '租户运营' ||
+                        containsMenu(result.data, 'platform_product_package', '产品包管理') ||
+                        !containsMenu(result.data, 'platform_menu'), 'installTenantManagement'],
+                    [!containsMenu(result.data, 'platform_dictionary'), 'installDictionaryManagement'],
+                    [!containsMenu(result.data, 'system_department'), 'installDepartmentManagement']
+                ];
+                for (const [needed, method] of installs) {
+                    if (!needed) continue;
                     try { const installed = await api[method](); if (!installed.errCode && installed.changed) changed = true; }
                     catch (error) { console.error('管理菜单安装失败，请更新 uni-id-co 后重试', error); }
                 }

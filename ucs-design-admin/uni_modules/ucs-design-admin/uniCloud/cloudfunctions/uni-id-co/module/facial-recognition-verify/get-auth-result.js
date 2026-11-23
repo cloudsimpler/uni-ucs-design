@@ -2,6 +2,7 @@ const { userCollection, REAL_NAME_STATUS, frvLogsCollection } = require('../../c
 const { dataDesensitization, catchAwait } = require('../../common/utils')
 const { encryptData, decryptData } = require('../../common/sensitive-aes-cipher')
 const { ERROR } = require('../../common/error')
+const { actorName, updateFields } = require('../../lib/utils/record-metadata')
 
 /**
  * 查询认证结果
@@ -31,6 +32,7 @@ module.exports = async function (params) {
   }
 
   const { realname_auth: realNameAuth = {} } = userInfo
+  const actor = { uid, name: actorName(userInfo) }
 
   // 如果用户已经实名认证，抛出已实名认证的错误
   if (realNameAuth.auth_status === REAL_NAME_STATUS.CERTIFIED) {
@@ -67,7 +69,8 @@ module.exports = async function (params) {
     await frvLogsCollection.where({
       certify_id: certifyId
     }).update({
-      status: REAL_NAME_STATUS.CERTIFY_FAILED
+      status: REAL_NAME_STATUS.CERTIFY_FAILED,
+      ...updateFields(actor)
     })
 
     console.log(ERROR.FRV_FAIL, 'error: ', res)
@@ -123,7 +126,8 @@ module.exports = async function (params) {
     frvLogsCollection.where({
       certify_id: certifyId
     }).update({
-      status: REAL_NAME_STATUS.CERTIFIED
+      status: REAL_NAME_STATUS.CERTIFIED,
+      ...updateFields(actor)
     })
   ])
 
