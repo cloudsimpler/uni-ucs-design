@@ -1,5 +1,6 @@
 const { ACCOUNT_TYPE, accountTypeOf, hasManagementIdentity, hasAccountType } = require('./account-types')
 const { rejectRootInput, assertRootChange, initializeLegacyRoot } = require('./root-admin')
+const { canEnter } = require('./user-delegation')
 const fail = (errMsg, errCode = 'USER_ADMIN_INVALID') => {
   throw { errCode, errMsg }
 }
@@ -33,7 +34,7 @@ const fields = Object.fromEntries(
   ].map((key) => [key, true])
 )
 
-function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, readRoles, initializeRoot = true }) {
+function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }) {
   if (![ACCOUNT_TYPE.DEVELOPER, ACCOUNT_TYPE.EMPLOYEE, ACCOUNT_TYPE.CLIENT].includes(accountType)) fail('账号管理类型不正确')
   const customer = accountType === ACCOUNT_TYPE.CLIENT
   const suffix = customer ? 'UNI_ID_CUSTOMERS' : 'UNI_ID_USERS'
@@ -65,19 +66,21 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
     if (!user || !hasManagementIdentity(user) || (user.status || 0) !== 0 || !allowsApp(user.dcloud_appid, appId))
       fail('当前账号已停用或无权登录此应用', 'USER_ADMIN_FORBIDDEN')
     const isAdmin = scope ? scope.isAdmin : (user.role || []).includes('admin')
-    if (!scope && initializeRoot && isAdmin && !user.is_root) await initializeLegacyRoot(db, appId)
-    const roles = !scope && !isAdmin && user.role?.length ? await (readRoles ? readRoles(user.role) : all('uni-id-roles', { role_id: cmd.in(user.role) })) : []
+    if (!scope && isAdmin && !user.is_root) await initializeLegacyRoot(db, appId)
+    const roles = !scope && !isAdmin && user.role?.length ? await all('uni-id-roles', { role_id: cmd.in(user.role) }) : []
     const permissions = scope?.permissions || [...new Set(roles.flatMap(role => role.permission || []))]
     const auth = { uid, name: scope?.name ?? actorName(user), isAdmin, permissions,
       apps: scope ? scope.apps : user.dcloud_appid, menuIds: scope?.menuIds || [...new Set(roles.flatMap(role => role.menu_ids || []))],
       create: isAdmin || permissions.includes(`CREATE_${suffix}`),
       update: isAdmin || permissions.includes(`UPDATE_${suffix}`),
       delete: isAdmin || permissions.includes(`DELETE_${suffix}`),
+      assignRoles: !customer && (isAdmin || permissions.includes('ASSIGN_UNI_ID_USER_ROLES')),
       resetPassword: isAdmin || permissions.includes(`RESET_PASSWORD_${suffix}`) }
     if (customer) {
       auth.create = auth.delete = auth.resetPassword = false
       auth.status = isAdmin || permissions.includes('UPDATE_CUSTOMER_STATUS')
     }
+    auth.delegate = !customer && Boolean(canEnter(scope))
     const action = write === true ? 'update' : write
     if (action ? !auth[action] : !isAdmin && !permissions.includes(`READ_${suffix}`))
       fail('没有此项用户管理权限', 'USER_ADMIN_FORBIDDEN')
@@ -132,9 +135,10 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
       )
         fail('角色、标签、部门或应用授权格式不正确')
     }
-    if (params.role !== undefined) {
+    if (params.role !== undefined && !equalSet(params.role, old?.role)) {
+      if (!auth.assignRoles) fail('没有绑定角色权限', 'USER_ADMIN_FORBIDDEN')
       const roleIds = [...new Set(params.role.filter((id) => id !== 'admin'))]
-      if (roleIds.length && (await all('uni-id-roles', { role_id: cmd.in(roleIds) })).length !== roleIds.length)
+      if (roleIds.length && (await all('uni-id-roles', { role_id: cmd.in(roleIds) }, { role_id: true })).length !== roleIds.length)
         fail('所选角色已不存在，请刷新后重新选择')
     }
     if (params.tags !== undefined) {
@@ -155,13 +159,8 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
         fail('所选应用已不存在，请刷新后重新选择');
     }
     if (!auth.isAdmin) {
-      const ids = [...new Set([...(old?.role || []), ...(params.role || [])])]
-      if (ids.includes('admin')) fail('不能维护超级管理员或授予超级管理员角色', 'USER_ADMIN_FORBIDDEN')
-      const roles = ids.length ? await all('uni-id-roles', { role_id: cmd.in(ids) }) : []
-      if (roles.some(role => (role.permission || []).some(id => !auth.permissions.includes(id))))
-        fail('不能维护或授予超出本人权限范围的角色用户', 'USER_ADMIN_FORBIDDEN')
-      if (roles.some(role => (role.menu_ids || []).some(id => !auth.menuIds.includes(id))))
-        fail('不能维护或授予超出本人菜单范围的角色用户', 'USER_ADMIN_FORBIDDEN')
+      if (old?.role?.includes('admin') || params.role?.includes('admin'))
+        fail('不能维护超级管理员或授予超级管理员角色', 'USER_ADMIN_FORBIDDEN')
       if (params.authorizedApp !== undefined && !equalApps(params.authorizedApp, old?.dcloud_appid)) {
         if (auth.apps != null && !auth.apps.includes('*') && params.authorizedApp.some(id => !auth.apps.includes(id)))
           fail('不能授予本人未获授权的应用', 'USER_ADMIN_FORBIDDEN')
@@ -185,55 +184,28 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
     sessionChanged,
     async removeAccount({ uid: targetId } = {}) {
       if (typeof targetId !== 'string' || !targetId || targetId.length > 100) fail('用户 ID 不正确')
-      await authorize('delete')
+      const auth = await authorize('delete')
       if (targetId === uid) fail('不能删除当前登录的账号', 'USER_ADMIN_FORBIDDEN')
       if (accountType === 0 && (await all('ucsdb-department', { manager_uid: targetId })).length) fail('该用户是部门负责人，请先更换负责人')
-      // Resolve role document IDs before the transaction; re-read their contents inside it.
-      // This avoids where/skip queries and nested root initialization in transactions.
-      const [actorSnapshot, targetSnapshot] = await Promise.all([getUser(uid), getUser(targetId)])
-      const roleIds = [...new Set([...(actorSnapshot?.role || []), ...(targetSnapshot?.role || [])].filter(id => id !== 'admin'))]
-      const catalog = roleIds.length ? await all('uni-id-roles', { role_id: cmd.in(roleIds) }, { _id: true, role_id: true }) : []
       const transaction = await db.startTransaction()
       try {
-        const roleCache = new Map()
-        const transactionRoles = async ids => {
-          const rows = []
-          for (const id of [...new Set(ids)]) {
-            if (!roleCache.has(id)) {
-              const reference = catalog.find(role => role.role_id === id)
-              if (!reference?._id) fail('角色已变化，请刷新后重试', 'USER_ADMIN_FORBIDDEN')
-              const { data } = await transaction.collection('uni-id-roles').doc(reference._id).get()
-              const role = Array.isArray(data) ? data[0] : data
-              if (!role || role.role_id !== id) fail('角色已变化，请刷新后重试', 'USER_ADMIN_FORBIDDEN')
-              roleCache.set(id, role)
-            }
-            rows.push(roleCache.get(id))
-          }
-          return rows
-        }
-        const transactionDb = { command: cmd, tenantActor: db.tenantActor, collection: name => transaction.collection(name) }
-        const scoped = createUserAdmin({ db: transactionDb, uid, appId, accountType, readRoles: transactionRoles, initializeRoot: false })
-        const auth = await scoped.authorize('delete')
-        const user = await scoped.getUser(targetId)
+        const target = transaction.collection('uni-id-users').doc(targetId)
+        const { data } = await target.get()
+        const user = Array.isArray(data) ? data[0] : data
         if (!user) fail('账号不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
         assertAccountType(user)
         if (user.is_root && accountType === 0) fail('初始超级管理员不可移除系统身份', 'USER_ADMIN_FORBIDDEN')
         if (user.is_tenant_admin && accountType === 0) fail('企业管理员不可移除系统身份', 'USER_ADMIN_FORBIDDEN')
         if (user.role?.includes('admin') && !auth.isAdmin) fail('只有超级管理员可以删除其他超级管理员', 'USER_ADMIN_FORBIDDEN')
-        if (!auth.isAdmin && user.role?.length) {
-          const roles = await transactionRoles(user.role)
-          if (roles.length !== new Set(user.role).size || roles.some(role => (role.permission || []).some(id => !auth.permissions.includes(id)) || (role.menu_ids || []).some(id => !auth.menuIds.includes(id))))
-            fail('不能删除超出本人权限范围的账号', 'USER_ADMIN_FORBIDDEN')
-        }
         const remaining = accountTypeOf(user).filter(type => type !== accountType)
         if (remaining.length) {
           const patch = { account_type: remaining, ...updateFields(auth) }
           if (!remaining.includes(0)) { patch.role = []; patch.department_id = [] }
           assertRootChange(user, patch)
-          await transaction.collection('uni-id-users').doc(targetId).update(patch)
+          await target.update(patch)
         } else {
           if (user.is_root) fail('初始超级管理员不可删除', 'USER_ADMIN_FORBIDDEN')
-          const result = await transaction.collection('uni-id-users').doc(targetId).remove()
+          const result = await target.remove()
           if (!result.deleted) fail('账号不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
         }
         await transaction.commit()
@@ -274,7 +246,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
       let logs = [], logsError = ''
       if (logsAllowed) {
         try {
-          const result = await db.collection('uni-id-log').where({ user_id: targetId })
+          const result = await db.collection('uni-id-log').where({ user_id: targetId, type: cmd.neq('user-delegation') })
             .field({ _id: true, create_date: true, type: true, ip: true, state: true, appid: true })
             .orderBy('create_date', 'desc').limit(20).get()
           logs = result.data
@@ -339,7 +311,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
         return { errCode: 0, auth, roles: [], tags, apps, departments: [] }
       }
       const [roles, tags, apps, departments] = await Promise.all([
-        all('uni-id-roles', {}, { role_id: true, role_name: true, permission: true, menu_ids: true }),
+        all('uni-id-roles', {}, { role_id: true, role_name: true }),
         all('uni-id-tag', {}, { tagid: true, name: true }),
         all('ucsdb-app-list', {}, { appid: true, name: true }),
         all('ucsdb-department', {}, { _id: true, name: true, parent_id: true, sort: true, enabled: true })
@@ -347,7 +319,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE, 
       return {
         errCode: 0,
         auth,
-        roles: [...(auth.isAdmin ? [{ role_id: 'admin', role_name: '超级管理员' }] : []), ...roles.filter(role => role.role_id !== 'admin' && (auth.isAdmin || ((role.permission || []).every(id => auth.permissions.includes(id)) && (role.menu_ids || []).every(id => auth.menuIds.includes(id)))))],
+        roles: [...(auth.isAdmin ? [{ role_id: 'admin', role_name: '超级管理员' }] : []), ...roles.filter(role => role.role_id !== 'admin')],
         tags,
         apps,
         departments

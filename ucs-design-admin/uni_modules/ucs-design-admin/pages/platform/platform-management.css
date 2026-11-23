@@ -20,6 +20,7 @@
 .platform-table > .el-table { flex: 1; min-height: 0; }
 .platform-table .el-button + .el-button { margin-left: 6px; }
 .package-menu-tree { margin-top: 12px; --el-tree-node-content-height: 36px; }
+.package-permission-label { color: var(--el-text-color-secondary); }
 .package-menu-tree .el-tree-node__content > .el-checkbox {
 	margin-right: 8px;
 	flex-shrink: 0;

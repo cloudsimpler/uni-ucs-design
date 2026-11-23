@@ -1,5 +1,7 @@
 // 各接口权限配置，未配置接口表示允许任何用户访问（包括未登录用户）
 module.exports = {
+  enterUserManagement: { auth: true },
+  exitUserManagement: { auth: true },
   installDepartmentManagement: { auth: true },
   listDepartments: { auth: true },
   searchDepartmentManagers: { auth: true },

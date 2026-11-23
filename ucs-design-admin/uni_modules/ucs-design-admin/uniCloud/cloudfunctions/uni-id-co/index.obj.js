@@ -21,6 +21,7 @@ const { PLATFORM_TENANT_ID } = require('./lib/utils/platform-tenant')
 const adminMethods = require('./module/admin/index')
 const scopedMethods = new Set(Object.keys(adminMethods))
 const tenantMethods = require('./module/admin/tenant-methods')
+const { enterUserManagement, exitUserManagement, resolveUserDelegation, recordUserDelegation } = require('./module/admin/user-delegation')
 const dictionaryMethods = require('./module/admin/dictionary-methods')
 const dictionaryManagementMethods = Object.keys(dictionaryMethods).filter(method => method !== 'getDictionaryOptions')
 const managementLogin = new Set(['adminLogin', 'adminLoginBySms', 'adminLoginByEmailCode', 'adminCompleteAccountLogin', 'registerAdmin'])
@@ -134,6 +135,8 @@ const {
 
 module.exports = {
   ...tenantMethods,
+  enterUserManagement,
+  exitUserManagement,
   getAccountCapabilities: require('./module/account/get-account-capabilities'),
   getAdminRegistrationStatus: require('./module/register/get-admin-registration-status'),
   getCurrentUserProfile: require('./module/account/get-current-user-profile'),
@@ -306,8 +309,22 @@ module.exports = {
     // 请求鉴权验证
     await this.middleware.verifyRequestSign()
 
-    if (scopedMethods.has(method) || platformOnlyMethods.has(method) || Object.hasOwn(tenantMethods, method)) {
-      await authenticateAdmin(this, this.getParams()[1])
+    const credential = this.getParams()[1]
+    const userCredential = credential && typeof credential === 'object' && !Array.isArray(credential)
+    if (userCredential && (!scopedMethods.has(method) || platformOnlyMethods.has(method)))
+      fail('请退出用户代管后再使用此功能', 'USER_DELEGATION_FORBIDDEN')
+    let userSession
+    if (scopedMethods.has(method) || platformOnlyMethods.has(method) || Object.hasOwn(tenantMethods, method) ||
+      method === 'enterUserManagement' || method === 'exitUserManagement') {
+      await authenticateAdmin(this, userCredential ? credential.tenantDelegationToken : credential)
+      if (userCredential) {
+        const { session, scope, renewal } = await resolveUserDelegation(this, credential.userDelegationToken)
+        if (renewal) this.response.newUserDelegation = renewal
+        userSession = session
+        this.adminScope = scope
+        this.entryTenantId = scope.tenantId
+        this.authInfo = { ...this.authInfo, uid: scope.uid, role: [], permission: scope.permissions }
+      }
     }
     // 通用权限校验模块
     await this.middleware.accessControl()
@@ -318,11 +335,13 @@ module.exports = {
     }
     if (scopedMethods.has(method) || platformOnlyMethods.has(method)) {
       const db = uniCloud.database()
-      const scope = globalMenuMethods.has(method) ? this.loginAdminScope : this.adminScope
-      if (scope.sessionId && directLoginAppMethods.has(method)) fail('请退出代管后操作应用管理')
+      const scope = !userSession && globalMenuMethods.has(method) ? this.loginAdminScope : this.adminScope
+      if ((scope.sessionId || userSession?.parent_session_id) && directLoginAppMethods.has(method))
+        fail('请退出代管后操作应用管理')
       if (scope.tenantId !== PLATFORM_TENANT_ID && platformOnlyMethods.has(method)) fail('此功能由平台维护')
       if (appAuthorizationMethods.has(method) && !scope.isAdmin) fail('没有应用登录授权管理权限')
       this.adminDb = scopedDatabase(db, scope)
+      if (userSession) await recordUserDelegation(this, userSession, method)
     }
   },
   _after (error, result) {

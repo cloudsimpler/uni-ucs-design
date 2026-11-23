@@ -62,6 +62,7 @@ async function authenticateAdmin(context, credential) {
       fail('代管凭证无效', 'TENANT_SESSION_INVALID')
     const delegated = await verifyDelegation(context, credential)
     context.adminScope = delegated.scope
+    context.tenantDelegationExpires = delegated.payload.exp * 1000
     if (needsRenewal(context, delegated.payload)) {
       const db = uniCloud.database()
       const actor = await platformActor(db, payload.uid, appId)
@@ -71,6 +72,7 @@ async function authenticateAdmin(context, credential) {
       if (!tenant) fail('企业租户不存在', 'TENANT_SESSION_INVALID')
       context.adminScope = await enterpriseScope(db, actor, tenant, delegated.scope.sessionId)
       context.response.newDelegation = await signDelegation(context, context.adminScope)
+      context.tenantDelegationExpires = context.response.newDelegation.tokenExpired
     }
   }
   return context.adminScope
@@ -79,7 +81,7 @@ async function authenticateAdmin(context, credential) {
 async function verifyDelegation(context, credential) {
   if (typeof credential !== 'string' || !credential) fail('代管凭证无效', 'TENANT_SESSION_INVALID')
   const payload = await context.uniIdCommon.checkDelegationToken(credential)
-  if (payload.errCode || payload.uid !== context.authInfo.uid)
+  if (payload.errCode || payload.uid !== context.authInfo.uid || payload.ucsDelegation?.kind === 'user')
     fail('代管凭证已失效，请重新进入', 'TENANT_SESSION_INVALID')
   const scope = scopeFrom(payload, payload.ucsDelegation, context.getUniversalClientInfo().appId)
   if (scope.tenant.type !== 'enterprise' || !scope.sessionId || scope.isAdmin)
@@ -95,4 +97,4 @@ async function signDelegation(context, scope) {
   return { delegationToken: result.token, tokenExpired: result.tokenExpired }
 }
 
-module.exports = { installAdminTokenIssuer, authenticateAdmin, signDelegation, verifyDelegation }
+module.exports = { claimsFor, installAdminTokenIssuer, authenticateAdmin, needsRenewal, signDelegation, verifyDelegation }

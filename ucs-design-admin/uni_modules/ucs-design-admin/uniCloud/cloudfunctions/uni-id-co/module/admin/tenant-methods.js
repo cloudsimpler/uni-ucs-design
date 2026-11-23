@@ -163,24 +163,20 @@ module.exports = {
     return { errCode: 0, data, auth, menus: menuRows.filter(row => productMenus.has(row.menu_id)),
       permissions: allPermissions.filter(row => product.has(row.menu_id)) }
   },
-  async saveProductPackage({ _id, name, remark, menu_ids, permission_ids } = {}) {
+  async saveProductPackage({ _id, name, remark, menu_ids } = {}) {
     const { db, actor } = await platform(this)
     required(actor, _id ? packageRights.update : packageRights.create)
     if (remark !== undefined && (typeof remark !== 'string' || remark.trim().length > 500)) invalid('备注最多输入 500 字')
-    const value = _id ? {} : { menu_ids: [], permission_ids: [] }
+    const value = _id ? {} : { menu_ids: [] }
     if (!_id || name !== undefined) value.name = nameOf(name)
     if (remark !== undefined) value.remark = remark.trim()
-    if (menu_ids !== undefined || permission_ids !== undefined) {
-      const valid = ids => Array.isArray(ids) && ids.length <= 500 && ids.every(id => typeof id === 'string' && id && id.length <= 100)
-      if (!valid(menu_ids) || (permission_ids !== undefined && !valid(permission_ids))) invalid('菜单或操作权限格式无效')
-      const [menuRows, allPermissions] = await Promise.all([list(db, 'ucsdb-admin-menus'), list(db, 'uni-id-permissions')])
-      const selected = new Set(menu_ids)
+    if (menu_ids !== undefined) {
+      if (!Array.isArray(menu_ids) || menu_ids.length > 500 ||
+        menu_ids.some(id => typeof id !== 'string' || !id || id.length > 100)) invalid('菜单格式无效')
+      const menuRows = await list(db, 'ucsdb-admin-menus')
       const { product: pages } = classifyPages(menuRows)
-      const availablePermissions = new Set(allPermissions.filter(row => selected.has(row.menu_id)).map(row => row.permission_id))
-      if (menu_ids.some(id => !pages.has(id)) || permission_ids?.some(id => !availablePermissions.has(id)))
-        invalid('产品包只允许选择产品功能页面，操作权限须属于所选页面')
-      value.menu_ids = [...selected]
-      value.permission_ids = permission_ids === undefined ? [...availablePermissions] : [...new Set(permission_ids)]
+      if (menu_ids.some(id => !pages.has(id))) invalid('产品包只允许选择产品功能页面')
+      value.menu_ids = [...new Set(menu_ids)]
     }
     if (_id) {
       if (!Object.keys(value).length) invalid('请提供要更新的字段')

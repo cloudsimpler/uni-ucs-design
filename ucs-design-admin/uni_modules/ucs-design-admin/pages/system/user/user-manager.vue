@@ -129,7 +129,7 @@
 							</div>
 						</template>
 					</el-table-column>
-					<el-table-column label="操作" fixed="right" :width="canWrite || canChangeStatus || canResetPassword || canDelete ? 196 : 88">
+					<el-table-column label="操作" fixed="right" :width="canWrite || canChangeStatus || canResetPassword || canDelete || canDelegate ? 196 : 88">
 						<template #default="{ row }">
 							<el-button
 								size="small"
@@ -150,7 +150,7 @@
 								编辑
 							</el-button>
 							<el-dropdown
-								v-if="(canChangeStatus || canResetPassword || canDelete) && canManage(row) && (!customer || [0, 1].includes(row.status || 0))"
+								v-if="canDelegateRow(row) || ((canChangeStatus || canResetPassword || canDelete) && canManage(row) && (!customer || [0, 1].includes(row.status || 0)))"
 								trigger="click"
 								:disabled="saving || preparing || row._id === auth?.uid"
 								@command="(command) => onUserAction(command, row)"
@@ -161,6 +161,7 @@
 								</el-button>
 								<template #dropdown>
 									<el-dropdown-menu>
+										<el-dropdown-item v-if="canDelegateRow(row)" command="delegate">进入代管</el-dropdown-item>
 										<el-dropdown-item v-if="canResetPassword" command="password">重置密码</el-dropdown-item>
 										<el-dropdown-item v-if="canChangeStatus" :disabled="row.is_root" :command="(row.status || 0) === 0 ? 'disable' : 'enable'">
 											{{ (row.status || 0) === 0 ? '禁用账号' : '恢复正常' }}
@@ -354,7 +355,7 @@
 							multiple
 							clearable
 							filterable
-							:disabled="saving || readOnly"
+							:disabled="saving || readOnly || !canAssignRoles"
 							placeholder="请选择角色"
 						>
 							<el-option
@@ -473,7 +474,8 @@
 </template>
 
 <script setup>
-import { importTenantAdmin } from '../../../common/tenant-session.js';
+import { exitDelegation, importTenantAdmin, setDelegation, systemUserRoute } from '../../../common/tenant-session.js';
+import { allowedMenuRoutes, loadNavigation } from '../../../common/navigation.js';
 import '../../../common/form-dialog.css';
 import { ElAlert, ElAvatar, ElButton, ElCheckbox, ElCheckboxGroup, ElDialog, ElDropdown, ElDropdownItem, ElDropdownMenu, ElEmpty, ElForm, ElFormItem, ElIcon, ElImage, ElInput, ElOption, ElProgress, ElRadio, ElRadioButton, ElRadioGroup, ElSelect, ElTreeSelect, ElTable, ElTableColumn, ElTag, ElUpload, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
@@ -552,7 +554,11 @@ const canWrite = computed(() => auth.value?.update === true);
 const canChangeStatus = computed(() => props.customer && auth.value?.status === true);
 const canCreate = computed(() => !props.customer && auth.value?.create === true);
 const canResetPassword = computed(() => !props.customer && auth.value?.resetPassword === true);
+const canAssignRoles = computed(() => !props.customer && auth.value?.assignRoles === true);
 const canDelete = computed(() => !props.customer && auth.value?.delete === true);
+const canDelegate = computed(() => !props.customer && !props.developer && !store.delegation?.userDelegationToken && auth.value?.delegate === true);
+const canDelegateRow = (row) => canDelegate.value && (row.status || 0) === 0 &&
+	row._id !== auth.value?.uid && !row.is_root && !row.is_tenant_admin && !row.role?.includes('admin');
 const canManage = (row) => auth.value?.isAdmin || !(row?.role || []).includes('admin');
 const appOptions = computed(() => [
 	{ appid: '*', name: '全部应用' },
@@ -777,7 +783,7 @@ const uploadUserAvatar = async ({ file, onProgress }) => {
 const confirmInitialPassword = (rule, value, callback) =>
 	callback(value === form.value.password ? undefined : new Error('两次密码不一致'));
 const openEditor = async (row, detail = false, focusRole = false) => {
-	if (saving.value || preparing.value) return;
+	if (saving.value || preparing.value || (focusRole && !canAssignRoles.value)) return;
 	if (detail) {
 		detailUid.value = row._id;
 		detailVisible.value = true;
@@ -850,9 +856,9 @@ const saveUser = async () => {
 			gender,
 			department_id: department_id ? [department_id] : [],
 			mobile,
-			tags,
-			role
+			tags
 		};
+		if (canAssignRoles.value) params.role = role;
 
 		if (props.developer || original.value.is_root || (!editingId.value && !mobile)) delete params.mobile;
 		if (editingId.value && mobile === (original.value.mobile || '')) delete params.mobile;
@@ -931,7 +937,35 @@ const copyResetCredentials = () => {
 		fail: () => ElMessage.error('复制失败，请手动复制')
 	});
 };
+async function enterUserDelegation(row) {
+	if (!canDelegateRow(row) || saving.value || preparing.value) return;
+	try {
+		await ElMessageBox.confirm(`以“${accountDisplayName(row)}”的身份进入代管？`, '进入代管', {
+			type: 'warning', confirmButtonText: '进入代管', cancelButtonText: '取消'
+		});
+	} catch { return; }
+	if (!canDelegateRow(row) || saving.value || preparing.value) return;
+	saving.value = true;
+	try {
+		const { userDelegationId, userDelegationToken, tokenExpired, targetUser, tenant } = await call('enterUserManagement', { uid: row._id });
+		setDelegation({ userDelegationId, userDelegationToken, tokenExpired, targetUser, tenant, parent: store.delegation });
+		try {
+			const navigation = await loadNavigation();
+			if (navigation.errCode) throw navigation;
+			const routes = allowedMenuRoutes(navigation.data, 'pages/needLogin/index/index');
+			const url = routes.includes(systemUserRoute) ? systemUserRoute : routes[0];
+			if (!url) throw new Error('该用户没有可代管的页面');
+			await new Promise((resolve, reject) => uni.redirectTo({ url, success: resolve, fail: reject }));
+		} catch (error) {
+			if (store.delegation?.userDelegationId === userDelegationId) await exitDelegation();
+			throw error;
+		}
+	} catch (error) { ElMessage.error(message(error)); }
+	finally { saving.value = false; }
+}
+
 const onUserAction = async (command, row) => {
+	if (command === 'delegate') return enterUserDelegation(row);
 	if (
 		!(command === 'delete' ? canDelete.value : command === 'password' ? canResetPassword.value : canChangeStatus.value) ||
 		!canManage(row) ||

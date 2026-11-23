@@ -13,6 +13,7 @@ const {
 } = require('./logout')
 const PasswordUtils = require('./password')
 const { allowedAccountTypes, assertEntry } = require('./account-policy')
+const { cleanLoginRoleGrants } = require('../../module/admin/login-role-grants')
 
 async function realPreLogin (params = {}) {
   const {
@@ -221,6 +222,11 @@ async function postLogin (params = {}) {
     last_login_date: Date.now(),
     last_login_ip: clientIP,
     ...extraData
+  }
+  try {
+    await cleanLoginRoleGrants(uniCloud.database(), user)
+  } catch (error) {
+    console.warn('登录时清理角色旧授权失败', error.errCode || error.code)
   }
   const createTokenRes = await this.uniIdCommon.createToken({
     uid

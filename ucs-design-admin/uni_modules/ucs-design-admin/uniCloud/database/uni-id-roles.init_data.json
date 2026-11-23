@@ -5,6 +5,7 @@
     "permission": [],
     "menu_ids": [],
     "comment": "超级管理员拥有所有权限",
-    "create_date": 0
+    "create_date": 0,
+    "tenant_id": "00000"
   }
 ]

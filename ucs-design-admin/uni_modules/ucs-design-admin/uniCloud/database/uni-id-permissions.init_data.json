@@ -31,6 +31,12 @@
   },
   {
     "menu_id": "system_user",
+    "permission_id": "ENTER_USER_DELEGATION",
+    "permission_name": "用户代管",
+    "sort": 8
+  },
+  {
+    "menu_id": "system_user",
     "permission_id": "READ_UNI_ID_USERS",
     "permission_name": "查看系统用户",
     "sort": 1
@@ -130,6 +136,12 @@
     "permission_id": "READ_UNI_ID_LOG",
     "permission_name": "查看登录日志",
     "sort": 5
+  },
+  {
+    "menu_id": "system_user",
+    "permission_id": "ASSIGN_UNI_ID_USER_ROLES",
+    "permission_name": "绑定用户角色",
+    "sort": 7
   },
   {
     "menu_id": "system_app",

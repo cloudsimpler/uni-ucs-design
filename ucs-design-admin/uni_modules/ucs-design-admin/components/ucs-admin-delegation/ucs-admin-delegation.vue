@@ -1,9 +1,9 @@
 <template>
 	<div v-if="store.delegation" class="admin-delegation">
-		<div class="delegation-tenant" :title="tenantLabel">
+		<div class="delegation-tenant" :title="delegationLabel">
 			<span class="delegation-status">代管中</span>
-			<span class="delegation-name">{{ store.delegation.tenant.name }}</span>
-			<span class="delegation-number">{{ store.delegation.tenant.tenant_no }}</span>
+			<span class="delegation-name">{{ subject.name }}</span>
+			<span v-if="subject.identifier" class="delegation-number">{{ subject.identifier }}</span>
 		</div>
 		<el-button v-if="!hideExit" link type="primary" class="delegation-exit" @click="leave">退出代管</el-button>
 	</div>
@@ -19,9 +19,15 @@ import { exitDelegation } from '../../common/tenant-session.js';
 
 defineProps({ hideExit: Boolean });
 
-const tenantLabel = computed(() => {
-	const tenant = store.delegation?.tenant;
-	return tenant ? `代管中 · ${tenant.name}（${tenant.tenant_no}）` : '';
+const subject = computed(() => {
+	const { tenant, targetUser } = store.delegation || {};
+	return targetUser
+		? { name: targetUser.name || targetUser.username || targetUser.uid, identifier: targetUser.username }
+		: { name: tenant?.name, identifier: tenant?.tenant_no };
+});
+const delegationLabel = computed(() => {
+	const { name, identifier } = subject.value;
+	return identifier ? `代管中 · ${name}（${identifier}）` : `代管中 · ${name}`;
 });
 
 async function leave() {

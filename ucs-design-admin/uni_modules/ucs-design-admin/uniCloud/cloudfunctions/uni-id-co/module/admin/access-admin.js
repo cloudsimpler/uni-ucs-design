@@ -19,11 +19,11 @@ function createAccessAdmin(context) {
 	};
 	const grantable = (auth, ids) => {
 		if (!auth.isAdmin && ids.some((id) => !auth.permissions.includes(id)))
-			fail('不能维护超出本人权限范围的角色', 'ADMIN_ACCESS_FORBIDDEN');
+			fail('不能新增超出当前授权范围的操作权限', 'ADMIN_ACCESS_FORBIDDEN');
 	};
 	const grantableMenus = (auth, ids) => {
 		if (!auth.isAdmin && ids.some((id) => !auth.menuIds.includes(id)))
-			fail('不能维护超出本人菜单范围的角色', 'ADMIN_ACCESS_FORBIDDEN');
+			fail('不能新增超出当前授权范围的页面', 'ADMIN_ACCESS_FORBIDDEN');
 	};
 	const list = async (kind, params = {}) => {
 		if (!params || typeof params !== 'object' || Array.isArray(params)) fail('查询参数不正确');
@@ -31,8 +31,9 @@ function createAccessAdmin(context) {
 		const auth = await actor();
 		requireRead(auth, suffixes[kind]);
 		if (kind === 'role') return {
-			errCode: 0, data: await all(tables.role),
-			auth: { ...capabilities(auth, suffixes.role), isAdmin: auth.isAdmin, permission: auth.permissions, menu_ids: auth.menuIds }
+			errCode: 0, data: await all(tables.role, { tenant_id: auth.tenantId }),
+			auth: { ...capabilities(auth, suffixes.role), isAdmin: auth.isAdmin,
+				packageAdministrator: auth.packageAdministrator === true, permission: auth.permissions, menu_ids: auth.menuIds }
 		};
 		const [rows, menus] = await Promise.all([
 			all(tables[kind], menuId === undefined ? {} : { menu_id: menuId }),
@@ -50,6 +51,8 @@ function createAccessAdmin(context) {
 		requirePermission(auth, `${params._id ? 'UPDATE' : 'CREATE'}_${suffixes[kind]}`);
 		const rows = await all(tables[kind]);
 		const old = params._id ? find(rows, params._id) : null;
+		const roleDetailsOnly = kind === 'role' && old &&
+			params.permission === undefined && params.menu_ids === undefined;
 		const key = `${kind}_id`,
 			label = kind === 'role' ? '角色' : '权限';
 		const id = text(kind === 'role' ? params[key] ?? old?.[key] : params[key], label + '标识', 100, true);
@@ -76,8 +79,10 @@ function createAccessAdmin(context) {
 				if (!menu) fail('所属菜单不存在');
 				if (menu.menu_type !== MENU_TYPE.PAGE) fail('操作权限只能归属页面，不能归属目录');
 			}
-		} else {
-			const selected = params.permission !== undefined ? params.permission : old?.permission ?? [];
+		} else if (!roleDetailsOnly) {
+			const oldPermissions = new Set(old?.permission || []);
+			const oldMenus = new Set(old?.menu_ids || []);
+			const selected = params.permission !== undefined ? params.permission : [...oldPermissions];
 			if (
 				!Array.isArray(selected) ||
 				selected.length > 5000 ||
@@ -85,22 +90,32 @@ function createAccessAdmin(context) {
 			)
 				fail('角色权限格式不正确');
 			value.permission = [...new Set(selected)];
-			if (params.permission !== undefined) {
-				const available = new Set((await all('uni-id-permissions')).map((row) => row.permission_id));
-				if (value.permission.some((id) => !available.has(id))) fail('所选权限已被删除，请刷新后重新选择');
-			}
-			grantable(auth, [...(auth.packageAdministrator ? [] : (old?.permission || [])), ...value.permission]);
-			const menuIds = params.menu_ids !== undefined ? params.menu_ids : old?.menu_ids ?? [];
+			const menuIds = params.menu_ids !== undefined ? params.menu_ids : [...oldMenus];
 			if (!Array.isArray(menuIds) || menuIds.length > 5000 || menuIds.some(id => typeof id !== 'string' || !id || id.length > 100))
 				fail('角色菜单格式不正确');
 			value.menu_ids = [...new Set(menuIds)];
-			grantableMenus(auth, [...(auth.packageAdministrator ? [] : (old?.menu_ids || [])), ...value.menu_ids]);
-			if (params.menu_ids !== undefined) {
+			if (params.permission !== undefined || params.menu_ids !== undefined) {
+				const fullScope = auth.isAdmin || auth.packageAdministrator;
+				grantable(auth, fullScope ? value.permission : value.permission.filter(id => !oldPermissions.has(id)));
+				grantableMenus(auth, fullScope ? value.menu_ids : value.menu_ids.filter(id => !oldMenus.has(id)));
 				const [menus, permissions] = await Promise.all([all('ucsdb-admin-menus'), all('uni-id-permissions')]);
 				const pages = new Set(menus.filter(menu => menu.menu_type === MENU_TYPE.PAGE).map(menu => menu.menu_id));
-				if (value.menu_ids.some(id => !pages.has(id))) fail('所选页面不存在或已改为目录，请刷新后重新选择');
-				if (permissions.some(item => value.permission.includes(item.permission_id) && item.menu_id && !value.menu_ids.includes(item.menu_id)))
+				const available = new Set(permissions.map(row => row.permission_id));
+				if (value.permission.some(id => !available.has(id) && !oldPermissions.has(id))) fail('所选权限已被删除，请刷新后重新选择');
+				if (value.menu_ids.some(id => !pages.has(id) && !oldMenus.has(id))) fail('所选页面不存在或已改为目录，请刷新后重新选择');
+				const nextPermissions = new Set(value.permission.filter(id => available.has(id)));
+				const nextMenus = new Set(value.menu_ids.filter(id => pages.has(id)));
+				grantableMenus(auth, permissions.filter(item => nextPermissions.has(item.permission_id) &&
+					!oldPermissions.has(item.permission_id) && item.menu_id).map(item => item.menu_id));
+				if (!fullScope) {
+					for (const id of oldPermissions) if (available.has(id) && !auth.permissions.includes(id)) nextPermissions.add(id);
+					for (const id of oldMenus) if (pages.has(id) && !auth.menuIds.includes(id)) nextMenus.add(id);
+				}
+				if (permissions.some(item => nextPermissions.has(item.permission_id) && item.menu_id && !nextMenus.has(item.menu_id) &&
+					(fullScope || !oldPermissions.has(item.permission_id) || (oldMenus.has(item.menu_id) && pages.has(item.menu_id)))))
 					fail('操作权限必须同时选择所属页面');
+				value.permission = [...nextPermissions];
+				value.menu_ids = [...nextMenus];
 			}
 		}
 		let resultId = old?._id;
@@ -113,14 +128,14 @@ function createAccessAdmin(context) {
 				throw e;
 			}
 		}
-		const authorizationChanged = kind === 'role' && Boolean(old) && ['permission', 'menu_ids'].some(key =>
+		const authorizationChanged = kind === 'role' && Boolean(old) && !roleDetailsOnly && ['permission', 'menu_ids'].some(key =>
 			JSON.stringify([...(old[key] || [])].sort()) !== JSON.stringify([...(value[key] || [])].sort()));
 		let requireLogin = false;
 		if (
 			authorizationChanged
 		) {
 			// Expire existing tokens so both uni-id and JQL pick up revoked permissions.
-			await db.collection('uni-id-users').where({ role: id }).update({ token: [] });
+			await db.collection('uni-id-users').where({ role: db.command.in([id]) }).update({ token: [] });
 			requireLogin = auth.role.includes(id);
 		}
 		return {
@@ -136,11 +151,7 @@ function createAccessAdmin(context) {
 		const old = find(await all(tables[kind]), params._id);
 		if (kind === 'role') {
 			if (old.role_id === 'admin') fail('超级管理员不可删除');
-			if (!auth.packageAdministrator) {
-				grantable(auth, old.permission || []);
-				grantableMenus(auth, old.menu_ids || []);
-			}
-			if ((await all('uni-id-users', { role: old.role_id })).length) fail('角色已分配给用户，请先解除绑定');
+			if ((await all('uni-id-users', { role: db.command.in([old.role_id]) })).length) fail('角色已分配给用户，请先解除绑定');
 		} else {
 			const roles = await all('uni-id-roles', { permission: old.permission_id });
 			if (roles.length) fail('权限仍被角色引用，请先解除引用');
@@ -167,7 +178,8 @@ function createAccessAdmin(context) {
 				errCode: 0,
 				menus: enterprise ? menus.filter(row => visible.has(row.menu_id)) : menus,
 				permissions: enterprise ? permissions.filter(row => auth.permissions.includes(row.permission_id)) : permissions,
-				auth: { ...capabilities(auth, suffixes.role), isAdmin: auth.isAdmin, permission: auth.permissions, menu_ids: auth.menuIds }
+				auth: { ...capabilities(auth, suffixes.role), isAdmin: auth.isAdmin,
+					packageAdministrator: auth.packageAdministrator === true, permission: auth.permissions, menu_ids: auth.menuIds }
 			};
 		},
 		listPermissions: (params) => list('permission', params),

@@ -45,21 +45,30 @@
 				</el-form-item>
 			</template>
 			<template v-else>
-				<el-alert title="所选页面的操作权限将纳入产品包，员工的具体权限由角色分配。" type="info" :closable="false" />
+				<el-alert title="勾选页面即包含该页面当前和以后新增的全部操作权限。员工的具体权限由角色分配。" type="info" :closable="false" />
 				<el-tree
 					:key="treeVersion"
-					ref="treeRef"
 					:data="permissionTree"
-					:props="treeProps"
-					:default-checked-keys="draft.menu_ids"
-					node-key="menu_id"
+					:props="{ label: 'name' }"
+					node-key="key"
 					class="package-menu-tree"
-					aria-label="可分配页面"
+					aria-label="可分配页面和操作权限"
 					empty-text="暂无可分配页面"
-					show-checkbox
-					default-expand-all
+					:default-expanded-keys="directoryKeys"
 					:expand-on-click-node="false"
-				/>
+				>
+					<template #default="{ data }">
+						<el-checkbox
+							v-if="data.menu_type !== undefined"
+							:model-value="isChecked(data)"
+							:indeterminate="data.menu_type === MENU_TYPE.DIRECTORY && !isChecked(data) && data.keys.some(key => checkedKeys.has(key))"
+							:disabled="saving"
+							@click.stop
+							@change="toggleNode(data, $event)"
+						>{{ data.name }}</el-checkbox>
+						<span v-else class="package-permission-label">{{ data.name }}</span>
+					</template>
+				</el-tree>
 			</template>
 			<el-alert v-if="editorError" :title="editorError" type="error" :closable="false" />
 		</el-form>
@@ -72,7 +81,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
-import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElTable, ElTableColumn, ElTree, vLoading } from 'element-plus';
+import { ElAlert, ElButton, ElCheckbox, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElTable, ElTableColumn, ElTree, vLoading } from 'element-plus';
 import { Refresh, Search } from '@element-plus/icons-vue';
 import 'element-plus/es/components/tree/style/css.mjs';
 import { menuTree, MENU_TYPE } from '../../../common/menu.js';
@@ -81,15 +90,48 @@ import '../platform-management.css';
 import { usePlatformList } from '../use-platform-list.js';
 
 const api = importTenantAdmin();
-const rows = ref([]), menus = ref([]), auth = ref({});
+const rows = ref([]), menus = ref([]), permissions = ref([]), auth = ref({});
 const { keyword, pagination, pageRows, search, reset, changePage } = usePlatformList(rows, (row, query) => row.name.toLowerCase().includes(query));
 const loading = ref(false), saving = ref(false), editor = ref(false);
 const editingPermissions = ref(false);
 const error = ref(''), editorError = ref('');
-const draft = reactive({ _id: '', name: '', remark: '', menu_ids: [] });
-const treeRef = ref(), treeVersion = ref(0);
-const permissionTree = computed(() => menuTree(menus.value));
-const treeProps = { label: 'name', disabled: () => saving.value };
+const draft = reactive({ _id: '', name: '', remark: '' });
+const treeVersion = ref(0);
+const checkedKeys = ref(new Set());
+const menuKey = id => 'menu:' + id;
+const permissionKey = id => 'permission:' + id;
+const directoryKeys = computed(() => menus.value.filter(menu => menu.menu_type === MENU_TYPE.DIRECTORY)
+	.map(menu => menuKey(menu.menu_id)));
+const permissionTree = computed(() => {
+	const byMenu = new Map();
+	const orderedPermissions = [...permissions.value].sort((a, b) =>
+		(a.sort || 0) - (b.sort || 0) || a.permission_id.localeCompare(b.permission_id)
+	);
+	for (const row of orderedPermissions) {
+		if (!byMenu.has(row.menu_id)) byMenu.set(row.menu_id, []);
+		const key = permissionKey(row.permission_id);
+		byMenu.get(row.menu_id).push({ key, name: row.permission_name });
+	}
+	const visit = nodes => nodes.map(node => {
+		const key = menuKey(node.menu_id);
+		const isPage = node.menu_type === MENU_TYPE.PAGE;
+		const children = isPage ? byMenu.get(node.menu_id) || [] : visit(node.children);
+		return { ...node, key, children, keys: isPage ? [key] : children.flatMap(child => child.keys) };
+	});
+	return visit(menuTree(menus.value));
+});
+const isChecked = node => node.menu_type === MENU_TYPE.DIRECTORY
+	? node.keys.length > 0 && node.keys.every(key => checkedKeys.value.has(key))
+	: checkedKeys.value.has(node.key);
+
+function toggleNode(node, checked) {
+	const next = new Set(checkedKeys.value);
+	for (const key of node.keys) {
+		if (checked) next.add(key);
+		else next.delete(key);
+	}
+	checkedKeys.value = next;
+}
 const message = e => e?.errMsg || e?.message || '操作失败，请重试';
 
 async function load() {
@@ -100,6 +142,7 @@ async function load() {
 		if (result.errCode) throw result;
 		rows.value = result.data;
 		menus.value = result.menus;
+		permissions.value = result.permissions;
 		auth.value = result.auth;
 	} catch (e) { error.value = message(e); }
 	finally { loading.value = false; }
@@ -108,23 +151,31 @@ async function load() {
 function open(row, permissionsOnly = false) {
 	editingPermissions.value = permissionsOnly;
 	Object.assign(draft, {
-		_id: row?._id || '', name: row?.name || '', remark: row?.remark || '',
-		menu_ids: (row?.menu_ids || []).filter(id => menus.value.some(menu => menu.menu_id === id && menu.menu_type === MENU_TYPE.PAGE))
+		_id: row?._id || '', name: row?.name || '', remark: row?.remark || ''
 	});
-	if (permissionsOnly) treeVersion.value++;
+	if (permissionsOnly) {
+		const selectedMenus = new Set(row.menu_ids || []);
+		checkedKeys.value = new Set(menus.value
+			.filter(menu => menu.menu_type === MENU_TYPE.PAGE && selectedMenus.has(menu.menu_id))
+			.map(menu => menuKey(menu.menu_id)));
+		treeVersion.value++;
+	}
 	editorError.value = '';
 	editor.value = true;
 }
 
 async function save() {
-	if (saving.value || (editingPermissions.value && !treeRef.value)) return;
+	if (saving.value) return;
 	saving.value = true;
 	editorError.value = '';
 	try {
 		const { _id, name, remark } = draft;
-		const fields = editingPermissions.value ? {
-			_id, menu_ids: treeRef.value.getCheckedNodes().filter(node => node.menu_type === MENU_TYPE.PAGE).map(node => node.menu_id)
-		} : { _id, name, remark };
+		let fields = { _id, name, remark };
+		if (editingPermissions.value) {
+			const menu_ids = menus.value.filter(node => node.menu_type === MENU_TYPE.PAGE && checkedKeys.value.has(menuKey(node.menu_id)))
+				.map(node => node.menu_id);
+			fields = { _id, menu_ids };
+		}
 		const result = await api.saveProductPackage(fields);
 		if (result.errCode) throw result;
 		editor.value = false;

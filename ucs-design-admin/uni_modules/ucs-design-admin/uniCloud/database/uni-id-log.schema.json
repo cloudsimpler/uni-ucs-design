@@ -1,9 +1,12 @@
 {
 	"bsonType": "object",
-	"description": "登录登出日志表",
+	"description": "账号登录、登出和用户代管操作日志表",
 	"required": ["user_id"],
 	"permission": {
-		"read": false
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
 	},
 	"properties": {
 		"_id": {
@@ -33,7 +36,8 @@
 				"bind-weixin",
 				"bind-qq",
 				"bind-apple",
-				"bind-alipay"
+				"bind-alipay",
+				"user-delegation"
 			]
 		},
 		"ua": {
@@ -61,7 +65,10 @@
 			"bsonType": "string",
 			"description": "客户端DCloud AppId"
 		},
-		"tenant_id": { "description": "登录或登出事件所属的租户 ID", "bsonType": "string" },
+		"target_user_id": { "bsonType": "string", "description": "用户代管操作的目标用户 ID" },
+		"delegation_id": { "bsonType": "string", "description": "用户代管会话标识" },
+		"operation": { "bsonType": "string", "description": "代管期间发起的操作名称" },
+		"tenant_id": { "description": "账号事件或用户代管操作所属的租户 ID", "bsonType": "string" },
 		"create_id": {
 			"bsonType": "string",
 			"description": "创建人 ID"

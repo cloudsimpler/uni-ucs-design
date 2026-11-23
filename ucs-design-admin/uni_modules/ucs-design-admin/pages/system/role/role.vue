@@ -53,7 +53,7 @@
 								type="primary"
 								plain
 								size="small"
-								:disabled="saving || loading || !manageable(row)"
+								:disabled="saving || loading"
 								@click="edit(row)"
 							>
 								编辑
@@ -66,7 +66,7 @@
 								type="danger"
 								plain
 								size="small"
-								:disabled="saving || loading || !manageable(row)"
+								:disabled="saving || loading"
 								@click="remove(row)"
 							>
 								删除
@@ -120,6 +120,9 @@
 				<div class="permission-field">
 					<text class="hint">
 						勾选目录或页面仅授予页面访问；操作权限需单独勾选。取消页面会同时取消其操作权限。
+					</text>
+					<text v-if="!treeLoading && !treeError && unavailableGrantCount" class="hint">
+						有 {{ unavailableGrantCount }} 项授权未显示在当前列表。{{ !readOnly && (auth.isAdmin || auth.packageAdministrator) ? '保存时会自动移除。' : '' }}
 					</text>
 					<el-tree
 						v-loading="treeLoading"
@@ -245,22 +248,21 @@ function resetSearch() {
 }
 const empty = () => ({ _id: '', role_id: '', role_name: '', comment: '', menu_ids: [], permission: [] });
 const form = reactive(empty());
-const manageable = (row) =>
-	auth.value.isAdmin || ((row.permission || []).every((id) => auth.value.permission?.includes(id)) && (row.menu_ids || []).every(id => auth.value.menu_ids?.includes(id)));
-const missingPermissions = ref([]);
+const availableAuthorization = computed(() => {
+	const pageIds = new Set(menus.value.filter(menu => menu.menu_type === 1).map(menu => menu.menu_id));
+	const permissionIds = new Set(permissions.value.map(item => item.permission_id));
+	return {
+		menu_ids: form.menu_ids.filter(id => pageIds.has(id)),
+		permission: form.permission.filter(id => permissionIds.has(id))
+	};
+});
+const unavailableGrantCount = computed(() =>
+	form.menu_ids.length - availableAuthorization.value.menu_ids.length +
+	form.permission.length - availableAuthorization.value.permission.length
+);
 const treeVersion = ref(0), treeLoading = ref(false), treeError = ref('');
 let treeEpoch = 0;
-const permissionTree = computed(() => {
-	const tree = authorizationTree(menus.value, permissions.value, auth.value);
-	const missing = missingPermissions.value;
-	if (missing.length)
-		tree.push({
-			key: 'group:missing',
-			label: '失效权限（请取消勾选）',
-			children: missing.map((id) => ({ key: 'permission:' + id, label: id, permission_id: id }))
-		});
-	return tree;
-});
+const permissionTree = computed(() => authorizationTree(menus.value, permissions.value, auth.value));
 const nodeDisabled = (node) => saving.value || treeLoading.value || readOnly.value || node.disabled;
 const rules = {
 	role_name: [{ required: true, whitespace: true, message: '请输入角色名称', trigger: 'blur' }],
@@ -282,10 +284,7 @@ async function load() {
 	try {
 		const result = await call('listRoles');
 		if (id !== version) return;
-		rows.value = [
-			{ role_id: 'admin', role_name: '超级管理员', comment: '拥有全部权限，系统内置角色' },
-			...result.data.filter((row) => row.role_id !== 'admin')
-		];
+		rows.value = result.data;
 		auth.value = result.auth;
 	} catch (e) {
 		if (id === version) {
@@ -303,7 +302,6 @@ async function edit(row, viewOnly = false, permissionsOnly = false) {
 	treeVersion.value++;
 	menus.value = [];
 	permissions.value = [];
-	missingPermissions.value = [];
 	treeLoading.value = permissionsOnly;
 	treeError.value = '';
 	readOnly.value = viewOnly;
@@ -316,7 +314,7 @@ async function edit(row, viewOnly = false, permissionsOnly = false) {
 	refreshTreeChecks();
 }
 function editPermissions(row) {
-	return edit(row, !auth.value.update || !manageable(row), true);
+	return edit(row, !auth.value.update, true);
 }
 watch(visible, value => { if (!value) treeEpoch++; });
 function mergeAuthorization(result) {
@@ -349,9 +347,8 @@ async function loadAuthorization() {
 		const result = await call('getRoleAuthorization');
 		if (epoch !== treeEpoch || !visible.value) return;
 		auth.value = result.auth;
-		readOnly.value = !auth.value.update || !manageable(form);
+		readOnly.value = !auth.value.update;
 		mergeAuthorization(result);
-		missingPermissions.value = form.permission.filter(id => !permissions.value.some(item => item.permission_id === id));
 		treeVersion.value++;
 		await nextTick();
 		if (epoch === treeEpoch) refreshTreeChecks();
@@ -420,7 +417,7 @@ async function save() {
 	saveError.value = '';
 	try {
 		const payload = permissionMode.value
-			? { _id: form._id, menu_ids: [...form.menu_ids], permission: [...form.permission] }
+			? { _id: form._id, ...availableAuthorization.value }
 			: { _id: form._id, role_id: form.role_id, role_name: form.role_name, comment: form.comment || '' };
 		const result = await call('saveRole', payload);
 		visible.value = false;

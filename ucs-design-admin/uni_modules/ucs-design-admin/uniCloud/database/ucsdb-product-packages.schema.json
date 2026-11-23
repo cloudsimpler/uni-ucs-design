@@ -3,8 +3,7 @@
   "description": "租户产品包",
   "required": [
     "name",
-    "menu_ids",
-    "permission_ids"
+    "menu_ids"
   ],
   "permission": {
     "read": false,
@@ -27,13 +26,6 @@
     },
     "menu_ids": {
       "description": "产品包包含的产品功能页面标识列表",
-      "bsonType": "array",
-      "items": {
-        "bsonType": "string"
-      }
-    },
-    "permission_ids": {
-      "description": "产品包包含的操作权限标识列表",
       "bsonType": "array",
       "items": {
         "bsonType": "string"

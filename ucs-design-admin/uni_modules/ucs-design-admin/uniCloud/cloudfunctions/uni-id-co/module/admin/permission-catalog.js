@@ -1,4 +1,5 @@
 const { DICTIONARY, MENU_MANAGEMENT, permissions: tenantPermissions } = require('./tenant-catalog');
+const { USER_DELEGATION_PERMISSION } = require('./user-delegation');
 const groups = [
  ['system_department', 'OPENDB_DEPARTMENT', '部门', ['READ', 'CREATE', 'UPDATE', 'DELETE']],
  [DICTIONARY, 'UCSDB_DICT', '系统字典', ['READ', 'CREATE', 'UPDATE', 'DELETE']],
@@ -27,4 +28,6 @@ module.exports = [
 	{ menu_id: 'system_customer', permission_id: 'READ_CUSTOMER_LOG', permission_name: '查看社区用户登录日志', sort: 4 },
 	{ menu_id: 'system_user', permission_id: 'RESET_PASSWORD_UNI_ID_USERS', permission_name: '重置系统用户密码', sort: 4 },
 	{ menu_id: 'system_user', permission_id: 'READ_UNI_ID_LOG', permission_name: '查看登录日志', sort: 5 },
+	{ menu_id: 'system_user', permission_id: 'ASSIGN_UNI_ID_USER_ROLES', permission_name: '绑定系统用户角色', sort: 7 },
+	{ menu_id: 'system_user', permission_id: USER_DELEGATION_PERMISSION, permission_name: '用户代管', sort: 8 },
 ];

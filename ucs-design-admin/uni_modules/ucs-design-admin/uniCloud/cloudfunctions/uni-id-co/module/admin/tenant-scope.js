@@ -2,6 +2,7 @@ const { actorName } = require('../../lib/utils/record-metadata')
 const { PLATFORM_TENANT_ID, TENANTS, PACKAGES, platformTenant } = require('../../lib/utils/platform-tenant')
 const { hasManagementIdentity } = require('./account-types')
 const { classifyPages, readMenuCatalog } = require('./menu-scope')
+const { accessContext } = require('./admin-access')
 
 const tenantTables = new Set([
   'uni-id-users', 'uni-id-roles', 'uni-id-tag', 'uni-id-log',
@@ -60,22 +61,29 @@ async function readByIds(db, collection, field, ids) {
   return (await Promise.all(queries)).flatMap(result => result.data)
 }
 
-async function enterpriseScope(db, actor, tenant, sessionId) {
+async function enterprisePackageGrants(db, tenant) {
   const packageIds = tenantPackageIds(tenant)
   if (tenant.type !== 'enterprise' || !tenant.enabled || !packageIds.length)
     fail('企业租户未启用或尚未分配产品包')
   const products = await readByIds(db, PACKAGES, '_id', packageIds)
   if (products.length !== new Set(packageIds).size) fail('企业租户的产品包已失效')
-  const [menus, definitions] = await Promise.all([
-    readMenuCatalog(db),
-    readByIds(db, 'uni-id-permissions', 'permission_id', products.flatMap(product => product.permission_ids))
-  ])
+  const menus = await readMenuCatalog(db)
   const { product } = classifyPages(menus)
   const selected = new Set(products.flatMap(row => row.menu_ids || []))
   const menuIds = menus
     .filter(row => selected.has(row.menu_id) && product.has(row.menu_id) && row.enable !== false)
     .map(row => row.menu_id)
-  const permissions = definitions.filter(row => menuIds.includes(row.menu_id)).map(row => row.permission_id)
+  const { all } = accessContext({ db })
+  const permissionPages = []
+  for (let offset = 0; offset < menuIds.length; offset += 100) {
+    permissionPages.push(all('uni-id-permissions', { menu_id: db.command.in(menuIds.slice(offset, offset + 100)) }))
+  }
+  const permissions = (await Promise.all(permissionPages)).flat().map(row => row.permission_id)
+  return { menuIds, permissions }
+}
+
+async function enterpriseScope(db, actor, tenant, sessionId) {
+  const { menuIds, permissions } = await enterprisePackageGrants(db, tenant)
   const allInPackage = Boolean(sessionId || actor.user.is_tenant_admin)
   return {
     ...actor, tenant, tenantId: tenant._id, sessionId, isAdmin: false,
@@ -172,4 +180,4 @@ function scopedDatabase(db, scope) {
   }
 }
 
-module.exports = { fail, readDoc, ownerOf, tenantWhere, platformActor, tenantPackageIds, readByIds, enterpriseScope, resolveEntryTenant, resolveTenantScope, scopedDatabase }
+module.exports = { fail, readDoc, ownerOf, tenantWhere, platformActor, tenantPackageIds, readByIds, enterprisePackageGrants, enterpriseScope, resolveEntryTenant, resolveTenantScope, scopedDatabase }
