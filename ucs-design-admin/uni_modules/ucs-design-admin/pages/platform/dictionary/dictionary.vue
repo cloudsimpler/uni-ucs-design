@@ -154,8 +154,6 @@ onMounted(loadTypes);onBeforeUnmount(()=>{listRequest++;itemRequest++;});
 .dict-item-actions{display:flex;gap:8px;margin-left:auto;}.dict-item-actions .el-button + .el-button{margin-left:0;}
 .dict-items-table{height:clamp(220px,40vh,400px);border:1px solid var(--el-border-color-lighter);border-radius:6px;overflow:hidden;}
 .dict-items-table :deep(.el-table){--el-table-header-bg-color:var(--el-fill-color-light);--el-table-header-text-color:var(--el-text-color-regular);}
-.dict-items-table :deep(th.el-table__cell){height:44px;font-weight:500;}
-.dict-items-table :deep(td.el-table__cell){height:52px;}
 .dict-color{display:inline-flex;align-items:center;font-size:12px;font-family:ui-monospace,Consolas,monospace;}
 .dict-color-field{display:flex;align-items:center;gap:12px;}
 .dict-color-value{font-size:13px;color:var(--el-text-color-secondary);}

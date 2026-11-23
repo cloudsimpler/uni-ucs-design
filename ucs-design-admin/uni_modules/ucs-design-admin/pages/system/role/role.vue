@@ -478,16 +478,6 @@ onBeforeUnmount(() => {
 	--el-table-header-text-color: var(--el-text-color-regular);
 	--el-table-border-color: var(--el-border-color-lighter);
 }
-.role-table :deep(th.el-table__cell) {
-	height: var(--admin-table-header-height, 44px);
-	padding: 8px 0;
-	font-weight: 500;
-}
-.role-table :deep(td.el-table__cell) {
-	height: var(--admin-table-row-height, 64px);
-	padding: var(--admin-table-cell-padding, 10px 0);
-	box-sizing: border-box;
-}
 .role-actions {
 	display: flex;
 	justify-content: center;

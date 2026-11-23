@@ -425,16 +425,6 @@ onBeforeUnmount(() => {
 	min-height: 0;
 	--el-table-header-bg-color: var(--el-fill-color-light);
 }
-.app-table :deep(th.el-table__cell) {
-	height: var(--admin-table-header-height, 44px);
-	padding: 8px 0;
-	font-weight: 500;
-}
-.app-table :deep(td.el-table__cell) {
-	height: var(--admin-table-row-height, 64px);
-	padding: var(--admin-table-cell-padding, 10px 0);
-	box-sizing: border-box;
-}
 .app-name,
 .app-actions {
 	display: flex;

@@ -858,16 +858,6 @@ onBeforeUnmount(() => {
 	min-height: 0;
 	--el-table-header-bg-color: var(--el-fill-color-light);
 }
-.menu-table :deep(th.el-table__cell) {
-	height: var(--admin-table-header-height, 44px);
-	padding: 8px 0;
-	font-weight: 500;
-}
-.menu-table :deep(td.el-table__cell) {
-	height: var(--admin-table-row-height, 64px);
-	padding: var(--admin-table-cell-padding, 10px 0);
-	box-sizing: border-box;
-}
 .menu-name {
 	display: inline-flex;
 	align-items: center;

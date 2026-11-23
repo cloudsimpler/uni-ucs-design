@@ -594,13 +594,6 @@ onBeforeUnmount(() => {
 .version-table {
 	--el-table-header-bg-color: var(--el-fill-color-light);
 }
-.version-table :deep(th.el-table__cell) {
-	height: 48px;
-	font-weight: 500;
-}
-.version-table :deep(td.el-table__cell) {
-	padding: 12px 0;
-}
 .version-pagination {
 	display: flex;
 	justify-content: flex-end;

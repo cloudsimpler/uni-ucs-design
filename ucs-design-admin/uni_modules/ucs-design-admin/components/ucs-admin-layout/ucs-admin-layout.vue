@@ -172,14 +172,11 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 		user-select: text;
 	}
 	.admin-layout {
-		--admin-table-header-height: 44px;
-		--admin-table-row-height: 64px;
-		--admin-table-cell-padding: 8px 0;
 		display: flex;
 		flex-direction: column;
 		min-width: 0;
 		min-height: calc(100vh - var(--top-window-height, 56px));
-		padding: 16px 0 0 16px;
+		padding: 12px 0 0 12px;
 		box-sizing: border-box;
 		background: var(--el-fill-color-light);
 		color: var(--el-text-color-primary);
@@ -195,9 +192,9 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 		justify-content: space-between;
 		flex-wrap: wrap;
 		flex-shrink: 0;
-		min-height: 64px;
+		min-height: 56px;
 		gap: 12px 16px;
-		padding: 16px;
+		padding: 11px 16px;
 		box-sizing: border-box;
 		background: var(--el-bg-color);
 		margin-top: 0;
@@ -261,28 +258,35 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 		--el-table-header-text-color: var(--el-text-color-regular);
 		--el-table-border-color: var(--el-border-color-lighter);
 	}
-	.layout-table-body :deep(.el-table th.el-table__cell) { height: var(--admin-table-header-height); padding: 8px 0; font-weight: 500; }
-	.layout-table-body :deep(.el-table td.el-table__cell) { height: var(--admin-table-row-height); padding: var(--admin-table-cell-padding); box-sizing: border-box; }
+	:global(.el-table th.el-table__cell) {
+		height: var(--admin-table-header-height, 44px);
+		padding: 8px 0;
+		box-sizing: border-box;
+		font-weight: 500;
+	}
+	:global(.el-table td.el-table__cell) {
+		height: var(--admin-table-row-height, 48px);
+		padding: var(--admin-table-cell-padding, 8px 0);
+		box-sizing: border-box;
+	}
 	.layout-pagination {
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
 		flex-shrink: 0;
-		min-height: 64px;
-		padding: 16px;
+		min-height: 56px;
+		padding: 11px 16px;
 		box-sizing: border-box;
-		border-top: 1px solid var(--el-border-color-lighter);
 		overflow-x: auto;
 	}
 	.layout-pagination :deep(.el-pagination) { margin-left: auto; }
 	.layout-actions :deep(.el-button + .el-button) { margin-left: 0; }
 	@media (max-width: 1100px) {
-		.admin-layout { padding: 12px 0 0 12px; }
-		.layout-header { padding: 12px; gap: 12px; }
+		.layout-header { padding-inline: 12px; gap: 12px; }
 	}
 	@media (max-width: 600px) {
 		.admin-layout { padding: 8px 0 0 8px; }
-		.layout-pagination { padding: 12px 8px; }
+		.layout-pagination { padding-inline: 8px; }
 	}
 	:global(uni-layout:not(.uni-app--showleftwindow):not(.uni-app--showtopwindow) .admin-layout) {
 		padding: 0;

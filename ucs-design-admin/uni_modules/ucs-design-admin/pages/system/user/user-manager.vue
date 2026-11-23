@@ -115,10 +115,10 @@
 					<el-table-column v-if="customer" label="注册时间" min-width="168">
 						<template #default="{ row }">{{ formatDate(row.register_date) }}</template>
 					</el-table-column>
-					<el-table-column label="最后登录" min-width="168">
+					<el-table-column label="最后登录" min-width="168" align="center">
 						<template #default="{ row }">
 							<div>{{ formatDate(row.last_login_date) }}</div>
-							<text class="user-secondary">{{ row.last_login_ip || '—' }}</text>
+							<div class="user-secondary">{{ row.last_login_ip || '—' }}</div>
 						</template>
 					</el-table-column>
 					<el-table-column label="标签" min-width="90">
