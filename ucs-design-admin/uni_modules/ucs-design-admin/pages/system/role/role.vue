@@ -1,6 +1,20 @@
 <template>
 	<ucs-admin-layout class="role-layout" title="角色管理" mode="card" :padding="false">
-		<template #header />
+		<template #header>
+			<el-form class="role-search" @submit.prevent="search">
+				<el-input
+					v-model="keyword"
+					:prefix-icon="Search"
+					placeholder="角色名称或角色标识"
+					aria-label="角色名称或角色标识"
+					maxlength="100"
+					clearable
+					@clear="resetSearch"
+				/>
+				<el-button type="primary" native-type="submit">查询</el-button>
+				<el-button @click="resetSearch">重置</el-button>
+			</el-form>
+		</template>
 		<template #button>
 			<el-button v-if="auth.create" type="primary" :disabled="saving || loading" @click="edit()">
 				新增角色
@@ -12,11 +26,11 @@
 			class="role-table"
             height="100%"
 			v-loading="loading"
-			:data="rows"
+			:data="filteredRows"
 			row-key="role_id"
 		>
 			<template #empty>
-				<el-empty :image-size="100" :description="error ? '加载失败，请刷新重试' : '暂无角色'" />
+				<el-empty :image-size="100" :description="error ? '加载失败，请刷新重试' : appliedKeyword ? '暂无符合条件的角色' : '暂无角色'" />
 			</template>
 			<el-table-column type="index" label="序号" width="64" align="center" />
 			<el-table-column prop="role_name" label="角色名称" min-width="180" align="center" />
@@ -161,7 +175,7 @@ import 'element-plus/es/components/message-box/style/css.mjs';
 
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Refresh } from '@element-plus/icons-vue';
+import { Refresh, Search } from '@element-plus/icons-vue';
 import { menuTree } from '../../../common/menu.js';
 import store from '../../../common/store.js';
 function authorizationTree(menus, permissions, auth = { isAdmin: true, permission: [] }) {
@@ -213,6 +227,22 @@ const rows = ref([]),
 	permissionMode = ref(false),
 	formRef = ref(),
 	treeRef = ref();
+const keyword = ref('');
+const appliedKeyword = ref('');
+const filteredRows = computed(() => {
+	const query = appliedKeyword.value;
+	if (!query) return rows.value;
+	return rows.value.filter((row) =>
+		[row.role_name, row.role_id].some((value) => value?.toLowerCase().includes(query))
+	);
+});
+function search() {
+	appliedKeyword.value = keyword.value.trim().toLowerCase();
+}
+function resetSearch() {
+	keyword.value = '';
+	search();
+}
 const empty = () => ({ _id: '', role_id: '', role_name: '', comment: '', menu_ids: [], permission: [] });
 const form = reactive(empty());
 const manageable = (row) =>
@@ -438,6 +468,9 @@ onBeforeUnmount(() => {
 <style scoped>
 .role-layout { height: calc(100dvh - var(--top-window-height, 56px)); min-height: 0; }
 .role-layout :deep(.layout-card) { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.role-search { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; max-width: 100%; }
+.role-search :deep(.el-input) { width: 240px; max-width: 100%; }
+.role-search :deep(.el-button + .el-button) { margin-left: 0; }
 .role-table { flex: 1; min-height: 0; }
 
 .role-table {

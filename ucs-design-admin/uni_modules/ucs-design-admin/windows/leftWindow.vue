@@ -13,6 +13,7 @@
 				v-else-if="menus.length"
 				ref="menuRef"
 				class="sidebar-menu"
+				popper-class="admin-sidebar-menu-popup"
 				:collapse="store.isCollapsed"
 				:default-openeds="openedKeys"
 				:default-active="activeKey"
@@ -204,6 +205,10 @@ onBeforeUnmount(() => {
 .sidebar-menu {
 	border-right: 0;
 	padding: 16px 8px;
+}
+/* 折叠后子菜单挂载到侧栏之外，悬浮层需应用同一套菜单样式。 */
+.sidebar-menu,
+:global(.admin-sidebar-menu-popup.el-menu--popup-container) {
 	--el-menu-item-height: 44px;
 	--el-menu-sub-item-height: 40px;
 	--el-menu-base-level-padding: 14px;
@@ -211,30 +216,49 @@ onBeforeUnmount(() => {
 	--el-menu-hover-bg-color: var(--el-fill-color-light);
 	--el-menu-text-color: var(--el-text-color-regular);
 }
+:global(.admin-sidebar-menu-popup.el-menu--popup-container > .el-menu--popup) {
+	padding: 8px;
+}
+:global(.admin-sidebar-menu-popup.el-menu--popup-container .el-menu-item) {
+	height: var(--el-menu-sub-item-height);
+	line-height: var(--el-menu-sub-item-height);
+}
+:global(.admin-sidebar-menu-popup.el-menu--popup-container > .el-menu--popup > :last-child),
+:global(.admin-sidebar-menu-popup.el-menu--popup-container > .el-menu--popup > :last-child > .el-sub-menu__title) {
+	margin-bottom: 0;
+}
 .sidebar-menu :deep(.el-menu-item),
-.sidebar-menu :deep(.el-sub-menu__title) {
+.sidebar-menu :deep(.el-sub-menu__title),
+:global(.admin-sidebar-menu-popup.el-menu--popup-container .el-menu-item),
+:global(.admin-sidebar-menu-popup.el-menu--popup-container .el-sub-menu__title) {
 	margin-bottom: 4px;
 	border-radius: 6px;
 }
-.sidebar-menu :deep(.el-icon) {
+.sidebar-menu :deep(.el-icon),
+:global(.admin-sidebar-menu-popup.el-menu--popup-container .el-icon) {
 	font-size: 19px;
 	margin-right: 10px;
 	flex-shrink: 0;
 }
-.sidebar-menu :deep(.el-sub-menu__icon-arrow) {
+.sidebar-menu :deep(.el-sub-menu__icon-arrow),
+:global(.admin-sidebar-menu-popup.el-menu--popup-container .el-sub-menu__icon-arrow) {
 	font-size: 12px;
 	margin-right: 0;
 }
-.sidebar-menu :deep(.el-menu-item.is-active) {
+.sidebar-menu :deep(.el-menu-item.is-active),
+:global(.admin-sidebar-menu-popup.el-menu--popup-container .el-menu-item.is-active) {
 	background: var(--el-color-primary-light-9);
 	color: var(--el-color-primary);
 	font-weight: 500;
 }
-.sidebar-menu :deep(.el-sub-menu.is-active > .el-sub-menu__title) {
+.sidebar-menu :deep(.el-sub-menu.is-active > .el-sub-menu__title),
+:global(.admin-sidebar-menu-popup.el-menu--popup-container .el-sub-menu.is-active > .el-sub-menu__title) {
 	color: var(--el-color-primary);
 }
 .sidebar-menu :deep(.el-menu-item:focus-visible),
-.sidebar-menu :deep(.el-sub-menu__title:focus-visible) {
+.sidebar-menu :deep(.el-sub-menu__title:focus-visible),
+:global(.admin-sidebar-menu-popup.el-menu--popup-container .el-menu-item:focus-visible),
+:global(.admin-sidebar-menu-popup.el-menu--popup-container .el-sub-menu__title:focus-visible) {
 	outline: 2px solid var(--el-color-primary);
 	outline-offset: -2px;
 }
