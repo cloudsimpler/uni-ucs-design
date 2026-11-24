@@ -7,10 +7,9 @@ module.exports = async function () {
   if (typeof uid !== 'string' || !uid) {
     throw { errCode: ERROR.CHECK_TOKEN_FAILED }
   }
-  const result = await userCollection.doc(uid).field({
+  const user = this.authenticatedUser?._id === uid ? this.authenticatedUser : (await userCollection.doc(uid).field({
     _id: true, username: true, nickname: true, avatar: true
-  }).get()
-  const user = result.data?.[0]
+  }).get()).data?.[0]
   if (!user) throw { errCode: ERROR.ACCOUNT_NOT_EXISTS }
   return {
     errCode: 0,

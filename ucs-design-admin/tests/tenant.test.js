@@ -11,7 +11,6 @@ const { authenticateAdmin, verifyDelegation, installAdminTokenIssuer } = require
 const methods = require(path.join(root, 'module/admin/tenant-methods'))
 const { registerRootWithApp } = require(path.join(root, 'lib/utils/register-root'))
 const { migrateTenantRecords } = require(path.join(root, 'lib/utils/tenant-migration'))
-const { cleanLoginRoleGrants } = require(path.join(root, 'module/admin/login-role-grants'))
 
 function memoryDatabase() {
   const tables = new Map()
@@ -138,7 +137,7 @@ test('系统用户和社区用户共用全局唯一的 user_no 分配空间', as
   assert.equal(users.get('1000000000').account_type, 0)
 })
 
-test('登录仅清理本租户已绑定角色中失效的授权', async () => {
+test('登录复用签发所需的授权数据，只清理本租户已绑定角色中失效的授权', async t => {
   const db = memoryDatabase()
   const roles = db.collection('uni-id-roles')
   await db.collection('ucsdb-tenants').add({
@@ -155,9 +154,29 @@ test('登录仅清理本租户已绑定角色中失效的授权', async () => {
   await roles.add({ _id: 'bound', role_id: 'reader', tenant_id: 'tenant-a', ...grants })
   await roles.add({ _id: 'unbound', role_id: 'editor', tenant_id: 'tenant-a', ...grants })
   await roles.add({ _id: 'other', role_id: 'reader', tenant_id: 'tenant-b', ...grants })
-  const user = { _id: 'user-a', tenant_id: 'tenant-a', role: ['reader'] }
+  const user = { _id: 'user-a', tenant_id: 'tenant-a', account_type: 0, role: ['reader'] }
+  const tenant = (await db.collection('ucsdb-tenants').doc(user.tenant_id).get()).data[0]
+  const reads = []
+  const previous = global.uniCloud
+  let transactions = 0
+  global.uniCloud = { database: () => ({ ...db, collection(name) {
+    reads.push(name)
+    return db.collection(name)
+  }, startTransaction() {
+    transactions++
+    return db.startTransaction()
+  } }) }
+  t.after(() => { global.uniCloud = previous })
+  let issue
+  installAdminTokenIssuer({
+    issueAdminScope: true, adminLoginUser: user, entryTenant: tenant,
+    getUniversalClientInfo: () => ({ appId: 'test' }),
+    uniIdCommon: { setInterceptor(_name, interceptor) { issue = interceptor } }
+  })
 
-  await cleanLoginRoleGrants(db, user)
+  const token = await issue({ uid: user._id })
+  assert.deepEqual(token.ucsAdmin.permissions, ['read-active'])
+  assert.deepEqual(reads.sort(), ['ucsdb-admin-menus', 'ucsdb-product-packages', 'uni-id-permissions', 'uni-id-roles'].sort())
   const [bound] = (await roles.doc('bound').get()).data
   assert.deepEqual(bound.menu_ids, ['active'])
   assert.deepEqual(bound.permission, ['read-active'])
@@ -167,7 +186,36 @@ test('登录仅清理本租户已绑定角色中失效的授权', async () => {
     assert.deepEqual(untouched.menu_ids, grants.menu_ids)
     assert.deepEqual(untouched.permission, grants.permission)
   }
-  await cleanLoginRoleGrants({ ...db, startTransaction: () => assert.fail('有效授权无需写库') }, user)
+  await issue({ uid: user._id })
+  assert.equal(transactions, 1)
+})
+
+test('代管到期按层级退出，过期凭证不会发给云函数', async () => {
+  const source = fs.readFileSync(path.resolve(root, '../../../common/tenant-session.js'), 'utf8')
+    .replace(/^import .*$/m, '').replaceAll('export ', '')
+  const store = { menuVersion: 0 }
+  const redirects = []
+  let timeout, calls = 0, now = 10
+  const browser = vm.runInNewContext(source + '\n({ importTenantAdmin, setDelegation, tenantListRoute, systemUserRoute })', {
+    store, Date: { now: () => now }, setTimeout: callback => { timeout = callback },
+    clearTimeout: () => {}, sessionStorage: { getItem() {}, setItem() {}, removeItem() {} },
+    uni: { redirectTo: ({ url }) => redirects.push(url) },
+    uniCloud: { getCurrentUserInfo: () => ({ uid: 'operator' }),
+      importObject: () => ({ listUsers: async () => { calls++; return { errCode: 0 } } }) }
+  })
+  const api = browser.importTenantAdmin()
+  const tenant = { delegationToken: 'tenant', tokenExpired: 30 }
+  browser.setDelegation({ userDelegationToken: 'employee', tokenExpired: 20, parent: tenant })
+  now = 20
+  timeout()
+  assert.equal(store.delegation, tenant)
+  assert.deepEqual(redirects, [browser.systemUserRoute])
+  await api.listUsers()
+  now = 30
+  await assert.rejects(api.listUsers(), { errCode: 'TENANT_SESSION_INVALID' })
+  assert.equal(calls, 1)
+  assert.equal(store.delegation, null)
+  assert.deepEqual(redirects, [browser.systemUserRoute, browser.tenantListRoute])
 })
 
 test('系统用户操作按令牌授权，旧角色授权不拦截操作', async () => {
@@ -372,7 +420,11 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     name: '系统人员', remark: '  用于人员管理  ', menu_ids: ['system_user']
   })
   const packageData = await run('listProductPackages', 'root')
-  assert.deepEqual(packageData.menus.map(row => row.menu_id).sort(), ['system', 'system_user'])
+  assert.equal(Object.hasOwn(packageData, 'menus'), false)
+  assert.deepEqual(packageData.pagination, { current: 1, size: 20, count: 1 })
+  const packageAuthorization = await run('getProductPackageAuthorization', 'root')
+  assert.deepEqual(packageAuthorization.menus.map(row => row.menu_id).sort(), ['system', 'system_user'])
+  assert.deepEqual(packageAuthorization.permissions.map(row => row.permission_id).sort(), ['CREATE_UNI_ID_USERS', 'READ_UNI_ID_USERS'])
   const savedPackage = packageData.data.find(row => row._id === pkg)
   assert.deepEqual(savedPackage.menu_ids, ['system_user'])
   assert.equal(Object.hasOwn(savedPackage, 'permission_ids'), false)
@@ -400,6 +452,9 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   const { id: operationsPackage } = await db.collection('ucsdb-product-packages').add({
     name: '历史运营菜单', menu_ids: fullMenuIds
   })
+  const packagePage = await run('listProductPackages', 'root', { keyword: '运营', size: 1 })
+  assert.deepEqual(packagePage.data.map(row => row._id), [operationsPackage])
+  assert.deepEqual(packagePage.pagination, { current: 1, size: 1, count: 1 })
   const productRemark = async () => (await run('listProductPackages', 'root')).data.find(row => row._id === pkg).remark
   assert.equal(await productRemark(), '用于人员管理')
   const { id: a } = await run('createTenant', 'root', { tenant_no: '00001', name: '企业甲' })

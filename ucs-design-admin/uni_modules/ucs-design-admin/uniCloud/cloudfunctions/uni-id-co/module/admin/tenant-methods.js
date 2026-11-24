@@ -1,7 +1,7 @@
 const { randomBytes } = require('crypto')
 const { createFields, updateFields } = require('../../lib/utils/record-metadata')
 const { PLATFORM_TENANT_ID, TENANTS, PACKAGES, platformTenant } = require('../../lib/utils/platform-tenant')
-const { fail, readDoc, readByIds, enterpriseScope } = require('./tenant-scope')
+const { fail, readDoc, readByIds, enterpriseScope, tenantPackageIds } = require('./tenant-scope')
 const { signDelegation, verifyDelegation } = require('./admin-token')
 const { menus, legacyMenuNames, permissions, tenantRights, packageRights } = require('./tenant-catalog')
 const { classifyPages } = require('./menu-scope')
@@ -11,6 +11,7 @@ const required = (actor, right) => { if (!allow(actor, right)) fail('没有此�
 const duplicate = error => /duplicate|E11000|重复|唯一/i.test([error.message, error.errMsg].join(' '))
 const invalid = message => fail(message, 'TENANT_INVALID')
 const capabilities = (actor, rights) => Object.fromEntries(Object.entries(rights).map(([key, value]) => [key, allow(actor, value)]))
+const literal = value => new RegExp(value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
 
 async function platform(context) {
   await context.middleware.auth()
@@ -20,10 +21,10 @@ async function platform(context) {
   return { db, actor: loginScope }
 }
 
-async function list(db, table) {
+async function list(db, table, where = {}) {
   const rows = []
   for (let offset = 0; offset < 5000; offset += 100) {
-    const page = (await db.collection(table).where({}).orderBy('_id', 'asc').skip(offset).limit(100).get()).data
+    const page = (await db.collection(table).where(where).orderBy('_id', 'asc').skip(offset).limit(100).get()).data
     rows.push(...page)
     if (page.length < 100) return rows
   }
@@ -35,10 +36,6 @@ async function searchTenants(db, { keyword = '', tenant_no = '', name = '', curr
     invalid('租户号只能输入最多五位数字')
   if (typeof name !== 'string' || name.trim().length > 80) invalid('租户名称最多输入 80 字')
   if (typeof keyword !== 'string' || keyword.trim().length > 80) invalid('搜索关键词最多输入 80 字')
-  if (!Number.isSafeInteger(current) || current < 1 || !Number.isInteger(size) || size < 1 || size > 100)
-    invalid('分页参数不正确')
-
-  const literal = value => new RegExp(value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
   let where = {}
   if (tenant_no.trim()) where.tenant_no = new RegExp(tenant_no.trim())
   if (name.trim()) where.name = literal(name)
@@ -48,11 +45,26 @@ async function searchTenants(db, { keyword = '', tenant_no = '', name = '', curr
     where = Object.keys(where).length ? db.command.and([where, byKeyword]) : byKeyword
   }
 
-  const query = () => db.collection(TENANTS).where(where)
+  return searchPage(db, TENANTS, where, 'tenant_no', { current, size })
+}
+
+async function searchPage(db, table, where, order, { current = 1, size = 20 }, fields) {
+  if (!Number.isSafeInteger(current) || current < 1 || !Number.isInteger(size) || size < 1 || size > 100)
+    invalid('分页参数不正确')
+  const query = () => db.collection(table).where(where)
   const { total } = await query().count()
   current = Math.min(current, Math.max(1, Math.ceil(total / size)))
-  const { data } = await query().orderBy('tenant_no', 'asc').skip((current - 1) * size).limit(size).get()
+  let page = query().orderBy(order, 'asc').orderBy('_id', 'asc').skip((current - 1) * size).limit(size)
+  if (fields) page = page.field(fields)
+  const { data } = await page.get()
   return { data, pagination: { current, size, count: total } }
+}
+
+function searchPackages(db, params, fields) {
+  if (!params || typeof params !== 'object' || Array.isArray(params)) invalid('产品包查询参数不正确')
+  const { keyword = '' } = params
+  if (typeof keyword !== 'string' || keyword.trim().length > 80) invalid('搜索关键词最多输入 80 字')
+  return searchPage(db, PACKAGES, keyword.trim() ? { name: literal(keyword) } : {}, 'name', params, fields)
 }
 
 function nameOf(value) {
@@ -109,11 +121,7 @@ module.exports = {
     const paged = ['keyword', 'tenant_no', 'name', 'current', 'size'].some(key => Object.hasOwn(params, key))
     const tenants = paged ? searchTenants(db, params)
       : list(db, TENANTS).then(data => ({ data: data.sort((a, b) => a.tenant_no.localeCompare(b.tenant_no)) }))
-    const [result, packages] = await Promise.all([tenants, list(db, PACKAGES)])
-    return {
-      errCode: 0, auth, ...result, currentTenantId: this.adminScope.tenantId,
-      packages: packages.map(({ _id, name }) => ({ _id, name }))
-    }
+    return { errCode: 0, auth, ...await tenants, currentTenantId: this.adminScope.tenantId }
   },
   async createTenant({ tenant_no, name } = {}) {
     const { db, actor } = await platform(this)
@@ -154,14 +162,29 @@ module.exports = {
     })
     return { errCode: 0 }
   },
-  async listProductPackages() {
+  async listProductPackages(params = {}) {
     const { db, actor } = await platform(this)
     const auth = capabilities(actor, packageRights)
     if (!Object.values(auth).some(Boolean)) fail('没有租户产品包操作权限')
-    const [data, menuRows, allPermissions] = await Promise.all([list(db, PACKAGES), list(db, 'ucsdb-admin-menus'), list(db, 'uni-id-permissions')])
+    return { errCode: 0, auth, ...await searchPackages(db, params) }
+  },
+  async getProductPackageOptions({ _id, keyword = '', current = 1 } = {}) {
+    const { db, actor } = await platform(this)
+    required(actor, tenantRights.assign)
+    const tenant = await otherEnterprise(db, _id, this.adminScope.tenantId)
+    const [page, selected] = await Promise.all([
+      searchPackages(db, { keyword, current }, { _id: true, name: true }),
+      current === 1 && !keyword.trim() ? readByIds(db, PACKAGES, '_id', tenantPackageIds(tenant)) : []
+    ])
+    return { errCode: 0, ...page, selected: selected.map(({ _id, name }) => ({ _id, name })) }
+  },
+  async getProductPackageAuthorization() {
+    const { db, actor } = await platform(this)
+    required(actor, packageRights.update)
+    const menuRows = await list(db, 'ucsdb-admin-menus')
     const { product, productMenus } = classifyPages(menuRows)
-    return { errCode: 0, data, auth, menus: menuRows.filter(row => productMenus.has(row.menu_id)),
-      permissions: allPermissions.filter(row => product.has(row.menu_id)) }
+    const rights = product.size ? await list(db, 'uni-id-permissions', { menu_id: db.command.in([...product]) }) : []
+    return { errCode: 0, menus: menuRows.filter(row => productMenus.has(row.menu_id)), permissions: rights }
   },
   async saveProductPackage({ _id, name, remark, menu_ids } = {}) {
     const { db, actor } = await platform(this)

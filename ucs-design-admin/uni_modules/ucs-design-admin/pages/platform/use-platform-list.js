@@ -1,32 +1,42 @@
-import { computed, ref, watch } from 'vue';
+import { reactive, ref } from 'vue';
 
-export function usePlatformList(rows, matches) {
+export function usePlatformList(request) {
+	const rows = ref([]);
+	const auth = ref({});
 	const keyword = ref('');
-	const appliedKeyword = ref('');
-	const current = ref(1);
-	const size = ref(20);
-	const filtered = computed(() => rows.value.filter(row => matches(row, appliedKeyword.value)));
-	const pagination = computed(() => ({ current: current.value, size: size.value, count: filtered.value.length }));
-	const pageRows = computed(() => filtered.value.slice((current.value - 1) * size.value, current.value * size.value));
+	const loading = ref(false);
+	const error = ref('');
+	const pagination = reactive({ current: 1, size: 20, count: 0 });
+	let appliedKeyword = '';
+	let requestId = 0;
+
+	async function load({ current = pagination.current, size = pagination.size } = {}) {
+		const id = ++requestId;
+		loading.value = true;
+		error.value = '';
+		try {
+			const result = await request({ keyword: appliedKeyword, current, size });
+			if (id !== requestId) return;
+			if (result.errCode) throw result;
+			rows.value = result.data;
+			auth.value = result.auth;
+			Object.assign(pagination, result.pagination);
+		} catch (e) {
+			if (id === requestId) error.value = e?.errMsg || e?.message || '加载失败，请重试';
+		} finally {
+			if (id === requestId) loading.value = false;
+		}
+	}
 
 	function search() {
-		appliedKeyword.value = keyword.value.trim().toLowerCase();
-		current.value = 1;
+		appliedKeyword = keyword.value.trim();
+		return load({ current: 1 });
 	}
 
 	function reset() {
 		keyword.value = '';
-		search();
+		return search();
 	}
 
-	function changePage(options) {
-		current.value = options.current;
-		size.value = options.size;
-	}
-
-	watch(() => filtered.value.length, count => {
-		current.value = Math.min(current.value, Math.max(1, Math.ceil(count / size.value)));
-	});
-
-	return { keyword, pagination, pageRows, search, reset, changePage };
+	return { rows, auth, keyword, loading, error, pagination, load, search, reset, changePage: load };
 }

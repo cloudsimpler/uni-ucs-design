@@ -3,7 +3,7 @@
 		<template #header>
 			<el-form class="platform-search" inline @submit.prevent="search">
 				<el-form-item>
-					<el-input v-model="keyword" :prefix-icon="Search" aria-label="产品包名称" placeholder="产品包名称" clearable @clear="search" />
+					<el-input v-model="keyword" :prefix-icon="Search" aria-label="产品包名称" placeholder="产品包名称" maxlength="80" clearable @clear="search" />
 				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" native-type="submit" :loading="loading">查询</el-button>
@@ -17,7 +17,7 @@
 		</template>
 		<div v-loading="loading" class="platform-table">
 			<el-alert v-if="error" :title="error" type="error" :closable="false" />
-			<el-table :data="pageRows" row-key="_id" height="100%">
+			<el-table :data="rows" row-key="_id" height="100%">
 				<template #empty><el-empty :image-size="100" :description="error ? '产品包加载失败，请刷新重试' : '暂无符合条件的产品包'" /></template>
 				<el-table-column prop="name" label="产品包名称" min-width="180" show-overflow-tooltip />
 				<el-table-column prop="remark" label="备注" min-width="260" show-overflow-tooltip>
@@ -44,7 +44,7 @@
 					<el-input v-model="draft.remark" type="textarea" :rows="2" maxlength="500" placeholder="请输入备注" />
 				</el-form-item>
 			</template>
-			<template v-else>
+			<div v-else v-loading="loadingAuthorization">
 				<el-alert title="勾选页面即包含该页面当前和以后新增的全部操作权限。员工的具体权限由角色分配。" type="info" :closable="false" />
 				<el-tree
 					:key="treeVersion"
@@ -69,12 +69,12 @@
 						<span v-else class="package-permission-label">{{ data.name }}</span>
 					</template>
 				</el-tree>
-			</template>
+			</div>
 			<el-alert v-if="editorError" :title="editorError" type="error" :closable="false" />
 		</el-form>
 		<template #footer>
 			<el-button :disabled="saving" @click="editor = false">取消</el-button>
-			<el-button type="primary" native-type="submit" form="platform-package-form" :loading="saving">保存</el-button>
+			<el-button type="primary" native-type="submit" form="platform-package-form" :loading="saving" :disabled="editingPermissions && !authorizationLoaded">保存</el-button>
 		</template>
 	</el-dialog>
 </template>
@@ -90,11 +90,13 @@ import '../platform-management.css';
 import { usePlatformList } from '../use-platform-list.js';
 
 const api = importTenantAdmin();
-const rows = ref([]), menus = ref([]), permissions = ref([]), auth = ref({});
-const { keyword, pagination, pageRows, search, reset, changePage } = usePlatformList(rows, (row, query) => row.name.toLowerCase().includes(query));
-const loading = ref(false), saving = ref(false), editor = ref(false);
+const { rows, auth, keyword, pagination, loading, error, load, search, reset, changePage } = usePlatformList(params => api.listProductPackages(params));
+const menus = ref([]), permissions = ref([]);
+const saving = ref(false), editor = ref(false);
+const loadingAuthorization = ref(false), authorizationLoaded = ref(false);
+let authorizationRequest = 0;
 const editingPermissions = ref(false);
-const error = ref(''), editorError = ref('');
+const editorError = ref('');
 const draft = reactive({ _id: '', name: '', remark: '' });
 const treeVersion = ref(0);
 const checkedKeys = ref(new Set());
@@ -134,38 +136,41 @@ function toggleNode(node, checked) {
 }
 const message = e => e?.errMsg || e?.message || '操作失败，请重试';
 
-async function load() {
-	loading.value = true;
-	error.value = '';
-	try {
-		const result = await api.listProductPackages();
-		if (result.errCode) throw result;
-		rows.value = result.data;
-		menus.value = result.menus;
-		permissions.value = result.permissions;
-		auth.value = result.auth;
-	} catch (e) { error.value = message(e); }
-	finally { loading.value = false; }
-}
-
-function open(row, permissionsOnly = false) {
+async function open(row, permissionsOnly = false) {
+	const id = ++authorizationRequest;
 	editingPermissions.value = permissionsOnly;
 	Object.assign(draft, {
 		_id: row?._id || '', name: row?.name || '', remark: row?.remark || ''
 	});
-	if (permissionsOnly) {
+	editorError.value = '';
+	editor.value = true;
+	if (!permissionsOnly) return;
+	authorizationLoaded.value = false;
+	loadingAuthorization.value = true;
+	menus.value = [];
+	permissions.value = [];
+	checkedKeys.value = new Set();
+	try {
+		const result = await api.getProductPackageAuthorization();
+		if (id !== authorizationRequest) return;
+		if (result.errCode) throw result;
+		menus.value = result.menus;
+		permissions.value = result.permissions;
 		const selectedMenus = new Set(row.menu_ids || []);
 		checkedKeys.value = new Set(menus.value
 			.filter(menu => menu.menu_type === MENU_TYPE.PAGE && selectedMenus.has(menu.menu_id))
 			.map(menu => menuKey(menu.menu_id)));
 		treeVersion.value++;
+		authorizationLoaded.value = true;
+	} catch (e) {
+		if (id === authorizationRequest) editorError.value = message(e);
+	} finally {
+		if (id === authorizationRequest) loadingAuthorization.value = false;
 	}
-	editorError.value = '';
-	editor.value = true;
 }
 
 async function save() {
-	if (saving.value) return;
+	if (saving.value || (editingPermissions.value && !authorizationLoaded.value)) return;
 	saving.value = true;
 	editorError.value = '';
 	try {

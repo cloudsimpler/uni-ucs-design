@@ -6,17 +6,20 @@ const storageKey = 'ucs-admin-delegation';
 let expirationTimer;
 const activeToken = (session) => session?.userDelegationToken || session?.delegationToken;
 
-function restoreParent(session) {
-	if (store.delegation?.userDelegationToken !== session.userDelegationToken) return;
-	const parent = store.delegation.parent;
-	setDelegation(parent?.tokenExpired > Date.now() ? parent : null);
-	uni.redirectTo({ url: parent && !store.delegation ? tenantListRoute : systemUserRoute });
+function restoreScope(session, code) {
+	if (!session || activeToken(store.delegation) !== activeToken(session)) return;
+	const parent = session.parent;
+	const leaveTenant = code === 'TENANT_SESSION_INVALID' || !session.userDelegationToken ||
+		Boolean(parent && parent.tokenExpired <= Date.now());
+	setDelegation(leaveTenant ? null : parent || null);
+	uni.redirectTo({ url: leaveTenant ? tenantListRoute : systemUserRoute });
 }
 
-function watchUserExpiration(session) {
+function watchExpiration(session) {
 	clearTimeout(expirationTimer);
-	if (session?.userDelegationToken) {
-		expirationTimer = setTimeout(() => restoreParent(session), Math.max(0, session.tokenExpired - Date.now()));
+	if (activeToken(session)) {
+		const expiresAt = Math.min(session.tokenExpired, session.parent?.tokenExpired ?? Infinity);
+		expirationTimer = setTimeout(() => restoreScope(session), Math.max(0, expiresAt - Date.now()));
 	}
 }
 
@@ -24,7 +27,7 @@ try {
 	const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
 	if (saved?.uid && saved.uid === uniCloud.getCurrentUserInfo().uid && activeToken(saved.delegation)) {
 		store.delegation = saved.delegation;
-		watchUserExpiration(saved.delegation);
+		watchExpiration(saved.delegation);
 	}
 } catch {
 	// Session storage can be unavailable in this runtime.
@@ -36,6 +39,12 @@ export function importTenantAdmin() {
 		get(target, key) {
 			return async (params = {}) => {
 				const delegation = store.delegation;
+				if (delegation && Math.min(delegation.tokenExpired, delegation.parent?.tokenExpired ?? Infinity) <= Date.now()) {
+					const errCode = delegation.userDelegationToken && (!delegation.parent || delegation.parent.tokenExpired > Date.now())
+						? 'USER_DELEGATION_INVALID' : 'TENANT_SESSION_INVALID';
+					restoreScope(delegation, errCode);
+					throw { errCode, errMsg: '代管已到期，请重新进入' };
+				}
 				const userToken = delegation?.userDelegationToken;
 				const credential = userToken ? {
 					userDelegationToken: userToken,
@@ -45,11 +54,11 @@ export function importTenantAdmin() {
 				try {
 					result = await (credential ? target[key](params, credential) : target[key](params));
 				} catch (error) {
-					if (userToken && ['USER_DELEGATION_INVALID', 'TENANT_SESSION_INVALID'].includes(error?.errCode)) restoreParent(delegation);
+					if (['USER_DELEGATION_INVALID', 'TENANT_SESSION_INVALID'].includes(error?.errCode)) restoreScope(delegation, error.errCode);
 					throw error;
 				}
-				if (userToken && ['USER_DELEGATION_INVALID', 'TENANT_SESSION_INVALID'].includes(result.errCode)) {
-					restoreParent(delegation);
+				if (['USER_DELEGATION_INVALID', 'TENANT_SESSION_INVALID'].includes(result.errCode)) {
+					restoreScope(delegation, result.errCode);
 				} else if (activeToken(store.delegation) === activeToken(delegation)) {
 					if (userToken && (result.newUserDelegation || result.newDelegation)) {
 						const current = store.delegation;
@@ -71,7 +80,7 @@ export function importTenantAdmin() {
 export function setDelegation(delegation) {
 	store.delegation = delegation;
 	store.menuVersion++;
-	watchUserExpiration(delegation);
+	watchExpiration(delegation);
 	try {
 		if (activeToken(delegation)) sessionStorage.setItem(storageKey, JSON.stringify({ uid: uniCloud.getCurrentUserInfo().uid, delegation }));
 		else sessionStorage.removeItem(storageKey);
@@ -90,7 +99,7 @@ export async function exitDelegation() {
 			if (result.errCode) throw result;
 		} finally {
 			const current = store.delegation;
-			restoreParent(delegation.userDelegationId && current?.userDelegationId === delegation.userDelegationId
+			restoreScope(delegation.userDelegationId && current?.userDelegationId === delegation.userDelegationId
 				? current : delegation);
 		}
 		return;

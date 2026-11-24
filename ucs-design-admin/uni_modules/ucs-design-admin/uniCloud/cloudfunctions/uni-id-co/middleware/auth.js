@@ -20,6 +20,7 @@ module.exports = async function () {
   const user = await readDoc(db, 'uni-id-users', payload.uid)
   if (!user || (user.status || 0) !== 0)
     fail('当前账号不可用', 'uni-id-check-token-failed')
+  this.authenticatedUser = user
   this.entryTenantId = ownerOf(user)
   if (this.entryTenantId !== PLATFORM_TENANT_ID) {
     const tenant = await readDoc(db, TENANTS, this.entryTenantId)

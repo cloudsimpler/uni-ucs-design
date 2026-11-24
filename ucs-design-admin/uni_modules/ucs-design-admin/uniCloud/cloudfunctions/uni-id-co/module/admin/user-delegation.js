@@ -32,7 +32,9 @@ async function effectiveScope(context, db, targetId) {
   const user = await readDoc(db, 'uni-id-users', targetId)
   if (!user || ownerOf(user) !== operator.tenantId)
     forbidden('只能代管当前租户的系统用户')
-  const target = await resolveTenantScope(db, targetId, appId)
+  const target = await resolveTenantScope(db, targetId, appId, {
+    user, tenant: operator.tenant, packageGrants: operator.packageGrants
+  })
   if (target.tenantId !== operator.tenantId)
     forbidden('目标用户不在可代管范围内')
   const intersect = (targetIds, operatorIds) => target.isAdmin ? operatorIds

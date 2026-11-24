@@ -21,8 +21,8 @@ function tenantWhere(db, tenantId) {
     : { tenant_id: tenantId }
 }
 
-async function platformActor(db, uid, appId) {
-  const user = await readDoc(db, 'uni-id-users', uid)
+async function platformActor(db, uid, appId, user) {
+  user ??= await readDoc(db, 'uni-id-users', uid)
   const apps = user?.dcloud_appid
   if (!user || !hasManagementIdentity(user) || (user.status || 0) !== 0 ||
     (apps != null && (!Array.isArray(apps) || (!apps.includes('*') && !apps.includes(appId)))))
@@ -33,20 +33,25 @@ async function platformActor(db, uid, appId) {
   const roles = !isAdmin && role.length ? (await db.collection('uni-id-roles')
     .where(db.command.and([tenantWhere(db, tenantId), { role_id: db.command.in(role) }])).limit(500).get()).data : []
   return {
-    user, uid, tenantId, name: actorName(user), apps, role, isAdmin,
+    user, uid, tenantId, name: actorName(user), apps, role, isAdmin, roleRows: roles,
     tenantAdmin: tenantId !== PLATFORM_TENANT_ID && roles.some(row => row.role_id === 'admin'),
     permissions: [...new Set(roles.flatMap(row => row.permission || []))],
     menuIds: [...new Set(roles.flatMap(row => row.menu_ids || []))]
   }
 }
 
-async function resolveTenantScope(db, uid, appId) {
-  const actor = await platformActor(db, uid, appId)
+async function resolveTenantScope(db, uid, appId, { user, tenant, packageGrants, cleanGrants } = {}) {
+  const actor = await platformActor(db, uid, appId, user)
   if (actor.tenantId === PLATFORM_TENANT_ID) return { ...actor, tenant: platformTenant }
-  const tenant = await readDoc(db, TENANTS, actor.tenantId)
+  if (tenant?._id !== actor.tenantId) {
+    tenant = await readDoc(db, TENANTS, actor.tenantId)
+    packageGrants = undefined
+  }
   if (!tenant || tenant.type !== 'enterprise' || !tenant.enabled || !tenantPackageIds(tenant).length)
     fail('企业租户未启用或尚未分配产品包')
-  return enterpriseScope(db, actor, tenant)
+  const grants = packageGrants ?? await enterprisePackageGrants(db, tenant)
+  if (cleanGrants) await cleanGrants(actor.roleRows, grants)
+  return enterpriseScope(db, actor, tenant, undefined, grants)
 }
 
 function tenantPackageIds(tenant) {
@@ -83,11 +88,12 @@ async function enterprisePackageGrants(db, tenant) {
   return { menuIds, permissions }
 }
 
-async function enterpriseScope(db, actor, tenant, sessionId) {
-  const { menuIds, permissions } = await enterprisePackageGrants(db, tenant)
+async function enterpriseScope(db, actor, tenant, sessionId, grants) {
+  const packageGrants = grants ?? await enterprisePackageGrants(db, tenant)
+  const { menuIds, permissions } = packageGrants
   const allInPackage = Boolean(sessionId || actor.tenantAdmin)
   return {
-    ...actor, tenant, tenantId: tenant._id, sessionId, isAdmin: false,
+    ...actor, tenant, tenantId: tenant._id, sessionId, isAdmin: false, packageGrants,
     packageAdministrator: allInPackage,
     permissions: allInPackage ? permissions : permissions.filter(id => actor.permissions.includes(id)),
     menuIds: allInPackage ? menuIds : menuIds.filter(id => actor.menuIds.includes(id)),

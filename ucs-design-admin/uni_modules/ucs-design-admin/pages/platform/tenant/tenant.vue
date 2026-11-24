@@ -43,8 +43,13 @@
 		:close-on-click-modal="false" :show-close="!busy" :close-on-press-escape="!busy">
 		<el-form id="platform-tenant-form" label-position="right" label-width="96px" :disabled="busy" @submit.prevent="save">
 			<el-form-item v-if="selected" label="产品包">
-				<el-select v-model="form.product_package_ids" multiple placeholder="请选择产品包">
+				<el-select v-model="form.product_package_ids" multiple filterable remote :remote-method="searchPackages"
+					:disabled="!packagesReady" :loading="packagesLoading" placeholder="请选择或搜索产品包">
 					<el-option v-for="item in packages" :key="item._id" :label="item.name" :value="item._id" />
+					<template #footer>
+						<el-button size="small" :disabled="packagesLoading || packagePage.current <= 1" @click="loadPackages(packagePage.current - 1)">上一页</el-button>
+						<el-button size="small" :disabled="packagesLoading || packagePage.current * packagePage.size >= packagePage.count" @click="loadPackages(packagePage.current + 1)">下一页</el-button>
+					</template>
 				</el-select>
 			</el-form-item>
 			<template v-else>
@@ -55,7 +60,7 @@
 		</el-form>
 		<template #footer>
 			<el-button :disabled="busy" @click="editor = false">取消</el-button>
-			<el-button type="primary" native-type="submit" form="platform-tenant-form" :loading="busy">{{ selected ? '保存' : '开通' }}</el-button>
+			<el-button type="primary" native-type="submit" form="platform-tenant-form" :loading="busy" :disabled="selected && !packagesReady">{{ selected ? '保存' : '开通' }}</el-button>
 		</template>
 	</el-dialog>
 </template>
@@ -71,6 +76,10 @@ import store from '../../../common/store.js';
 
 const api = importTenantAdmin();
 const rows = ref([]), packages = ref([]), auth = ref({});
+const packagesLoading = ref(false), packagesReady = ref(false);
+const packagePage = reactive({ current: 1, size: 20, count: 0 });
+let packageKeyword = '';
+let packageRequest = 0;
 const listedTenantId = ref('');
 const currentTenantId = computed(() => store.delegation?.tenant._id || listedTenantId.value);
 const keyword = ref('');
@@ -95,7 +104,6 @@ async function load({ current = pagination.current, size = pagination.size } = {
 		rows.value = result.data;
 		listedTenantId.value = result.currentTenantId;
 		Object.assign(pagination, result.pagination);
-		packages.value = result.packages;
 		auth.value = result.auth;
 	} catch (e) {
 		if (id === requestId) error.value = message(e);
@@ -128,12 +136,41 @@ function openCreate() {
 function openAssign(row) {
 	selected.value = row;
 	form.product_package_ids = [...packageIds(row)];
-	editorError.value = '';
+	packages.value = [];
+	packagesReady.value = false;
+	packageKeyword = '';
+	Object.assign(packagePage, { current: 1, count: 0 });
 	editor.value = true;
+	void loadPackages();
+}
+
+async function loadPackages(current = 1) {
+	if (!selected.value || !editor.value) return;
+	const id = ++packageRequest;
+	packagesLoading.value = true;
+	editorError.value = '';
+	try {
+		const result = resultOf(await api.getProductPackageOptions({ _id: selected.value._id, keyword: packageKeyword, current }));
+		if (id !== packageRequest || !editor.value || !selected.value) return;
+		const available = new Map([...packages.value, ...result.selected, ...result.data].map(item => [item._id, item]));
+		const visible = new Set([...form.product_package_ids, ...result.data.map(item => item._id)]);
+		packages.value = [...visible].map(id => available.get(id)).filter(Boolean);
+		Object.assign(packagePage, result.pagination);
+		packagesReady.value = true;
+	} catch (e) {
+		if (id === packageRequest && selected.value && editor.value) editorError.value = message(e);
+	} finally {
+		if (id === packageRequest) packagesLoading.value = false;
+	}
+}
+
+function searchPackages(value) {
+	packageKeyword = value.trim();
+	return loadPackages();
 }
 
 async function save() {
-	if (busy.value) return;
+	if (busy.value || (selected.value && !packagesReady.value)) return;
 	busy.value = true;
 	editorError.value = '';
 	try {

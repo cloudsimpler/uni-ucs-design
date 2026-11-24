@@ -1,5 +1,6 @@
 const { accessContext, fail } = require('./admin-access');
 const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant');
+const { readByIds, readDoc } = require('./tenant-scope');
 const catalog = require('./permission-catalog');
 const MENU_TYPE = require('./menu-types');
 const tables = { permission: 'uni-id-permissions', role: 'uni-id-roles' };
@@ -13,8 +14,8 @@ const { createFields, updateFields } = require('../../lib/utils/record-metadata'
 function createAccessAdmin(context) {
 	const { db, uid } = context;
 	const { all, actor, can, capabilities, requireRead, requirePermission } = accessContext(context);
-	const find = (rows, id) => {
-		const row = rows.find((item) => item._id === id);
+	const find = async (table, id) => {
+		const row = await readDoc(db, table, text(id, '记录 ID', 100, true));
 		if (!row) fail('记录不存在，请刷新列表');
 		return row;
 	};
@@ -50,8 +51,7 @@ function createAccessAdmin(context) {
 	const save = async (kind, params = {}) => {
 		const auth = await actor();
 		requirePermission(auth, `${params._id ? 'UPDATE' : 'CREATE'}_${suffixes[kind]}`);
-		const rows = await all(tables[kind]);
-		const old = params._id ? find(rows, params._id) : null;
+		const old = params._id ? await find(tables[kind], params._id) : null;
 		const roleDetailsOnly = kind === 'role' && old &&
 			params.permission === undefined && params.menu_ids === undefined;
 		const key = `${kind}_id`,
@@ -63,7 +63,7 @@ function createAccessAdmin(context) {
 			if (auth.tenantId === PLATFORM_TENANT_ID) fail('平台超级管理员为内置角色，不可维护');
 			if (params.permission !== undefined || params.menu_ids !== undefined) fail('企业管理员的权限由租户产品包决定');
 		}
-		if (rows.some((row) => row[key] === id && row._id !== old?._id)) fail(label + '标识已存在');
+		if (!old && (await db.collection(tables[kind]).where({ [key]: id }).limit(1).get()).data.length) fail(label + '标识已存在');
 		const value = {
 			[key]: id,
 			[`${kind}_name`]: text(
@@ -79,7 +79,7 @@ function createAccessAdmin(context) {
 			value.sort = params.sort ?? 0;
 			if (!Number.isInteger(value.sort) || value.sort < 0 || value.sort > 999999) fail('排序必须是 0 到 999999 的整数');
 			if (value.menu_id) {
-				const menu = (await all('ucsdb-admin-menus')).find((menu) => menu.menu_id === value.menu_id);
+				const { data: [menu] } = await db.collection('ucsdb-admin-menus').where({ menu_id: value.menu_id }).limit(1).get();
 				if (!menu) fail('所属菜单不存在');
 				if (menu.menu_type !== MENU_TYPE.PAGE) fail('操作权限只能归属页面，不能归属目录');
 			}
@@ -102,7 +102,10 @@ function createAccessAdmin(context) {
 				const fullScope = auth.isAdmin || auth.packageAdministrator;
 				grantable(auth, fullScope ? value.permission : value.permission.filter(id => !oldPermissions.has(id)));
 				grantableMenus(auth, fullScope ? value.menu_ids : value.menu_ids.filter(id => !oldMenus.has(id)));
-				const [menus, permissions] = await Promise.all([all('ucsdb-admin-menus'), all('uni-id-permissions')]);
+				const [menus, permissions] = await Promise.all([
+					readByIds(db, 'ucsdb-admin-menus', 'menu_id', [...value.menu_ids, ...oldMenus]),
+					readByIds(db, 'uni-id-permissions', 'permission_id', [...value.permission, ...oldPermissions])
+				]);
 				const pages = new Set(menus.filter(menu => menu.menu_type === MENU_TYPE.PAGE).map(menu => menu.menu_id));
 				const available = new Set(permissions.map(row => row.permission_id));
 				if (value.permission.some(id => !available.has(id) && !oldPermissions.has(id))) fail('所选权限已被删除，请刷新后重新选择');
@@ -152,13 +155,14 @@ function createAccessAdmin(context) {
 	const remove = async (kind, params = {}) => {
 		const auth = await actor();
 		requirePermission(auth, `DELETE_${suffixes[kind]}`);
-		const old = find(await all(tables[kind]), params._id);
+		const old = await find(tables[kind], params._id);
 		if (kind === 'role') {
 			if (old.role_id === 'admin' && auth.tenantId === PLATFORM_TENANT_ID) fail('平台超级管理员不可删除');
-			if ((await all('uni-id-users', { role: db.command.in([old.role_id]) })).length) fail('角色已分配给用户，请先解除绑定');
+			if ((await db.collection('uni-id-users').where({ role: db.command.in([old.role_id]) }).limit(1).get()).data.length)
+				fail('角色已分配给用户，请先解除绑定');
 		} else {
-			const roles = await all('uni-id-roles', { permission: old.permission_id });
-			if (roles.length) fail('权限仍被角色引用，请先解除引用');
+			if ((await db.collection('uni-id-roles').where({ permission: db.command.in([old.permission_id]) }).limit(1).get()).data.length)
+				fail('权限仍被角色引用，请先解除引用');
 		}
 		await db.collection(tables[kind]).doc(old._id).remove();
 		return { errCode: 0 };

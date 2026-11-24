@@ -1,6 +1,7 @@
 const { PLATFORM_TENANT_ID, TENANTS } = require('../../lib/utils/platform-tenant')
 const { readDoc, resolveTenantScope, enterpriseScope, platformActor, fail } = require('./tenant-scope')
 const { tenantRights } = require('./tenant-catalog')
+const { cleanLoginRoleGrants } = require('./login-role-grants')
 
 function claimsFor(scope, appId) {
   const { _id, name, tenant_no, type } = scope.tenant
@@ -30,7 +31,16 @@ function installAdminTokenIssuer(context) {
     const tokenClaims = previous ? await previous(claims) : claims
     if (!context.issueAdminScope) return tokenClaims
     const appId = context.getUniversalClientInfo().appId
-    const scope = await resolveTenantScope(uniCloud.database(), claims.uid, appId)
+    const db = uniCloud.database()
+    const user = context.adminLoginUser?._id === claims.uid ? context.adminLoginUser : undefined
+    const cleanGrants = user && (async (roles, grants) => {
+      try {
+        await cleanLoginRoleGrants(db, user, roles, grants)
+      } catch (error) {
+        console.warn('登录时清理角色旧授权失败', error.errCode || error.code)
+      }
+    })
+    const scope = await resolveTenantScope(db, claims.uid, appId, { user, tenant: user && context.entryTenant, cleanGrants })
     return { ...tokenClaims, ucsAdmin: claimsFor(scope, appId) }
   })
 }
@@ -63,7 +73,7 @@ async function authenticateAdmin(context, credential) {
     const delegated = await verifyDelegation(context, credential)
     context.adminScope = delegated.scope
     context.tenantDelegationExpires = delegated.payload.exp * 1000
-    if (needsRenewal(context, delegated.payload)) {
+    if (needsRenewal(context, delegated.payload) && context.platformTokenExpires >= context.tenantDelegationExpires + 1000) {
       const db = uniCloud.database()
       const actor = await platformActor(db, payload.uid, appId)
       if (actor.tenantId !== PLATFORM_TENANT_ID || !(actor.isAdmin || actor.permissions.includes(tenantRights.enter)))
