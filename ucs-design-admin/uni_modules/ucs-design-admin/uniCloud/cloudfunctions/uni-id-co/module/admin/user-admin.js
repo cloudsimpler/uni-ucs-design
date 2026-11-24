@@ -77,7 +77,6 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
       create: isAdmin || permissions.includes(`CREATE_${suffix}`),
       update: isAdmin || permissions.includes(`UPDATE_${suffix}`),
       delete: isAdmin || permissions.includes(`DELETE_${suffix}`),
-      assignRoles: !customer && (isAdmin || permissions.includes('ASSIGN_UNI_ID_USER_ROLES')),
       resetPassword: isAdmin || permissions.includes(`RESET_PASSWORD_${suffix}`) }
     if (customer) {
       auth.create = auth.delete = auth.resetPassword = false
@@ -137,7 +136,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
         fail('角色、标签、部门或应用授权格式不正确')
     }
     if (params.role !== undefined && !equalSet(params.role, old?.role)) {
-      if (!auth.assignRoles) fail('没有绑定角色权限', 'USER_ADMIN_FORBIDDEN')
+      if (!auth.update) fail('绑定角色需要编辑系统用户权限', 'USER_ADMIN_FORBIDDEN')
       const roleIds = [...new Set(params.role.filter(id => !auth.isPlatform || id !== 'admin'))]
       if (roleIds.length && (await all('uni-id-roles', { role_id: cmd.in(roleIds) }, { role_id: true })).length !== roleIds.length)
         fail('所选角色已不存在，请刷新后重新选择')

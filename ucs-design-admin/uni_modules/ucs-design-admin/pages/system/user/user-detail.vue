@@ -34,7 +34,7 @@
 				<el-button :icon="Refresh" :loading="loading" :aria-label="'刷新' + accountLabel + '详情'" @click="reload" />
 				<template v-if="editable">
 					<el-button type="primary" :disabled="busy" @click="emit('edit', user)">编辑{{ accountLabel }}</el-button>
-					<el-button v-if="!customer && result.auth?.assignRoles && !user.is_root" type="primary" :disabled="busy" @click="emit('edit-roles', user)">绑定角色</el-button>
+					<el-button v-if="!customer && !user.is_root" type="primary" :disabled="busy" @click="emit('edit-roles', user)">绑定角色</el-button>
 				</template>
 				<el-button v-if="canResetPassword" type="warning" :disabled="busy || isSelf" @click="emit('reset-password', user)">重置密码</el-button>
 			</div>

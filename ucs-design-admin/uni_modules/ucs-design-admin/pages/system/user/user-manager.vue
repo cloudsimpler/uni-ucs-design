@@ -550,7 +550,7 @@ const canWrite = computed(() => auth.value?.update === true);
 const canChangeStatus = computed(() => props.customer && auth.value?.status === true);
 const canCreate = computed(() => !props.customer && auth.value?.create === true);
 const canResetPassword = computed(() => !props.customer && auth.value?.resetPassword === true);
-const canAssignRoles = computed(() => !props.customer && auth.value?.assignRoles === true);
+const canAssignRoles = computed(() => !props.customer && canWrite.value);
 const canDelete = computed(() => !props.customer && auth.value?.delete === true);
 const canRemoveRow = (row) => canDelete.value && !row.is_root && row._id !== auth.value?.uid;
 const canDelegate = computed(() => !props.customer && !props.developer && !store.delegation?.userDelegationToken && auth.value?.delegate === true);

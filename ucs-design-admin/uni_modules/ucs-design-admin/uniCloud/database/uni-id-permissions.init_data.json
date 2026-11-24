@@ -138,12 +138,6 @@
     "sort": 5
   },
   {
-    "menu_id": "system_user",
-    "permission_id": "ASSIGN_UNI_ID_USER_ROLES",
-    "permission_name": "绑定用户角色",
-    "sort": 7
-  },
-  {
     "menu_id": "system_app",
     "permission_id": "READ_OPENDB_APP_LIST",
     "permission_name": "查看应用",

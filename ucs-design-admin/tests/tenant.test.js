@@ -164,11 +164,12 @@ test('系统用户操作按令牌授权，旧角色授权不拦截操作', async
   const target = await admin.getUser('target')
   await admin.validateChange({ uid: 'target', nickname: '新名称' }, target)
   assert.deepEqual((await admin.options()).roles.map(role => role.role_id), ['old'])
-  await assert.rejects(admin.validateChange({ uid: 'target', role: [] }, target), { errMsg: '没有绑定角色权限' })
+  await admin.validateChange({ uid: 'target', role: [] }, target)
+  await assert.rejects(adminWith(['CREATE_UNI_ID_USERS']).validateChange({ nickname: '新用户', gender: 1, role: ['old'] }),
+    { errMsg: '绑定角色需要编辑系统用户权限' })
   await assert.rejects(admin.validateChange({ uid: 'target', password: 'NewPassword123' }, target), { errCode: 'USER_ADMIN_FORBIDDEN' })
-  const assigner = adminWith([...permissions, 'ASSIGN_UNI_ID_USER_ROLES'])
-  await assigner.validateChange({ uid: 'target', role: ['old'] }, { ...target, role: [] })
-  await assert.rejects(assigner.validateChange({ uid: 'target', role: ['admin'] }, target), { errCode: 'USER_ADMIN_FORBIDDEN' })
+  await admin.validateChange({ uid: 'target', role: ['old'] }, { ...target, role: [] })
+  await assert.rejects(admin.validateChange({ uid: 'target', role: ['admin'] }, target), { errCode: 'USER_ADMIN_FORBIDDEN' })
   await assert.rejects(admin.removeAccount({ uid: 'foreign' }), { errCode: 'USER_ADMIN_NOT_FOUND' })
   await assert.rejects(adminWith(['UPDATE_UNI_ID_USERS']).removeAccount({ uid: 'tenant-admin' }), { errCode: 'USER_ADMIN_FORBIDDEN' })
   await assert.rejects(admin.removeAccount({ uid: 'community-user' }), { errCode: 'USER_ADMIN_FORBIDDEN' })
@@ -246,7 +247,7 @@ test('租户手动创建 admin 后只获得本租户产品包权限', async () =
   await assert.rejects(platform.saveRole({ role_id: 'admin', role_name: '平台管理员' }), { errMsg: '平台超级管理员为内置角色，不可维护' })
   const operator = {
     ...await enterpriseScope(db, rootScope, tenant, 'tenant-session'),
-    permissions: ['CREATE_UNI_ID_ROLES', 'UPDATE_UNI_ID_ROLES', 'DELETE_UNI_ID_ROLES', 'UPDATE_UNI_ID_USERS', 'ASSIGN_UNI_ID_USER_ROLES']
+    permissions: ['CREATE_UNI_ID_ROLES', 'UPDATE_UNI_ID_ROLES', 'DELETE_UNI_ID_ROLES', 'UPDATE_UNI_ID_USERS']
   }
   const tenantDb = scopedDatabase(db, operator)
   const access = createAccessAdmin({ db: tenantDb })
