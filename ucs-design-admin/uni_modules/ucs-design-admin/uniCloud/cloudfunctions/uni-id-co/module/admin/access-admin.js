@@ -1,4 +1,5 @@
 const { accessContext, fail } = require('./admin-access');
+const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant');
 const catalog = require('./permission-catalog');
 const MENU_TYPE = require('./menu-types');
 const tables = { permission: 'uni-id-permissions', role: 'uni-id-roles' };
@@ -33,7 +34,7 @@ function createAccessAdmin(context) {
 		if (kind === 'role') return {
 			errCode: 0, data: await all(tables.role, { tenant_id: auth.tenantId }),
 			auth: { ...capabilities(auth, suffixes.role), isAdmin: auth.isAdmin,
-				packageAdministrator: auth.packageAdministrator === true, permission: auth.permissions, menu_ids: auth.menuIds }
+				isPlatform: auth.tenantId === PLATFORM_TENANT_ID, packageAdministrator: auth.packageAdministrator === true, permission: auth.permissions, menu_ids: auth.menuIds }
 		};
 		const [rows, menus] = await Promise.all([
 			all(tables[kind], menuId === undefined ? {} : { menu_id: menuId }),
@@ -58,7 +59,10 @@ function createAccessAdmin(context) {
 		const id = text(kind === 'role' ? params[key] ?? old?.[key] : params[key], label + '标识', 100, true);
 		if (!/^[A-Za-z0-9][A-Za-z0-9_:-]*$/.test(id)) fail('标识仅支持字母、数字、下划线、冒号和短横线');
 		if (old && old[key] !== id) fail('标识创建后不可修改');
-		if (kind === 'role' && id === 'admin') fail('超级管理员为系统内置角色，不可维护');
+		if (kind === 'role' && id === 'admin') {
+			if (auth.tenantId === PLATFORM_TENANT_ID) fail('平台超级管理员为内置角色，不可维护');
+			if (params.permission !== undefined || params.menu_ids !== undefined) fail('企业管理员的权限由租户产品包决定');
+		}
 		if (rows.some((row) => row[key] === id && row._id !== old?._id)) fail(label + '标识已存在');
 		const value = {
 			[key]: id,
@@ -150,7 +154,7 @@ function createAccessAdmin(context) {
 		requirePermission(auth, `DELETE_${suffixes[kind]}`);
 		const old = find(await all(tables[kind]), params._id);
 		if (kind === 'role') {
-			if (old.role_id === 'admin') fail('超级管理员不可删除');
+			if (old.role_id === 'admin' && auth.tenantId === PLATFORM_TENANT_ID) fail('平台超级管理员不可删除');
 			if ((await all('uni-id-users', { role: db.command.in([old.role_id]) })).length) fail('角色已分配给用户，请先解除绑定');
 		} else {
 			const roles = await all('uni-id-roles', { permission: old.permission_id });
@@ -179,7 +183,7 @@ function createAccessAdmin(context) {
 				menus: enterprise ? menus.filter(row => visible.has(row.menu_id)) : menus,
 				permissions: enterprise ? permissions.filter(row => auth.permissions.includes(row.permission_id)) : permissions,
 				auth: { ...capabilities(auth, suffixes.role), isAdmin: auth.isAdmin,
-					packageAdministrator: auth.packageAdministrator === true, permission: auth.permissions, menu_ids: auth.menuIds }
+					isPlatform: auth.tenantId === PLATFORM_TENANT_ID, packageAdministrator: auth.packageAdministrator === true, permission: auth.permissions, menu_ids: auth.menuIds }
 			};
 		},
 		listPermissions: (params) => list('permission', params),

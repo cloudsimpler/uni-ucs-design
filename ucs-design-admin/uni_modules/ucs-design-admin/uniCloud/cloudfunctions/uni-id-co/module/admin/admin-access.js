@@ -1,4 +1,5 @@
 const { actorName } = require('../../lib/utils/record-metadata');
+const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant');
 const fail = (errMsg, errCode = 'ADMIN_ACCESS_INVALID') => {
 	throw { errCode, errMsg };
 };
@@ -25,11 +26,12 @@ function accessContext({ db, uid, appId }) {
 			(apps != null && (!Array.isArray(apps) || (!apps.includes('*') && !apps.includes(appId))))
 		)
 			fail('当前账号已停用或无权登录此应用', 'ADMIN_ACCESS_FORBIDDEN');
-		const isAdmin = (user.role || []).includes('admin');
-		const roles = !isAdmin && user.role?.length ? await all('uni-id-roles', { role_id: db.command.in(user.role) }) : [];
+		const tenantId = user.tenant_id ?? PLATFORM_TENANT_ID;
+		const isAdmin = tenantId === PLATFORM_TENANT_ID && (user.role || []).includes('admin');
+		const roles = !isAdmin && user.role?.length ? await all('uni-id-roles', { tenant_id: tenantId, role_id: db.command.in(user.role) }) : [];
 		const permissions = [...new Set(roles.flatMap((role) => role.permission || []))];
 		const menuIds = [...new Set(roles.flatMap((role) => role.menu_ids || []))];
-		return { uid, name: actorName(user), isAdmin, permissions, menuIds, apps, role: user.role || [] };
+		return { uid, tenantId, name: actorName(user), isAdmin, permissions, menuIds, apps, role: user.role || [] };
 	};
 	const can = (auth, id) => auth.isAdmin || auth.permissions.includes(id);
 	const requirePermission = (auth, id) => {

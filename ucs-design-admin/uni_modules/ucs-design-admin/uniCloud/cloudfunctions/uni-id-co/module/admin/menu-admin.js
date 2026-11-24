@@ -98,8 +98,9 @@ function createMenuAdmin({ db, uid, appId }) {
 			(apps != null && (!Array.isArray(apps) || (!apps.includes('*') && !apps.includes(appId))))
 		)
 			fail('当前账号已停用或无权登录此应用', 'MENU_ADMIN_FORBIDDEN');
-		const isAdmin = Array.isArray(user.role) && user.role.includes('admin');
-		const roles = !isAdmin && user.role?.length ? await all('uni-id-roles', { role_id: db.command.in(user.role) }) : [];
+		const tenantId = user.tenant_id ?? PLATFORM_TENANT_ID;
+		const isAdmin = tenantId === PLATFORM_TENANT_ID && Array.isArray(user.role) && user.role.includes('admin');
+		const roles = !isAdmin && user.role?.length ? await all('uni-id-roles', { tenant_id: tenantId, role_id: db.command.in(user.role) }) : [];
 		const permissions = [...new Set(roles.flatMap((role) => role.permission || []))];
 		const auth = {
 			uid, name: actorName(user), isAdmin,

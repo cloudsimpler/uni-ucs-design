@@ -9,7 +9,7 @@ function claimsFor(scope, appId) {
     name: scope.name, role: scope.role, apps: scope.apps, isAdmin: scope.isAdmin,
     permissions: scope.permissions, menuIds: scope.menuIds,
     packageAdministrator: Boolean(scope.packageAdministrator),
-    user: { account_type: scope.user.account_type, is_root: Boolean(scope.user.is_root), is_tenant_admin: Boolean(scope.user.is_tenant_admin) }
+    user: { account_type: scope.user.account_type, is_root: Boolean(scope.user.is_root) }
   }
 }
 

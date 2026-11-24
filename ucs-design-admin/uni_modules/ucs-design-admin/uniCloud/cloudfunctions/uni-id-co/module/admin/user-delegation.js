@@ -30,15 +30,21 @@ async function effectiveScope(context, db, targetId) {
   if (!canEnter(operator)) forbidden('没有用户代管权限')
   if (targetId === operator.uid) forbidden('不能代管自己的账号')
   const user = await readDoc(db, 'uni-id-users', targetId)
-  if (!user || ownerOf(user) !== operator.tenantId || user.is_root || user.is_tenant_admin || user.role?.includes('admin'))
-    forbidden('只能代管当前租户的普通系统用户')
+  if (!user || ownerOf(user) !== operator.tenantId)
+    forbidden('只能代管当前租户的系统用户')
   const target = await resolveTenantScope(db, targetId, appId)
-  if (target.tenantId !== operator.tenantId || target.isAdmin || target.user.is_root || target.user.is_tenant_admin || target.role.includes('admin'))
+  if (target.tenantId !== operator.tenantId)
     forbidden('目标用户不在可代管范围内')
+  const intersect = (targetIds, operatorIds) => target.isAdmin ? operatorIds
+    : operator.isAdmin ? targetIds : targetIds.filter(id => operatorIds.includes(id))
+  const unrestrictedApps = apps => apps == null || apps.includes('*')
   return {
     ...target,
-    permissions: target.permissions.filter(id => operator.isAdmin || operator.permissions.includes(id)),
-    menuIds: target.menuIds.filter(id => operator.isAdmin || operator.menuIds.includes(id)),
+    isAdmin: target.isAdmin && operator.isAdmin,
+    permissions: intersect(target.permissions, operator.permissions),
+    menuIds: intersect(target.menuIds, operator.menuIds),
+    apps: unrestrictedApps(operator.apps) ? target.apps : unrestrictedApps(target.apps) ? operator.apps
+      : target.apps.filter(id => operator.apps.includes(id)),
     packageAdministrator: false
   }
 }
@@ -104,7 +110,7 @@ async function verifyUserDelegation(context, token) {
     session.appid !== context.getUniversalClientInfo().appId ||
     !session._id || !session.target_user_id || !session.tenant_id ||
     session.authorization?.tenant?._id !== session.tenant_id || session.authorization.appId !== session.appid ||
-    session.authorization.isAdmin || session.authorization.packageAdministrator ||
+    (session.authorization.isAdmin && session.tenant_id !== PLATFORM_TENANT_ID) || session.authorization.packageAdministrator ||
     !Array.isArray(session.authorization.permissions) || !Array.isArray(session.authorization.menuIds)) expired()
   return { session, payload }
 }
@@ -112,7 +118,8 @@ async function verifyUserDelegation(context, token) {
 async function resolveUserDelegation(context, token) {
   const { session, payload } = await verifyUserDelegation(context, token)
   const parent = context.adminScope
-  if (session.tenant_id !== parent.tenantId || session.parent_session_id !== (parent.sessionId || '')) expired()
+  if (session.tenant_id !== parent.tenantId || session.parent_session_id !== (parent.sessionId || '') ||
+    (session.authorization.isAdmin && !parent.isAdmin)) expired()
   let authorization = session.authorization
   let renewal
   const tokenExpired = payload.exp * 1000

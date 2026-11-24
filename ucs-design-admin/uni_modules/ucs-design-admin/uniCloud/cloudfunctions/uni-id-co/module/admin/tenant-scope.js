@@ -34,6 +34,7 @@ async function platformActor(db, uid, appId) {
     .where(db.command.and([tenantWhere(db, tenantId), { role_id: db.command.in(role) }])).limit(500).get()).data : []
   return {
     user, uid, tenantId, name: actorName(user), apps, role, isAdmin,
+    tenantAdmin: tenantId !== PLATFORM_TENANT_ID && roles.some(row => row.role_id === 'admin'),
     permissions: [...new Set(roles.flatMap(row => row.permission || []))],
     menuIds: [...new Set(roles.flatMap(row => row.menu_ids || []))]
   }
@@ -84,7 +85,7 @@ async function enterprisePackageGrants(db, tenant) {
 
 async function enterpriseScope(db, actor, tenant, sessionId) {
   const { menuIds, permissions } = await enterprisePackageGrants(db, tenant)
-  const allInPackage = Boolean(sessionId || actor.user.is_tenant_admin)
+  const allInPackage = Boolean(sessionId || actor.tenantAdmin)
   return {
     ...actor, tenant, tenantId: tenant._id, sessionId, isAdmin: false,
     packageAdministrator: allInPackage,

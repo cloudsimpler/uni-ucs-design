@@ -38,7 +38,7 @@
 			<el-table-column label="授权权限" min-width="140" align="center">
 				<template #default="{ row }">
 					<el-tag :type="row.role_id === 'admin' ? 'warning' : 'primary'">
-						{{ row.role_id === 'admin' ? '全部权限' : (row.permission?.length || 0) + ' 项权限' }}
+						{{ row.role_id === 'admin' ? (auth.isPlatform ? '全部权限' : '产品包全部权限') : (row.permission?.length || 0) + ' 项权限' }}
 					</el-tag>
 				</template>
 			</el-table-column>
@@ -46,7 +46,7 @@
 			<el-table-column label="操作" width="250" align="center" fixed="right">
 				<template #default="{ row }">
 					<div class="role-actions">
-						<span v-if="row.role_id === 'admin'" class="muted">系统内置</span>
+						<span v-if="auth.isPlatform && row.role_id === 'admin'" class="muted">系统内置</span>
 						<template v-else>
 							<el-button
 								v-if="auth.update"
@@ -58,7 +58,7 @@
 							>
 								编辑
 							</el-button>
-							<el-button type="warning" plain size="small" :disabled="saving || loading" @click="editPermissions(row)">
+							<el-button v-if="row.role_id !== 'admin'" type="warning" plain size="small" :disabled="saving || loading" @click="editPermissions(row)">
 								菜单权限
 							</el-button>
 							<el-button

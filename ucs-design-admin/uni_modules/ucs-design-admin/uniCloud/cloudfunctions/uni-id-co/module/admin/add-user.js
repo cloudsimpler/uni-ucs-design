@@ -141,13 +141,6 @@ module.exports = async function (params = {}) {
   userRecord = { ...normalizeIdentifiers(userRecord), account_type: [accountType] }
   if (userRecord.mobile) userRecord.mobile_confirmed = 0
   delete userRecord.is_root
-  delete userRecord.is_tenant_admin
-  if (params.tenantAdmin === true) {
-    if (!this.adminDb.tenantActor.sessionId || !isEmployee || status) {
-      throw { errCode: 'TENANT_ACCESS_FORBIDDEN', errMsg: '请通过代管创建启用的企业管理员' }
-    }
-    userRecord.is_tenant_admin = true
-  }
   await require('../../lib/utils/user-number').createNumberedUser(
     { ...userRecord, ...createFields(authorized, data.register_date) },
     record => {

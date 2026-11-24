@@ -200,6 +200,7 @@
 							<el-tag size="small" type="info">{{ role.role_id }}</el-tag>
 						</h3>
 						<el-alert v-if="role.allPermissions" title="超级管理员拥有全部管理权限" type="success" :closable="false" />
+						<el-alert v-else-if="role.packagePermissions" title="企业管理员拥有当前租户产品包内的全部权限" type="success" :closable="false" />
 						<el-alert v-else-if="role.missing" title="此角色已不存在，请重新分配" type="warning" :closable="false" />
 						<div v-else class="detail-tags">
 							<el-tag v-for="permission in role.permission" :key="permission" type="info">{{ permission }}</el-tag>
@@ -326,7 +327,7 @@ const updateAvatar = (uid, avatar) => {
 	if (user.value?._id === uid) Object.assign(user.value, avatar);
 };
 defineExpose({ reload, updateAvatar });
-const manageable = computed(() => result.value.auth?.isAdmin || !(user.value?.role || []).includes('admin'));
+const manageable = computed(() => result.value.auth?.canManageAdmin || !(user.value?.role || []).includes('admin'));
 const editable = computed(() => result.value.auth?.update === true && manageable.value);
 const canResetPassword = computed(() => result.value.auth?.resetPassword === true && manageable.value);
 const isSelf = computed(() => user.value?._id === result.value.auth?.uid);

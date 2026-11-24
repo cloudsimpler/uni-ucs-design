@@ -99,9 +99,8 @@
 					<el-table-column v-if="!customer" label="角色" min-width="120">
 						<template #default="{ row }">
 							<div class="user-tags">
-								<el-tag v-if="row.is_tenant_admin" size="small" type="success">企业管理员</el-tag>
 								<el-tag v-for="id in row.role" :key="id" size="small">{{ roleName(id) }}</el-tag>
-								<text v-if="!row.is_tenant_admin && !row.role?.length" class="user-secondary">未分配</text>
+								<text v-if="!row.role?.length" class="user-secondary">未分配</text>
 							</div>
 						</template>
 					</el-table-column>
@@ -150,7 +149,7 @@
 								编辑
 							</el-button>
 							<el-dropdown
-								v-if="canDelegateRow(row) || ((canChangeStatus || canResetPassword || canDelete) && canManage(row) && (!customer || [0, 1].includes(row.status || 0)))"
+								v-if="canDelegateRow(row) || canRemoveRow(row) || ((canChangeStatus || canResetPassword) && canManage(row) && (!customer || [0, 1].includes(row.status || 0)))"
 								trigger="click"
 								:disabled="saving || preparing || row._id === auth?.uid"
 								@command="(command) => onUserAction(command, row)"
@@ -162,11 +161,11 @@
 								<template #dropdown>
 									<el-dropdown-menu>
 										<el-dropdown-item v-if="canDelegateRow(row)" command="delegate">进入代管</el-dropdown-item>
-										<el-dropdown-item v-if="canResetPassword" command="password">重置密码</el-dropdown-item>
-										<el-dropdown-item v-if="canChangeStatus" :disabled="row.is_root" :command="(row.status || 0) === 0 ? 'disable' : 'enable'">
+										<el-dropdown-item v-if="canResetPassword && canManage(row)" command="password">重置密码</el-dropdown-item>
+										<el-dropdown-item v-if="canChangeStatus && canManage(row)" :disabled="row.is_root" :command="(row.status || 0) === 0 ? 'disable' : 'enable'">
 											{{ (row.status || 0) === 0 ? '禁用账号' : '恢复正常' }}
 										</el-dropdown-item>
-										<el-dropdown-item v-if="canDelete" command="delete" divided :disabled="row.is_root || row._id === auth?.uid" style="color: var(--el-color-danger)">
+										<el-dropdown-item v-if="canRemoveRow(row)" command="delete" divided style="color: var(--el-color-danger)">
 											移除
 										</el-dropdown-item>
 									</el-dropdown-menu>
@@ -363,12 +362,9 @@
 								:key="item.role_id"
 								:label="item.role_name"
 								:value="item.role_id"
-								:disabled="original.is_root && item.role_id === 'admin'"
+								:disabled="item.assignable === false || (original.is_root && item.role_id === 'admin')"
 							/>
 						</el-select>
-					</el-form-item>
-					<el-form-item v-if="store.delegation && !editingId && !developer && !customer" label="企业管理员">
-						<el-checkbox v-model="form.tenantAdmin">授予产品包内的管理权限</el-checkbox>
 					</el-form-item>
 
 					<el-form-item
@@ -556,17 +552,18 @@ const canCreate = computed(() => !props.customer && auth.value?.create === true)
 const canResetPassword = computed(() => !props.customer && auth.value?.resetPassword === true);
 const canAssignRoles = computed(() => !props.customer && auth.value?.assignRoles === true);
 const canDelete = computed(() => !props.customer && auth.value?.delete === true);
+const canRemoveRow = (row) => canDelete.value && !row.is_root && row._id !== auth.value?.uid;
 const canDelegate = computed(() => !props.customer && !props.developer && !store.delegation?.userDelegationToken && auth.value?.delegate === true);
 const canDelegateRow = (row) => canDelegate.value && (row.status || 0) === 0 &&
-	row._id !== auth.value?.uid && !row.is_root && !row.is_tenant_admin && !row.role?.includes('admin');
-const canManage = (row) => auth.value?.isAdmin || !(row?.role || []).includes('admin');
+	row._id !== auth.value?.uid;
+const canManage = (row) => auth.value?.canManageAdmin || !(row?.role || []).includes('admin');
 const appOptions = computed(() => [
 	{ appid: '*', name: '全部应用' },
 	{ appid: manifest.appid, name: manifest.name + '（当前应用）' },
 	...options.value.apps.filter((item) => item.appid !== manifest.appid && item.appid !== '*')
 ]);
 const roleName = (id) =>
-	options.value.roles.find((item) => item.role_id === id)?.role_name || (id === 'admin' ? '超级管理员' : id);
+	options.value.roles.find((item) => item.role_id === id)?.role_name || (id === 'admin' ? (auth.value?.isPlatform ? '超级管理员' : '企业管理员') : id);
 const tagName = (id) => options.value.tags.find((item) => item.tagid === id)?.name || id;
 const departmentOptions = computed(() => {
 	const departments = options.value.departments || [];
@@ -810,7 +807,6 @@ const openEditor = async (row, detail = false, focusRole = false) => {
 			email: row?.email || '',
 			role: [...(row?.role || [])],
 			tags: [...(row?.tags || [])],
-			tenantAdmin: false,
 			status: row?.status || 0,
 			authorizedApp: row ? [...(row.dcloud_appid ?? ['*'])] : ['*'],
 			password: '',
@@ -889,8 +885,6 @@ const saveUser = async () => {
 		}
 		if (editingId.value) params.uid = editingId.value;
 		else params.password = password;
-		if (!editingId.value && store.delegation && !props.developer && !props.customer && form.value.tenantAdmin)
-			params.tenantAdmin = true;
 		const result = await call(editingId.value ? 'updateUser' : 'addUser', params);
 		if (editingId.value === uniCloud.getCurrentUserInfo().uid && !result.requireLogin) store.userInfoVersion++;
 		editorVisible.value = false;
@@ -967,14 +961,13 @@ async function enterUserDelegation(row) {
 const onUserAction = async (command, row) => {
 	if (command === 'delegate') return enterUserDelegation(row);
 	if (
-		!(command === 'delete' ? canDelete.value : command === 'password' ? canResetPassword.value : canChangeStatus.value) ||
-		!canManage(row) ||
+		!(command === 'delete' ? canRemoveRow(row) : command === 'password' ? canResetPassword.value : canChangeStatus.value) ||
+		(command !== 'delete' && !canManage(row)) ||
 		saving.value ||
 		row._id === auth.value?.uid
 	)
 		return;
 	if (command === 'delete') {
-		if (row.is_root) return;
 		try {
 			await ElMessageBox.confirm(`确定移除${accountLabel.value}“${row.username || row.nickname || row._id}”吗？${(row.account_type || []).length > 1 ? "仅移除当前身份，其他身份保留；不再具有后台身份时清空角色。" : "当前仅有此身份，操作将删除整个账号。"}`, '移除' + accountLabel.value, {
 				type: 'warning', confirmButtonText: '移除', cancelButtonText: '取消', confirmButtonClass: 'el-button--danger'

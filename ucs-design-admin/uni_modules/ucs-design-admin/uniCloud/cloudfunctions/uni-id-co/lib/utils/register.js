@@ -153,7 +153,7 @@ async function postRegister (params = {}) {
     user.role = Array.from(new Set([...(user.role || []), ...userRegisterDefaultRole]))
   }
 
-  const isAdmin = user.role && user.role.includes('admin')
+  const isAdmin = (this.entryTenantId ?? PLATFORM_TENANT_ID) === PLATFORM_TENANT_ID && user.role?.includes('admin')
 
   if (forceInviteCode && !isAdmin && !inviteCode) {
     throw {

@@ -1,6 +1,7 @@
 const { ACCOUNT_TYPE, accountTypeOf, hasManagementIdentity, hasAccountType } = require('./account-types')
 const { rejectRootInput, assertRootChange, initializeLegacyRoot } = require('./root-admin')
 const { canEnter } = require('./user-delegation')
+const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant')
 const fail = (errMsg, errCode = 'USER_ADMIN_INVALID') => {
   throw { errCode, errMsg }
 }
@@ -15,7 +16,6 @@ const fields = Object.fromEntries(
     '_id',
     'user_no',
     'is_root',
-    'is_tenant_admin',
     'account_type',
     'username',
     'nickname',
@@ -65,11 +65,14 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
     const user = scope?.user || await getUser(uid)
     if (!user || !hasManagementIdentity(user) || (user.status || 0) !== 0 || !allowsApp(user.dcloud_appid, appId))
       fail('当前账号已停用或无权登录此应用', 'USER_ADMIN_FORBIDDEN')
-    const isAdmin = scope ? scope.isAdmin : (user.role || []).includes('admin')
+    const tenantId = scope?.tenantId ?? user.tenant_id ?? PLATFORM_TENANT_ID
+    const isPlatform = tenantId === PLATFORM_TENANT_ID
+    const isAdmin = scope ? scope.isAdmin : isPlatform && (user.role || []).includes('admin')
     if (!scope && isAdmin && !user.is_root) await initializeLegacyRoot(db, appId)
-    const roles = !scope && !isAdmin && user.role?.length ? await all('uni-id-roles', { role_id: cmd.in(user.role) }) : []
+    const roles = !scope && !isAdmin && user.role?.length ? await all('uni-id-roles', { tenant_id: tenantId, role_id: cmd.in(user.role) }) : []
     const permissions = scope?.permissions || [...new Set(roles.flatMap(role => role.permission || []))]
-    const auth = { uid, name: scope?.name ?? actorName(user), isAdmin, permissions,
+    const auth = { uid, name: scope?.name ?? actorName(user), isAdmin, isPlatform, permissions,
+      canManageAdmin: isAdmin || (!isPlatform && scope?.packageAdministrator === true),
       apps: scope ? scope.apps : user.dcloud_appid, menuIds: scope?.menuIds || [...new Set(roles.flatMap(role => role.menu_ids || []))],
       create: isAdmin || permissions.includes(`CREATE_${suffix}`),
       update: isAdmin || permissions.includes(`UPDATE_${suffix}`),
@@ -88,8 +91,6 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
   }
   const validateChange = async (params, old, authorized) => {
     rejectRootInput(params)
-    if (old?.is_tenant_admin && !db.tenantActor?.sessionId && !db.tenantActor?.user.is_tenant_admin)
-      fail('没有维护企业管理员的权限', 'USER_ADMIN_FORBIDDEN')
     if (Object.prototype.hasOwnProperty.call(params, 'id_card')) fail('已移除身份证号字段，不支持录入')
     if (params.user_no !== undefined) fail('UID由系统分配，不允许修改')
     if (params.account_type !== undefined) fail('账号类型由管理入口指定，不允许修改')
@@ -102,6 +103,8 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
     }
     const resetOnly = params.password !== undefined && Object.keys(params).every(key => ['uid', 'password'].includes(key))
     const auth = authorized || await authorize(params.uid ? (resetOnly ? 'resetPassword' : 'update') : 'create')
+    if ((old?.role?.includes('admin') || Array.isArray(params.role) && params.role.includes('admin')) && !auth.canManageAdmin)
+      fail('没有维护管理员账号或授予管理员角色的权限', 'USER_ADMIN_FORBIDDEN')
     if (params.uid && params.password !== undefined && !auth.resetPassword) fail('没有重置密码权限', 'USER_ADMIN_FORBIDDEN')
     if (params.uid && !old) fail('用户不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
     assertAccountType(old)
@@ -137,7 +140,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
     }
     if (params.role !== undefined && !equalSet(params.role, old?.role)) {
       if (!auth.assignRoles) fail('没有绑定角色权限', 'USER_ADMIN_FORBIDDEN')
-      const roleIds = [...new Set(params.role.filter((id) => id !== 'admin'))]
+      const roleIds = [...new Set(params.role.filter(id => !auth.isPlatform || id !== 'admin'))]
       if (roleIds.length && (await all('uni-id-roles', { role_id: cmd.in(roleIds) }, { role_id: true })).length !== roleIds.length)
         fail('所选角色已不存在，请刷新后重新选择')
     }
@@ -159,8 +162,6 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
         fail('所选应用已不存在，请刷新后重新选择');
     }
     if (!auth.isAdmin) {
-      if (old?.role?.includes('admin') || params.role?.includes('admin'))
-        fail('不能维护超级管理员或授予超级管理员角色', 'USER_ADMIN_FORBIDDEN')
       if (params.authorizedApp !== undefined && !equalApps(params.authorizedApp, old?.dcloud_appid)) {
         if (auth.apps != null && !auth.apps.includes('*') && params.authorizedApp.some(id => !auth.apps.includes(id)))
           fail('不能授予本人未获授权的应用', 'USER_ADMIN_FORBIDDEN')
@@ -195,12 +196,13 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
         if (!user) fail('账号不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
         assertAccountType(user)
         if (user.is_root && accountType === 0) fail('初始超级管理员不可移除系统身份', 'USER_ADMIN_FORBIDDEN')
-        if (user.is_tenant_admin && accountType === 0) fail('企业管理员不可移除系统身份', 'USER_ADMIN_FORBIDDEN')
-        if (user.role?.includes('admin') && !auth.isAdmin) fail('只有超级管理员可以删除其他超级管理员', 'USER_ADMIN_FORBIDDEN')
         const remaining = accountTypeOf(user).filter(type => type !== accountType)
         if (remaining.length) {
           const patch = { account_type: remaining, ...updateFields(auth) }
-          if (!remaining.includes(0)) { patch.role = []; patch.department_id = [] }
+          if (!remaining.includes(0)) {
+            patch.role = []
+            patch.department_id = []
+          }
           assertRootChange(user, patch)
           await target.update(patch)
         } else {
@@ -236,11 +238,14 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
         { name: 'Apple', bound: bound(user.apple_openid) },
         { name: 'QQ', bound: bound(user.qq_openid) || bound(user.qq_unionid) }
       ]
-      const roleIds = customer ? [] : (user.role || []).filter(id => id !== 'admin')
+      const roleIds = customer ? [] : (user.role || []).filter(id => !auth.isPlatform || id !== 'admin')
       const roles = roleIds.length ? await all('uni-id-roles', { role_id: cmd.in(roleIds) }, { role_id: true, role_name: true, permission: true }) : []
-      data.roleDetails = (customer ? [] : user.role || []).map(id => id === 'admin'
-        ? { role_id: id, role_name: '超级管理员', permission: [], allPermissions: true }
-        : roles.find(role => role.role_id === id) || { role_id: id, role_name: id, permission: [], missing: true })
+      data.roleDetails = (customer ? [] : user.role || []).map(id => {
+        if (id === 'admin' && auth.isPlatform) return { role_id: id, role_name: '超级管理员', permission: [], allPermissions: true }
+        const role = roles.find(item => item.role_id === id)
+        return role ? { ...role, packagePermissions: id === 'admin' }
+          : { role_id: id, role_name: id, permission: [], missing: true }
+      })
       const logPermission = customer ? 'READ_CUSTOMER_LOG' : 'READ_UNI_ID_LOG'
       const logsAllowed = auth.isAdmin || auth.permissions.includes(logPermission)
       let logs = [], logsError = ''
@@ -319,7 +324,9 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
       return {
         errCode: 0,
         auth,
-        roles: [...(auth.isAdmin ? [{ role_id: 'admin', role_name: '超级管理员' }] : []), ...roles.filter(role => role.role_id !== 'admin')],
+        roles: auth.isPlatform
+          ? [...(auth.isAdmin ? [{ role_id: 'admin', role_name: '超级管理员' }] : []), ...roles.filter(role => role.role_id !== 'admin')]
+          : roles.map(role => ({ ...role, assignable: role.role_id !== 'admin' || auth.canManageAdmin })),
         tags,
         apps,
         departments
