@@ -12,7 +12,7 @@
       </div>
     </section>
     <section class="signin-panel" aria-label="登录管理工作台">
-      <div class="signin-content"><account-login /></div>
+      <div class="signin-content"><account-login v-if="routeOptions" :route-options="routeOptions" /></div>
       <footer class="login-footer">© {{ currentYear }} {{ manifestJson.name }}</footer>
     </section>
   </main>
@@ -22,10 +22,21 @@
 import store from '../../common/store.js';
 import AccountLogin from './accountLogin.vue';
 import manifestJson from '/manifest.json';
+import { ref } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
+import { getLoginTenantNo } from '../../common/login-tenant.js';
 
-store.isLogin = false;
-uni.removeStorageSync('uni_id_token');
-uni.removeStorageSync('uni_id_token_expired');
+const routeOptions = ref(null);
+onLoad((options = {}) => {
+  // uniIdRouter may open the login page directly when a local token has expired.
+  const expires = Number(uni.getStorageSync('uni_id_token_expired'));
+  const fromExpiredSession = options.uniIdRedirectUrl && expires > 0 && expires <= Date.now();
+  const tenantNo = options.tenant_no === undefined && fromExpiredSession ? getLoginTenantNo() : options.tenant_no;
+  store.isLogin = false;
+  uni.removeStorageSync('uni_id_token');
+  uni.removeStorageSync('uni_id_token_expired');
+  routeOptions.value = { ...options, tenant_no: tenantNo };
+});
 const currentYear = new Date().getFullYear();
 </script>
 

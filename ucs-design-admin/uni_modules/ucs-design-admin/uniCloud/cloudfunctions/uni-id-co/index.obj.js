@@ -15,7 +15,7 @@ const {
 } = require('./common/error')
 const middleware = require('./middleware/index')
 const universal = require('./common/universal')
-const { resolveEntryTenant, scopedDatabase, fail } = require('./module/admin/tenant-scope')
+const { resolveEntryTenantInfo, scopedDatabase, fail } = require('./module/admin/tenant-scope')
 const { installAdminTokenIssuer, authenticateAdmin } = require('./module/admin/admin-token')
 const { PLATFORM_TENANT_ID } = require('./lib/utils/platform-tenant')
 const adminMethods = require('./module/admin/index')
@@ -41,7 +41,7 @@ const tenantEntries = new Set([
   'adminLogin', 'adminLoginBySms', 'adminLoginByEmailCode', 'adminCompleteAccountLogin',
   'adminBeginAccountRecovery', 'adminCompleteAccountRecovery', 'login', 'loginBySms',
   'loginByEmailCode', 'completeAccountLogin', 'beginAccountRecovery', 'completeAccountRecovery',
-  'resetPwdBySms', 'resetPwdByEmail', 'registerUser', 'registerUserByEmail'
+  'resetPwdBySms', 'resetPwdByEmail', 'registerUser', 'registerUserByEmail', 'getLoginTenant'
 ])
 
 const {
@@ -139,6 +139,10 @@ module.exports = {
   exitUserManagement,
   getAccountCapabilities: require('./module/account/get-account-capabilities'),
   getAdminRegistrationStatus: require('./module/register/get-admin-registration-status'),
+  getLoginTenant() {
+    const { tenant_no, name } = this.entryTenant
+    return { errCode: 0, tenant_no, name }
+  },
   getCurrentUserProfile: require('./module/account/get-current-user-profile'),
   ...require('./module/admin/customer-methods'),
   ...require('./module/admin/asset-methods'),
@@ -331,7 +335,8 @@ module.exports = {
     const params = this.getParams()[0]
     if (tenantEntries.has(method) || (['sendSmsCode', 'sendEmailCode'].includes(method) &&
       /^(login-by|reset-pwd-by|register-by)-/.test(params?.scene || ''))) {
-      this.entryTenantId = await resolveEntryTenant(uniCloud.database(), params?.tenant_no)
+      this.entryTenant = await resolveEntryTenantInfo(uniCloud.database(), params?.tenant_no)
+      this.entryTenantId = this.entryTenant._id
     }
     if (scopedMethods.has(method) || platformOnlyMethods.has(method)) {
       const db = uniCloud.database()

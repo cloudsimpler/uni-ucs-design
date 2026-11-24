@@ -2,9 +2,10 @@
 <template>
 	<div class="account-login" v-loading.fullscreen.lock="fullscreenLoading" element-loading-text="正在登录，请稍候…">
 		<div class="form-heading">
-			<h2>欢迎登录</h2>
-			<p>选择登录方式，进入管理工作台。</p>
+			<h2>{{ loginTenant ? `登录到${loginTenant.name}` : '欢迎登录' }}</h2>
+			<p>{{ checkingTenant ? '正在确认登录租户…' : '选择登录方式，进入管理工作台。' }}</p>
 		</div>
+		<template v-if="!checkingTenant">
 		<el-tabs v-model="loginMode" class="login-tabs" stretch>
             <el-tab-pane label="账号密码" name="password" :disabled="loginBusy" />
             <el-tab-pane label="手机验证码" name="mobile" :disabled="loginBusy" />
@@ -20,8 +21,8 @@
 				<el-input type="password" show-password v-model="entryForm.password" :prefix-icon="Lock" size="large" placeholder="请输入密码"
 					name="password" autocomplete="current-password" :disabled="isSubmitting" />
 			</el-form-item>
-			<el-form-item prop="tenant_no" label="租户号" :rules="[{ required: true, pattern: /^\d{5}$/, message: '请输入五位数字租户号' }]">
-				<el-input v-model.trim="entryForm.tenant_no" name="tenant_no" size="large" maxlength="5" inputmode="numeric" :disabled="isSubmitting" />
+			<el-form-item v-if="!loginTenant" prop="tenant_no" label="租户号" :rules="[{ required: true, pattern: /^\d{5}$/, message: '请输入五位数字租户号' }]">
+				<el-input v-model.trim="entryForm.tenant_no" name="tenant_no" size="large" placeholder="请输入租户号" maxlength="5" inputmode="numeric" :disabled="isSubmitting" />
 			</el-form-item>
 			<div class="form-options">
 				<el-checkbox v-model="rememberAccount" :disabled="isSubmitting" @change="onRememberChange">记住账号</el-checkbox>
@@ -32,22 +33,23 @@
 			</el-button>
 		</el-form>
 		<div v-for="channel in ['mobile', 'email']" :key="channel" :style="{ display: loginMode === channel ? '' : 'none' }">
-            <el-form label-position="top">
-                <el-form-item label="租户号"><el-input v-model.trim="entryForm.tenant_no" size="large" maxlength="5" inputmode="numeric" :disabled="loginBusy" /></el-form-item>
+            <el-form v-if="!loginTenant" label-position="top">
+                <el-form-item label="租户号"><el-input v-model.trim="entryForm.tenant_no" size="large" placeholder="请输入租户号" maxlength="5" inputmode="numeric" :disabled="loginBusy" /></el-form-item>
             </el-form>
             <account-contact inline :tenant-no="entryForm.tenant_no" :initial-channel="channel" :active="loginMode === channel"
                 @login="finishLogin" @busy-change="contactBusy[channel] = $event" @loading-change="contactLoading[channel] = $event" />
         </div>
 		<div class="account-support">
-			<template v-if="isAdmin"><span>首次使用系统？</span><el-button link type="primary" @click="registeredAdmin">注册管理员</el-button></template>
+			<template v-if="isAdmin && (!loginTenant || loginTenant.tenant_no === '00000')"><span>首次使用系统？</span><el-button link type="primary" @click="registeredAdmin">注册管理员</el-button></template>
 			<span v-else>还没有账号？请联系系统管理员开通</span>
 		</div>
+		</template>
 	</div>
 	<!-- 验证码 -->
 	<ucs-admin-captcha scene="login-by-pwd" ref="captchaRef" @change="onCaptchaChange" />
 	<!-- 注册管理员 -->
 	<registered-admin-vue ref="registeredRef" @change="onRegisteredAdminChange" />
-	<account-contact ref="contactRef" :tenant-no="entryForm.tenant_no" @login="finishLogin" @loading-change="contactLoading.dialog = $event" />
+	<account-contact ref="contactRef" :tenant-no="entryForm.tenant_no" :tenant-locked="Boolean(loginTenant)" @login="finishLogin" @loading-change="contactLoading.dialog = $event" />
 </template>
 
 <script setup>
@@ -71,14 +73,15 @@ import 'element-plus/es/components/message/style/css.mjs';
 	import AccountContact from './accountContact.vue';
 	import store from "../../common/store.js";
 	import { setDelegation } from "../../common/tenant-session.js";
-	import {
-		onLoad
-	} from "@dcloudio/uni-app";
+	import { isTenantNo, rememberLoginTenant } from '../../common/login-tenant.js';
 
 	import {
 		ref, reactive, computed, watch
 	} from 'vue';
 
+	const props = defineProps({ routeOptions: { type: Object, required: true } });
+	const loginTenant = ref(null);
+	const checkingTenant = ref(isTenantNo(props.routeOptions.tenant_no));
 	const loginMode = ref('password');
     const contactBusy = reactive({ mobile: false, email: false });
     const contactLoading = reactive({ mobile: false, email: false, dialog: false });
@@ -87,7 +90,8 @@ import 'element-plus/es/components/message/style/css.mjs';
     const loginBusy = computed(() => isSubmitting.value || contactBusy.mobile || contactBusy.email);
     const formRef = ref(null);
 	const contactRef = ref(null);
-	const finishLogin = () => {
+	const finishLogin = (result) => {
+		rememberLoginTenant(result.tenant_no);
         setDelegation(null);
         navigating.value = true;
 		store.isLogin = true;
@@ -110,7 +114,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 	// 表单数据
 	const entryForm = ref({
 		username: savedAccount,
-		tenant_no: '00000',
+		tenant_no: '',
 		password: "",
 		captcha: ""
 	});
@@ -131,7 +135,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 		isAdmin.value = e.isAdmin;
 	};
 	const uniIdRedirectUrl = ref(null);
-	onLoad(async (e) => {
+	async function initialize(e) {
 		let redirect = e.uniIdRedirectUrl;
 		// uni-app x Web 会额外编码回跳地址。已解码的地址保留原有查询参数。
 		try {
@@ -142,6 +146,19 @@ import 'element-plus/es/components/message/style/css.mjs';
 		if (typeof redirect === 'string' && pagesJson.pages.some(({ path }) =>
 			`/${path}` === redirect.split(/[?#]/, 1)[0]
 		)) uniIdRedirectUrl.value = redirect;
+		if (checkingTenant.value) {
+			try {
+				const tenant = await uniIdCo.getLoginTenant({ tenant_no: e.tenant_no });
+				if (tenant.errCode === 0 && tenant.tenant_no === e.tenant_no) {
+					entryForm.value.tenant_no = tenant.tenant_no;
+					loginTenant.value = tenant;
+				}
+			} catch {
+				// Unavailable tenant links use the same form as the common login page.
+			} finally {
+				checkingTenant.value = false;
+			}
+		}
 		// 查询是否已经有管理员注册了，如果有，则隐藏注册管理员的入口
 		try {
 			const result = await uniCloud.importObject('uni-id-co', { customUI: true }).getAdminRegistrationStatus();
@@ -149,7 +166,8 @@ import 'element-plus/es/components/message/style/css.mjs';
 		} catch (err) {
 			isAdmin.value = false;
 		}
-	});
+	}
+	initialize(props.routeOptions);
 
 	/**
 	 * 注册管理员
@@ -178,6 +196,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 			password: form.password,
 			captcha: form.captcha
 		}).then(res => {
+			if (res.errCode) throw res;
 			if (res.selectionTicket) { captchaRef.value.close(); contactRef.value.open('login', res); return; }
 			if (rememberAccount.value) {
 				uni.setStorageSync('ucs-admin-login-account', form.username);
@@ -188,7 +207,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 			if (isNeedCaptcha.value) {
 				captchaRef.value.close();
 			};
-			finishLogin();
+			finishLogin(res);
 		}).catch(err => {
 			if (err.errCode !== 'uni-id-captcha-required') ElMessage.error(err.errMsg || err.message || '登录失败，请重试');
 			if (err.errCode == 'uni-id-captcha-required') {

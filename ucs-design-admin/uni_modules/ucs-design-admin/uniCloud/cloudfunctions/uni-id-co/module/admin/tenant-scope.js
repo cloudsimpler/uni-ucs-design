@@ -95,14 +95,18 @@ async function enterpriseScope(db, actor, tenant, sessionId) {
   }
 }
 
-async function resolveEntryTenant(db, tenantNo = PLATFORM_TENANT_ID) {
+async function resolveEntryTenantInfo(db, tenantNo = PLATFORM_TENANT_ID) {
   if (typeof tenantNo !== 'string' || !/^\d{5}$/.test(tenantNo)) fail('请输入五位数字租户号', 'TENANT_INVALID')
-  if (tenantNo === PLATFORM_TENANT_ID) return PLATFORM_TENANT_ID
+  if (tenantNo === PLATFORM_TENANT_ID) return platformTenant
   const tenant = first(await db.collection(TENANTS).where({ tenant_no: tenantNo }).limit(1).get())
   if (!tenant || tenant.type !== 'enterprise' || !tenant.enabled || !tenantPackageIds(tenant).length) fail('租户不可用或未分配产品包')
   const ids = [...new Set(tenantPackageIds(tenant))]
   if ((await readByIds(db, PACKAGES, '_id', ids)).length !== ids.length) fail('租户的产品包已失效')
-  return tenant._id
+  return tenant
+}
+
+async function resolveEntryTenant(db, tenantNo) {
+  return (await resolveEntryTenantInfo(db, tenantNo))._id
 }
 
 function scopedDatabase(db, scope) {
@@ -181,4 +185,4 @@ function scopedDatabase(db, scope) {
   }
 }
 
-module.exports = { fail, readDoc, ownerOf, tenantWhere, platformActor, tenantPackageIds, readByIds, enterprisePackageGrants, enterpriseScope, resolveEntryTenant, resolveTenantScope, scopedDatabase }
+module.exports = { fail, readDoc, ownerOf, tenantWhere, platformActor, tenantPackageIds, readByIds, enterprisePackageGrants, enterpriseScope, resolveEntryTenant, resolveEntryTenantInfo, resolveTenantScope, scopedDatabase }

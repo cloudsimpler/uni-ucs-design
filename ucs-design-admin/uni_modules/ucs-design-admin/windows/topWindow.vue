@@ -64,6 +64,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	import manifestJson from '@/manifest.json';
 	import store from '../common/store.js';
 	import { setDelegation } from '../common/tenant-session.js';
+	import { getLoginRedirectUrl, getLoginTenantNo, rememberLoginTenant } from '../common/login-tenant.js';
 	import { sidebarWidth } from '../common/window-layout.js';
 	import { resolveUserAvatars } from '../common/avatar.js';
 	import { withSessionHandling, describeRequestError } from '../common/session-errors.js';
@@ -150,11 +151,20 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 		try {
 			const currentPages = getCurrentPages();
 			const route = currentPages[currentPages.length - 1]?.route || pagesJson.pages[0].path;
+			if (!getLoginTenantNo()) {
+				try {
+					const session = await uniCloud.importObject('uni-id-co', { customUI: true }).getTenantContext();
+					if (session?.errCode === 0) rememberLoginTenant(session.tenant?.tenant_no);
+				} catch {
+					// The user can still sign out if the tenant context is unavailable.
+				}
+			}
+			const returnUrl = getLoginRedirectUrl(route);
 			const uniIdCo = uniCloud.importObject('uni-id-co', { errorOptions: { type: 'toast' } });
 			await withSessionHandling(() => uniIdCo.logout());
 			setDelegation(null);
 			store.isLogin = false;
-			uni.reLaunch({ url: '/uni_modules/ucs-design-admin/pages/login/login?uniIdRedirectUrl=' + encodeURIComponent('/' + route.replace(/^\//, '')) });
+			uni.reLaunch({ url: returnUrl });
 		} catch (error) {
 			console.error('退出登录失败', error);
 		} finally {

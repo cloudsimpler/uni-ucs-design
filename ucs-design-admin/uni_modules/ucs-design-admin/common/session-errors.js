@@ -1,8 +1,8 @@
 import { ElMessage } from 'element-plus';
 import 'element-plus/es/components/message/style/css.mjs';
 import store from './store.js';
+import { getLoginRedirectUrl, loginPath } from './login-tenant.js';
 
-const loginPath = '/uni_modules/ucs-design-admin/pages/login/login';
 const expiredCodes = new Set(['uni-id-token-expired', 'uni-id-check-token-failed', 'USER_ADMIN_UNAUTHORIZED', 'ADMIN_ACCESS_UNAUTHORIZED']);
 const accountForbiddenCodes = new Set(['USER_ADMIN_FORBIDDEN', 'ADMIN_ACCESS_FORBIDDEN', 'MENU_ADMIN_FORBIDDEN']);
 const accountForbiddenMessage = '当前账号已停用或无权登录此应用';
@@ -33,9 +33,7 @@ function leaveAdmin(requestToken, kind) {
     store.userInfoVersion++;
     if (requestToken && kind === 'session') ElMessage.warning('登录已失效，请重新登录');
     uni.reLaunch({
-        url: kind === 'account'
-            ? loginPath
-            : loginPath + (route ? '?uniIdRedirectUrl=' + encodeURIComponent('/' + route.replace(/^\//, '')) : ''),
+        url: kind === 'account' ? loginPath : getLoginRedirectUrl(route),
         fail: () => ElMessage.error('返回登录页失败，请刷新页面后重新登录'),
         complete: () => { redirecting = false; }
     });

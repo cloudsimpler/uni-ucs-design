@@ -261,6 +261,7 @@ async function postLogin (params = {}) {
       tokenExpired
     },
     uid,
+    ...(this.issueAdminScope && this.entryTenant ? { tenant_no: this.entryTenant.tenant_no } : {}),
     ...(
       isThirdParty
         ? thirdPartyLogin({

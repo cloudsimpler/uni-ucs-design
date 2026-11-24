@@ -471,6 +471,7 @@
 
 <script setup>
 import { exitDelegation, importTenantAdmin, setDelegation, systemUserRoute } from '../../../common/tenant-session.js';
+import { getLoginRedirectUrl } from '../../../common/login-tenant.js';
 import { allowedMenuRoutes, loadNavigation } from '../../../common/navigation.js';
 import '../../../common/form-dialog.css';
 import { ElAlert, ElAvatar, ElButton, ElCheckbox, ElCheckboxGroup, ElDialog, ElDropdown, ElDropdownItem, ElDropdownMenu, ElEmpty, ElForm, ElFormItem, ElIcon, ElImage, ElInput, ElOption, ElProgress, ElRadio, ElRadioButton, ElRadioGroup, ElSelect, ElTreeSelect, ElTable, ElTableColumn, ElTag, ElUpload, vLoading } from 'element-plus';
@@ -896,7 +897,7 @@ const saveUser = async () => {
 			uni.removeStorageSync('uni_id_token');
 			uni.removeStorageSync('uni_id_token_expired');
 			ElMessage.success(accountLabel.value + '已保存，授权已更新，请重新登录');
-			uni.reLaunch({ url: '/uni_modules/ucs-design-admin/pages/login/login' });
+			uni.reLaunch({ url: getLoginRedirectUrl() });
 			return;
 		}
 		ElMessage.success(accountLabel.value + '保存成功');

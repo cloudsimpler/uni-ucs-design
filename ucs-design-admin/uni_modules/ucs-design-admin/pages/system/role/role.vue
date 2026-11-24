@@ -159,6 +159,7 @@
 </template>
 <script setup>
 import { importTenantAdmin } from '../../../common/tenant-session.js';
+import { getLoginRedirectUrl } from '../../../common/login-tenant.js';
 import '../../../common/form-dialog.css';
 import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElTable, ElTableColumn, ElTag, ElTree, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
@@ -427,7 +428,7 @@ async function save() {
 			uni.removeStorageSync('uni_id_token');
 			uni.removeStorageSync('uni_id_token_expired');
 			ElMessage.success('角色权限已更新，请重新登录');
-			uni.reLaunch({ url: '/uni_modules/ucs-design-admin/pages/login/login' });
+			uni.reLaunch({ url: getLoginRedirectUrl() });
 			return;
 		}
 		ElMessage.success(result.sessionsInvalidated ? '角色已保存，受影响用户需重新登录' : '角色已保存');

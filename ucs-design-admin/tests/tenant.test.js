@@ -5,7 +5,7 @@ const fs = require('node:fs')
 const vm = require('node:vm')
 const { createRequire } = require('node:module')
 const root = path.resolve(__dirname, '../uni_modules/ucs-design-admin/uniCloud/cloudfunctions/uni-id-co')
-const { resolveTenantScope, resolveEntryTenant, scopedDatabase, enterpriseScope } = require(path.join(root, 'module/admin/tenant-scope'))
+const { resolveTenantScope, resolveEntryTenant, resolveEntryTenantInfo, scopedDatabase, enterpriseScope } = require(path.join(root, 'module/admin/tenant-scope'))
 const { tenantRights } = require(path.join(root, 'module/admin/tenant-catalog'))
 const { authenticateAdmin, verifyDelegation, installAdminTokenIssuer } = require(path.join(root, 'module/admin/admin-token'))
 const methods = require(path.join(root, 'module/admin/tenant-methods'))
@@ -89,6 +89,35 @@ function memoryDatabase() {
     } }
   } }
 }
+
+test('登录链接识别有效租户，重新登录链接携带原租户号', async () => {
+  const db = memoryDatabase()
+  const tenants = db.collection('ucsdb-tenants')
+  await db.collection('ucsdb-product-packages').add({ _id: 'package' })
+  const tenant = { _id: 'tenant-a', tenant_no: '00001', name: '测试企业', type: 'enterprise', enabled: true, product_package_ids: ['package'] }
+  await tenants.add(tenant)
+  assert.equal((await resolveEntryTenantInfo(db, '00001')).name, '测试企业')
+  assert.equal(await resolveEntryTenant(db, '00001'), tenant._id)
+  assert.equal((await resolveEntryTenantInfo(db, '00000')).tenant_no, '00000')
+  await assert.rejects(resolveEntryTenantInfo(db, 'bad'), { errCode: 'TENANT_INVALID' })
+  await assert.rejects(resolveEntryTenantInfo(db, '99999'), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+  await tenants.doc(tenant._id).update({ enabled: false })
+  await assert.rejects(resolveEntryTenantInfo(db, '00001'), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+
+  const source = fs.readFileSync(path.resolve(__dirname, '../uni_modules/ucs-design-admin/common/login-tenant.js'), 'utf8')
+  const storage = new Map()
+  const uni = { getStorageSync: key => storage.get(key), setStorageSync: (key, value) => storage.set(key, value), removeStorageSync: key => storage.delete(key) }
+  const { loginPath, rememberLoginTenant, getLoginRedirectUrl } = vm.runInNewContext(
+    source.replace(/^export /gm, '') + '\n({ loginPath, rememberLoginTenant, getLoginRedirectUrl })', { uni }
+  )
+  assert.equal(getLoginRedirectUrl(), loginPath)
+  rememberLoginTenant('00000')
+  assert.equal(getLoginRedirectUrl('/example'), `${loginPath}?tenant_no=00000&uniIdRedirectUrl=%2Fexample`)
+  rememberLoginTenant('00001')
+  assert.equal(getLoginRedirectUrl(), `${loginPath}?tenant_no=00001`)
+  rememberLoginTenant('invalid')
+  assert.equal(getLoginRedirectUrl(), loginPath)
+})
 
 test('系统用户和社区用户共用全局唯一的 user_no 分配空间', async () => {
   const { createNumberedUser } = require(path.join(root, 'lib/utils/user-number'))
