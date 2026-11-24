@@ -26,7 +26,14 @@
  </ucs-admin-layout>
  <el-dialog v-model="visible" :title="form._id ? '编辑部门' : '新增部门'" width="600px" align-center class="admin-form-dialog" :close-on-click-modal="false" :close-on-press-escape="!saving" :show-close="!saving">
   <el-form label-position="right" label-width="110px" :disabled="saving" class="department-form" @submit.prevent="save">
-   <el-form-item label="上级部门"><el-tree-select v-model="form.parent_id" :data="parentTree" node-key="_id" :props="{ label: 'name', value: '_id', children: 'children', disabled: 'disabled' }" check-strictly clearable placeholder="不选则为顶级部门" /></el-form-item>
+   <el-form-item label="上级部门">
+    <el-select v-model="form.parent_id" class="department-parent-select" :empty-values="[null, undefined]" filterable>
+     <el-option label="顶级部门" value="" />
+     <el-option v-for="item in parentOptions" :key="item._id" :label="item.name" :value="item._id" :disabled="item.disabled">
+      <span :style="{ paddingLeft: `${item.depth * 12}px` }">{{ item.name }}</span>
+     </el-option>
+    </el-select>
+   </el-form-item>
    <el-form-item label="部门名称" required><el-input v-model="form.name" maxlength="50" placeholder="请输入部门名称" /></el-form-item>
    <el-form-item label="部门编码" required><el-input v-model="form.code" :disabled="codeLocked" maxlength="80" placeholder="请输入部门编码" /></el-form-item>
    <el-form-item label="负责人"><div class="manager-field"><el-input :model-value="managerName" readonly placeholder="请选择负责人" /><el-button :disabled="saving" @click="openManagerPicker">{{ form.manager_uid ? '更换' : '选择' }}</el-button><el-button v-if="form.manager_uid" :disabled="saving" @click="clearManager">清除</el-button></div></el-form-item>
@@ -43,7 +50,7 @@ import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
 import UcsAdminUserPicker from '../../../components/ucs-admin-userPicker/ucs-admin-userPicker.vue';
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
-import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElInputNumber, ElMessage, ElMessageBox, ElOption, ElSelect, ElSwitch, ElTable, ElTableColumn, ElTag, ElTreeSelect, vLoading } from 'element-plus';
+import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElInputNumber, ElMessage, ElMessageBox, ElOption, ElSelect, ElSwitch, ElTable, ElTableColumn, ElTag, vLoading } from 'element-plus';
 import { Search, Refresh } from '@element-plus/icons-vue';
 import { withSessionHandling } from '../../../common/session-errors.js';
 import 'element-plus/es/components/alert/style/css.mjs';
@@ -61,7 +68,6 @@ import 'element-plus/es/components/select/style/css.mjs';
 import 'element-plus/es/components/switch/style/css.mjs';
 import 'element-plus/es/components/table/style/css.mjs';
 import 'element-plus/es/components/tag/style/css.mjs';
-import 'element-plus/es/components/tree-select/style/css.mjs';
 import 'element-plus/es/components/loading/style/css.mjs';
 const api = importTenantAdmin();
 const rows = ref([]), loading = ref(true), error = ref(''), keyword = ref(''), status = ref(''), applied = reactive({ keyword: '', status: '' });
@@ -88,10 +94,18 @@ const filteredTree = computed(() => {
  });
  return filter(tree(rows.value));
 });
-const parentTree = computed(() => {
+const parentOptions = computed(() => {
  const blocked = new Set(form._id ? [form._id] : []);
  let changed = true; while(changed) { changed = false; for (const row of rows.value) if (blocked.has(row.parent_id) && !blocked.has(row._id)) { blocked.add(row._id); changed = true; } }
- return tree(rows.value.map(row => ({ ...row, disabled: blocked.has(row._id) || !row.effective_enabled })));
+ const options = [];
+ const visit = (nodes, depth) => {
+  for (const node of nodes) {
+   options.push({ _id: node._id, name: node.name, depth, disabled: blocked.has(node._id) || !node.effective_enabled });
+   visit(node.children, depth + 1);
+  }
+ };
+ visit(tree(rows.value), 0);
+ return options;
 });
 async function load() {
  const id = ++request; loading.value = true; error.value = '';
@@ -130,5 +144,5 @@ onMounted(load); onBeforeUnmount(() => { request++; });
 
 .department-search :deep(.el-input){width:240px;}.department-search :deep(.el-select){width:140px;}
 .department-content{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;}.department-content :deep(.el-table){flex:1;min-height:0;}.department-content :deep(.el-button + .el-button){margin-left:6px;}.department-footer{flex-shrink:0;min-height:64px;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;padding:18px 24px;border-top:1px solid var(--el-border-color-lighter);text-align:right;color:var(--el-text-color-secondary);font-size:14px;}
-.department-form :deep(.el-form-item){align-items:center;}.department-form :deep(.el-form-item__label){height:auto;line-height:22px;align-items:center;}.department-form :deep(.el-tree-select){width:100%;}.department-sort{width:120px;}
+.department-form :deep(.el-form-item){align-items:center;}.department-form :deep(.el-form-item__label){height:auto;line-height:22px;align-items:center;}.department-parent-select{width:100%;}.department-sort{width:120px;}
 </style>
