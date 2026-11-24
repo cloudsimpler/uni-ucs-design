@@ -31,11 +31,7 @@ async function writeSystemMobile({ db, tenantId, mobile, uid }, write) {
     const filters = [
       tenantWhere(db, tenantId),
       { mobile },
-      command.or([
-        { account_type: command.in([ACCOUNT_TYPE.SYSTEM]) },
-        { account_type: command.exists(false) },
-        { account_type: null }
-      ])
+      { account_type: ACCOUNT_TYPE.SYSTEM }
     ]
     if (uid) filters.push({ _id: command.neq(uid) })
     const { data } = await db.collection('uni-id-users').where(command.and(filters)).limit(1).get()

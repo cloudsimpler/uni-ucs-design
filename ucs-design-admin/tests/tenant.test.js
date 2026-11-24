@@ -90,6 +90,25 @@ function memoryDatabase() {
   } }
 }
 
+test('系统用户和社区用户共用全局唯一的 user_no 分配空间', async () => {
+  const { createNumberedUser } = require(path.join(root, 'lib/utils/user-number'))
+  const indexes = JSON.parse(fs.readFileSync(path.resolve(root, '../../database/uni-id-users.index.json'), 'utf8'))
+  const index = indexes.find(item => item.IndexName === 'user_no').MgoKeySchema
+  assert.equal(index.MgoIsUnique, true)
+  assert.deepEqual(index.MgoIndexKeys.map(key => key.Name), ['user_no'])
+  const users = new Map()
+  const insert = async user => {
+    if (users.has(user.user_no)) throw new Error('E11000 duplicate key user_no')
+    users.set(user.user_no, user)
+    return user.user_no
+  }
+  await createNumberedUser({ account_type: 0 }, insert, () => '1000000000')
+  const candidates = ['1000000000', '1000000001']
+  const number = await createNumberedUser({ account_type: 1 }, insert, () => candidates.shift())
+  assert.equal(number, '1000000001')
+  assert.equal(users.get('1000000000').account_type, 0)
+})
+
 test('登录仅清理本租户已绑定角色中失效的授权', async () => {
   const db = memoryDatabase()
   const roles = db.collection('uni-id-roles')
@@ -125,9 +144,10 @@ test('登录仅清理本租户已绑定角色中失效的授权', async () => {
 test('系统用户操作按令牌授权，旧角色授权不拦截操作', async () => {
   const db = memoryDatabase()
   const users = db.collection('uni-id-users')
-  const employee = { account_type: [0], tenant_id: 'tenant-a' }
+  const employee = { account_type: 0, tenant_id: 'tenant-a' }
   await users.add({ ...employee, _id: 'target', role: ['old'] })
-  await users.add({ ...employee, _id: 'tenant-admin', account_type: [0, 1], role: ['admin'], department_id: ['a'] })
+  await users.add({ ...employee, _id: 'tenant-admin', role: ['admin'], department_id: ['a'], mobile: '13900000000' })
+  await users.add({ ...employee, _id: 'community-user', account_type: 1, mobile: '13900000000' })
   await users.add({ ...employee, _id: 'other-admin', tenant_id: '00000', role: ['admin'] })
   await users.add({ ...employee, _id: 'initial-admin', tenant_id: '00000', is_root: true, role: ['admin'] })
   await users.add({ ...employee, _id: 'foreign', tenant_id: 'tenant-b' })
@@ -151,11 +171,10 @@ test('系统用户操作按令牌授权，旧角色授权不拦截操作', async
   await assert.rejects(assigner.validateChange({ uid: 'target', role: ['admin'] }, target), { errCode: 'USER_ADMIN_FORBIDDEN' })
   await assert.rejects(admin.removeAccount({ uid: 'foreign' }), { errCode: 'USER_ADMIN_NOT_FOUND' })
   await assert.rejects(adminWith(['UPDATE_UNI_ID_USERS']).removeAccount({ uid: 'tenant-admin' }), { errCode: 'USER_ADMIN_FORBIDDEN' })
-  assert.equal((await admin.removeAccount({ uid: 'tenant-admin' })).deleted, false)
-  const [formerTenantAdmin] = (await db.collection('uni-id-users').doc('tenant-admin').get()).data
-  assert.deepEqual(formerTenantAdmin.account_type, [1])
-  assert.deepEqual(formerTenantAdmin.role, [])
-  assert.deepEqual(formerTenantAdmin.department_id, [])
+  await assert.rejects(admin.removeAccount({ uid: 'community-user' }), { errCode: 'USER_ADMIN_FORBIDDEN' })
+  assert.equal((await admin.removeAccount({ uid: 'tenant-admin' })).deleted, true)
+  assert.equal((await db.collection('uni-id-users').doc('tenant-admin').get()).data.length, 0)
+  assert.equal((await db.collection('uni-id-users').doc('community-user').get()).data[0].account_type, 1)
   const platformOperator = createUserAdmin({
     db: scopedDatabase(db, { tenantId: '00000', user: employee, isAdmin: false, permissions: ['DELETE_UNI_ID_USERS'] }),
     uid: 'operator', appId: 'test'
@@ -165,7 +184,7 @@ test('系统用户操作按令牌授权，旧角色授权不拦截操作', async
     db: scopedDatabase(db, { tenantId: '00000', user: employee, isAdmin: true, userDelegationId: 'delegation' }),
     uid: 'delegated-admin', appId: 'test'
   })
-  await assert.rejects(delegatedAdmin.removeAccount({ uid: 'initial-admin' }), { errMsg: '初始超级管理员不可移除系统身份' })
+  await assert.rejects(delegatedAdmin.removeAccount({ uid: 'initial-admin' }), { errMsg: '初始超级管理员不可删除' })
   assert.ok((await db.collection('uni-id-users').doc('initial-admin').get()).data.length)
   assert.equal((await admin.removeAccount({ uid: 'target' })).deleted, true)
 })
@@ -216,8 +235,8 @@ test('租户手动创建 admin 后只获得本租户产品包权限', async () =
     await db.collection('uni-id-permissions').add({ menu_id, permission_id: `READ_${menu_id}` })
   }
   const users = db.collection('uni-id-users')
-  await users.add({ _id: 'root', tenant_id: '00000', account_type: [0], role: ['admin'] })
-  await users.add({ _id: 'tenant-user', tenant_id: tenant._id, account_type: [0], role: ['admin'] })
+  await users.add({ _id: 'root', tenant_id: '00000', account_type: 0, role: ['admin'] })
+  await users.add({ _id: 'tenant-user', tenant_id: tenant._id, account_type: 0, role: ['admin'] })
   await db.collection('uni-id-roles').add({ tenant_id: '00000', role_id: 'admin', role_name: '超级管理员' })
   assert.deepEqual((await resolveTenantScope(db, 'tenant-user', 'test')).permissions, [])
   const { createAccessAdmin } = require(path.join(root, 'module/admin/access-admin'))
@@ -235,9 +254,9 @@ test('租户手动创建 admin 后只获得本租户产品包权限', async () =
   const { id } = await access.saveRole({ role_id: 'admin', role_name: '企业管理员' })
   await assert.rejects(access.saveRole({ _id: id, permission: ['READ_platform'] }), { errMsg: '企业管理员的权限由租户产品包决定' })
   const admin = createUserAdmin({ db: tenantDb, uid: 'root', appId: 'test' })
-  await admin.validateChange({ uid: 'tenant-user', role: ['admin'] }, { account_type: [0], role: [] })
+  await admin.validateChange({ uid: 'tenant-user', role: ['admin'] }, { account_type: 0, role: [] })
   const regular = createUserAdmin({ db: scopedDatabase(db, { ...operator, packageAdministrator: false }), uid: 'root', appId: 'test' })
-  await assert.rejects(regular.validateChange({ uid: 'tenant-user', role: ['admin'] }, { account_type: [0], role: [] }), { errCode: 'USER_ADMIN_FORBIDDEN' })
+  await assert.rejects(regular.validateChange({ uid: 'tenant-user', role: ['admin'] }, { account_type: 0, role: [] }), { errCode: 'USER_ADMIN_FORBIDDEN' })
   const tenantAdmin = await resolveTenantScope(db, 'tenant-user', 'test')
   assert.equal(tenantAdmin.isAdmin, false)
   assert.equal(tenantAdmin.packageAdministrator, true)
@@ -299,8 +318,8 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     context.adminScope = await resolveTenantScope(db, uid, 'test')
     return methods[method].call(context, arg)
   }
-  await users.add({ _id: 'root', nickname: '平台管理员', role: ['admin'], account_type: [0], tenant_id: '00000' })
-  await users.add({ _id: 'operator', nickname: '运营', role: ['ops'], account_type: [0], tenant_id: '00000' })
+  await users.add({ _id: 'root', nickname: '平台管理员', role: ['admin'], account_type: 0, tenant_id: '00000' })
+  await users.add({ _id: 'operator', nickname: '运营', role: ['ops'], account_type: 0, tenant_id: '00000' })
   await roles.add({ role_id: 'ops', tenant_id: '00000', menu_ids: ['platform_tenant'], permission: [tenantRights.enter] })
   await menus.add({ menu_id: 'tenant_operations', name: '租户运营', menu_type: 0, enable: true })
   await menus.add({ menu_id: 'platform_product_package', name: '产品包管理', parent_id: 'tenant_operations', menu_type: 1, enable: true, url: '/platform/package' })
@@ -378,10 +397,10 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     assert.deepEqual(empty.data, [])
     await db.collection('uni-id-roles').add({ tenant_id, role_id: 'admin', role_name: '企业管理员' })
   }
-  await users.add({ _id: 'a-admin', username: 'admin', tenant_id: a, account_type: [0], role: ['admin'] })
-  await users.add({ _id: 'b-admin', username: 'admin', tenant_id: b, account_type: [0], role: ['admin'] })
-  await users.add({ _id: 'a-community', tenant_id: a, account_type: [1] })
-  await users.add({ _id: 'b-community', tenant_id: b, account_type: [1] })
+  await users.add({ _id: 'a-admin', username: 'admin', tenant_id: a, account_type: 0, role: ['admin'] })
+  await users.add({ _id: 'b-admin', username: 'admin', tenant_id: b, account_type: 0, role: ['admin'] })
+  await users.add({ _id: 'a-community', tenant_id: a, account_type: 1 })
+  await users.add({ _id: 'b-community', tenant_id: b, account_type: 1 })
   const session = await run('enterTenantManagement', 'operator', { _id: a })
   const operator = actor('operator')
   const platform = await operator.uniIdCommon.issuer({ uid: 'operator', role: [], permission: [] })
@@ -406,10 +425,10 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   const addUser = addUserModule.exports
   const createAdmin = {
     username: 'enterprise_admin', nickname: '首任管理员', gender: 1,
-    mobile: '13900000000', password: 'test-password', authorizedApp: ['test']
+    mobile: '13900000000', email: 'shared@example.com', password: 'test-password', authorizedApp: ['test']
   }
-  await users.add({ _id: 'b-employee', username: createAdmin.username, mobile: createAdmin.mobile, tenant_id: b, account_type: [0] })
-  await users.doc('a-community').update({ mobile: createAdmin.mobile, mobile_confirmed: 1 })
+  await users.add({ _id: 'b-employee', username: createAdmin.username, mobile: createAdmin.mobile, tenant_id: b, account_type: 0 })
+  await users.doc('a-community').update({ username: createAdmin.username, mobile: createAdmin.mobile, mobile_confirmed: 1, email: createAdmin.email, email_confirmed: 1 })
   const { Validator } = require(path.join(root, 'common/validator'))
   const validate = require(path.join(root, 'middleware/validate')).bind({ validator: new Validator() })
   const createSystemUser = (params, method = 'addUser') => addUser.call({
@@ -417,10 +436,12 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     getMethodName: () => method, hooks: {}, config: {}
   }, params)
   await createSystemUser(createAdmin)
-  await assert.rejects(createSystemUser({ ...createAdmin, username: 'another_employee' }), {
+  await assert.rejects(createSystemUser({ ...createAdmin, mobile: '13800000001', email: 'another@example.com' }), { errCode: 'uni-id-account-exists' })
+  await assert.rejects(createSystemUser({ ...createAdmin, mobile: '13800000001', username: 'another_employee' }), { errCode: 'uni-id-account-exists' })
+  await assert.rejects(createSystemUser({ ...createAdmin, username: 'another_employee', email: 'another@example.com' }), {
     errCode: 'SYSTEM_MOBILE_EXISTS'
   })
-  const noMobile = { ...createAdmin, username: 'no_mobile', mobile: undefined }
+  const noMobile = { ...createAdmin, username: 'no_mobile', mobile: undefined, email: 'no-mobile@example.com' }
   await assert.rejects(createSystemUser(noMobile), {
     errCode: 'uni-id-param-required', errMsgValue: { param: 'mobile' }
   })
@@ -428,11 +449,11 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     errCode: 'uni-id-param-required', errMsgValue: { param: 'mobile' }
   })
   await createSystemUser(noMobile, 'addDeveloper')
-  const { data: created } = await tenantDb.collection('uni-id-users').where({ username: createAdmin.username }).get()
+  const { data: created } = await tenantDb.collection('uni-id-users').where({ username: createAdmin.username, account_type: 0 }).get()
   assert.equal(created[0].tenant_id, a)
   assert.equal(created[0].create_id, 'operator')
   assert.equal(created[0].is_root, undefined)
-  assert.deepEqual(created[0].account_type, [0])
+  assert.equal(created[0].account_type, 0)
   const updateRootAware = require(path.join(root, 'module/admin/root-admin')).updateRootAware
   const { data: developer } = await tenantDb.collection('uni-id-users').where({ username: 'no_mobile' }).get()
   await assert.rejects(updateRootAware({ db: tenantDb, uid: developer[0]._id, current: developer[0], data: { mobile: createAdmin.mobile } }), {
@@ -446,8 +467,13 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   const mobileQuery = { userQuery: { mobile: createAdmin.mobile }, tenantId: a, matchAllApps: true }
   assert.deepEqual((await findUser({ ...mobileQuery, accountTypes: [0] })).userMatched, [])
   assert.deepEqual((await findUser({ ...mobileQuery, accountTypes: [1] })).userMatched.map(user => user._id), ['a-community'])
-  assert.deepEqual((await findUser({ ...mobileQuery, uniqueAccountType: 0 })).userMatched, [])
+  assert.deepEqual((await findUser({ ...mobileQuery, uniqueAccountType: 0 })).userMatched.map(user => user._id), [created[0]._id])
   assert.deepEqual((await findUser({ ...mobileQuery, uniqueAccountType: 1 })).userMatched.map(user => user._id), ['a-community'])
+  for (const userQuery of [{ username: createAdmin.username }, { email: createAdmin.email }]) {
+    const query = { userQuery, tenantId: a, matchAllApps: true }
+    assert.deepEqual((await findUser({ ...query, uniqueAccountType: 0 })).userMatched.map(user => user._id), [created[0]._id])
+    assert.deepEqual((await findUser({ ...query, uniqueAccountType: 1 })).userMatched.map(user => user._id), ['a-community'])
+  }
   const contactFile = path.join(root, 'lib/utils/contact-auth.js')
   const contactModule = { exports: {} }
   const requireContact = createRequire(contactFile)
@@ -484,7 +510,7 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   await db.collection('uni-id-roles').add({
     tenant_id: a, role_id: 'reader', menu_ids: ['system_user'], permission: ['READ_UNI_ID_USERS']
   })
-  await db.collection('uni-id-users').add({ _id: 'a-reader', tenant_id: a, account_type: [0], role: ['reader'] })
+  await db.collection('uni-id-users').add({ _id: 'a-reader', tenant_id: a, account_type: 0, role: ['reader'] })
   assert.deepEqual((await resolveTenantScope(db, 'a-reader', 'test')).permissions, ['READ_UNI_ID_USERS'])
   assert.equal(await productRemark(), '用于人员管理')
   assert.deepEqual((await scope()).permissions, ['READ_UNI_ID_USERS', 'CREATE_UNI_ID_USERS'])
@@ -652,9 +678,9 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
     { _id: 'manager', tenant_id: tenant._id, role: ['admin'] },
     { _id: 'other', tenant_id: 'tenant-b' },
     { _id: 'disabled', tenant_id: tenant._id, status: 1 },
-    { _id: 'community', tenant_id: tenant._id, account_type: [1] },
+    { _id: 'community', tenant_id: tenant._id, account_type: 1 },
     { _id: 'root', tenant_id: '00000', role: ['admin'], is_root: true }
-  ]) await users.add({ account_type: [0], ...user })
+  ]) await users.add({ account_type: 0, ...user })
   const context = async uid => {
     const scope = await resolveTenantScope(db, uid, 'test')
     return {
@@ -678,8 +704,8 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
   assert.deepEqual([...managerDelegation.scope.permissions].sort(), [...operator.adminScope.permissions].sort())
 
   await roles.add({ role_id: 'platform-delegator', tenant_id: '00000', permission: [read, USER_DELEGATION_PERMISSION] })
-  await users.add({ _id: 'platform-delegator', tenant_id: '00000', account_type: [0], role: ['platform-delegator'], dcloud_appid: ['test'] })
-  await users.add({ _id: 'platform-admin', tenant_id: '00000', account_type: [0], role: ['admin'] })
+  await users.add({ _id: 'platform-delegator', tenant_id: '00000', account_type: 0, role: ['platform-delegator'], dcloud_appid: ['test'] })
+  await users.add({ _id: 'platform-admin', tenant_id: '00000', account_type: 0, role: ['admin'] })
   const platformDelegator = await context('platform-delegator')
   const restrictedEntry = await enterUserManagement.call(platformDelegator, { uid: 'platform-admin' })
   const restrictedDelegation = await resolveUserDelegation(platformDelegator, restrictedEntry.userDelegationToken)
@@ -739,7 +765,7 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
   await roles.doc('role-target').update({ permission: [read, update] })
 
   await roles.add({ role_id: 'platform-operator', tenant_id: '00000', permission: [tenantRights.enter] })
-  await users.add({ _id: 'platform-operator', tenant_id: '00000', account_type: [0], role: ['platform-operator'] })
+  await users.add({ _id: 'platform-operator', tenant_id: '00000', account_type: 0, role: ['platform-operator'] })
   const platformOperator = await context('platform-operator')
   assert.ok(!platformOperator.adminScope.permissions.includes(USER_DELEGATION_PERMISSION))
   const nested = { ...platformOperator,

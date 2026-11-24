@@ -1,21 +1,18 @@
 const { updateFields } = require('../../lib/utils/record-metadata')
 const updateUser = require('./update-user')
 const { createUserAdmin } = require('./user-admin')
-const { accountTypeOf, sameAccountTypes } = require('./account-types')
+const { ACCOUNT_TYPE, hasAccountType } = require('./account-types')
 const { mutateIdentity } = require('../../lib/utils/identity-lifecycle')
 
 async function setCustomerStatus(params = {}) {
-  if (Object.keys(params).some(key => !['uid', 'status', 'expectedAccountTypes'].includes(key)) ||
-    typeof params.uid !== 'string' || ![0, 1].includes(params.status) || !Array.isArray(params.expectedAccountTypes) ||
-    params.expectedAccountTypes.some(type => ![0, 1].includes(type)))
-    throw { errCode: 'USER_ADMIN_INVALID', errMsg: '请刷新后确认账号身份及禁用范围' }
+  if (Object.keys(params).some(key => !['uid', 'status'].includes(key)) ||
+    typeof params.uid !== 'string' || ![0, 1].includes(params.status))
+    throw { errCode: 'USER_ADMIN_INVALID', errMsg: '请选择有效的社区用户和账号状态' }
   const db = this.adminDb
   const admin = createUserAdmin({ db, uid: this.authInfo.uid, appId: this.getUniversalClientInfo().appId, accountType: 1 })
   const auth = await admin.authorize('status')
   await mutateIdentity(db, params.uid, async user => {
-    if (!accountTypeOf(user).includes(1)) throw { errCode: 'USER_ADMIN_FORBIDDEN', errMsg: '该账号不属于社区用户管理范围' }
-    if (!sameAccountTypes(accountTypeOf(user), params.expectedAccountTypes))
-      throw { errCode: 'ACCOUNT_IDENTITY_CHANGED', errMsg: '账号身份已变化，请刷新并重新确认' }
+    if (!hasAccountType(user, ACCOUNT_TYPE.COMMUNITY)) throw { errCode: 'USER_ADMIN_FORBIDDEN', errMsg: '该账号不属于社区用户管理范围' }
     await admin.validateChange({ uid: params.uid, status: params.status }, user, auth)
     const now = Date.now()
     return { status: params.status, token: [], valid_token_date: now, ...updateFields(auth, now) }

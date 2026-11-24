@@ -4,7 +4,7 @@ const { ERROR } = require('../../common/error')
 const { findUser } = require('../../lib/utils/account')
 const PasswordUtils = require('../../lib/utils/password')
 const { normalizeIdentifiers } = require('../../lib/utils/account-policy')
-const { accountTypeOf } = require('../admin/account-types')
+const { ACCOUNT_TYPE, accountTypeOf } = require('../admin/account-types')
 
 /**
  * 使用 uid 或 externalUid 获取用户信息
@@ -146,13 +146,15 @@ module.exports = async function (params = {}) {
     return res
   }, {})
 
-  const identifiers = { username: username ?? user.username, email: email ?? user.email }
-  if ((username !== undefined || email !== undefined) && Object.values(identifiers).some(Boolean)) {
+  const accountType = accountTypeOf(user)
+  const communityMobile = accountType === ACCOUNT_TYPE.COMMUNITY ? mobile : undefined
+  const identifiers = { username: username ?? user.username, email: email ?? user.email, mobile: communityMobile }
+  if ((username !== undefined || email !== undefined || communityMobile !== undefined) && Object.values(identifiers).some(Boolean)) {
     const {
       userMatched
     } = await findUser({
       userQuery: identifiers,
-      uniqueAccountType: accountTypeOf(user),
+      uniqueAccountType: accountType,
       tenantId: user.tenant_id
     })
     if (userMatched.some(row => row._id !== user._id)) {

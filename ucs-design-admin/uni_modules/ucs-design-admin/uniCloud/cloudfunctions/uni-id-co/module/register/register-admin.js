@@ -1,5 +1,5 @@
 const {
-  userCollection
+  dbCmd, userCollection
 } = require('../../common/constants')
 const {
   ERROR
@@ -8,6 +8,8 @@ const {
   preRegisterWithPassword,
   postRegister
 } = require('../../lib/utils/register')
+const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant')
+const { ACCOUNT_TYPE } = require('../admin/account-types')
 
 /**
  * 注册管理员
@@ -36,7 +38,7 @@ module.exports = async function (params = {}) {
     nickname
   } = params
   const getAdminRes = await userCollection.where({
-    role: 'admin'
+    tenant_id: PLATFORM_TENANT_ID, account_type: ACCOUNT_TYPE.SYSTEM, role: dbCmd.in(['admin'])
   }).limit(1).get()
   if (getAdminRes.data.length > 0) {
     const [admin] = getAdminRes.data

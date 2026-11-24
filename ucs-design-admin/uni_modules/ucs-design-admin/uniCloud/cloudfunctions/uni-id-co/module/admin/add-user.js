@@ -108,7 +108,7 @@ module.exports = async function (params = {}) {
     password
   })
   const data = {
-    account_type: [accountType],
+    account_type: accountType,
     avatar: params.avatar || '',
     gender: params.gender ?? 0,
     department_id: params.department_id || [],
@@ -138,7 +138,7 @@ module.exports = async function (params = {}) {
     })
   }
 
-  userRecord = { ...normalizeIdentifiers(userRecord), account_type: [accountType] }
+  userRecord = { ...normalizeIdentifiers(userRecord), account_type: accountType }
   if (userRecord.mobile) userRecord.mobile_confirmed = 0
   delete userRecord.is_root
   await require('../../lib/utils/user-number').createNumberedUser(

@@ -131,8 +131,9 @@ module.exports = async function (params = {}) {
     return res
   }, {})
 
-  if (username !== undefined || email !== undefined || authorizedApp !== undefined) {
-    const identifiers = { username: username ?? old.username, email: email ?? old.email }
+  const communityMobile = accountTypeOf(old) === ACCOUNT_TYPE.COMMUNITY ? mobile : undefined
+  if (username !== undefined || email !== undefined || authorizedApp !== undefined || communityMobile !== undefined) {
+    const identifiers = { username: username ?? old.username, email: email ?? old.email, mobile: communityMobile }
     if (Object.values(identifiers).some(Boolean)) {
       const { userMatched } = await findUser({
         userQuery: identifiers,

@@ -74,7 +74,7 @@
 							<div>
 								<dt>账号身份：</dt>
 								<dd class="detail-tags">
-									<el-tag v-for="type in user.account_type" :key="type" size="small">{{ ['系统用户', '社区用户'][type] }}</el-tag>
+									<el-tag size="small">{{ ['系统用户', '社区用户'][user.account_type] }}</el-tag>
 								</dd>
 							</div>
 							<div v-if="!customer">

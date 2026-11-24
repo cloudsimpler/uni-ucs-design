@@ -30,23 +30,15 @@
 			}
 		},
 		"account_type": {
-			"bsonType": "array",
+			"bsonType": "int",
 			"title": "账号类型",
-			"description": "账号身份数组：0 系统用户、1 社区用户，可同时拥有",
+			"description": "账号类型，0 为系统用户，1 为社区用户",
 			"permission": {
 				"read": true,
 				"write": false
 			},
-			"items": {
-				"bsonType": "int",
-				"enum": [
-					0,
-					1
-				]
-			},
-			"defaultValue": [
-				1
-			]
+			"enum": [0, 1],
+			"defaultValue": 1
 		},
 		"_id": {
 			"description": "存储文档 ID（用户 ID），系统自动生成"

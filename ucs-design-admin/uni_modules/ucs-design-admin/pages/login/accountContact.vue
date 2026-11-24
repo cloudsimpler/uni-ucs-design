@@ -19,7 +19,7 @@
           :class="{ selected: selectedUid === account.uid }" :disabled="busy" @click="selectedUid = account.uid">
           <el-avatar :src="account.avatar?.startsWith('http') ? account.avatar : ''">{{ (account.nickname || account.username || '用').slice(0, 1) }}</el-avatar>
           <span class="account-name"><strong>{{ account.nickname || account.username }}</strong><small>{{ account.username }}</small></span>
-          <el-tag>{{ (Array.isArray(account.account_type) ? account.account_type : [account.account_type]).map(type => ['系统用户', '社区用户'][type]).join(' / ') }}</el-tag>
+          <el-tag>{{ ['系统用户', '社区用户'][account.account_type] }}</el-tag>
         </button>
       </div>
       <el-form v-if="purpose === 'reset'" label-position="top" @submit.prevent="finish">

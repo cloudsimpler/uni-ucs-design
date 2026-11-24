@@ -11,7 +11,7 @@ const assertAppAuthorization = (context, user) => {
   if (!isMatchUserApp(user.dcloud_appid, context.getUniversalClientInfo().appId))
     throw { errCode: 'ACCOUNT_ENTRY_FORBIDDEN', errMsg: '该账号未获得当前应用的登录授权' }
 }
-const canEnter = (context, user) => accountTypeOf(user).some(type => allowedAccountTypes(context).includes(type)) &&
+const canEnter = (context, user) => allowedAccountTypes(context).includes(accountTypeOf(user)) &&
   isMatchUserApp(user.dcloud_appid, context.getUniversalClientInfo().appId)
 const assertEntry = (context, user) => {
   if (!canEnter(context, user)) throw { errCode: 'ACCOUNT_ENTRY_FORBIDDEN', errMsg: '该账号不能登录当前入口' }

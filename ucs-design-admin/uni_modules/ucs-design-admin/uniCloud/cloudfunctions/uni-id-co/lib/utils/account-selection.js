@@ -1,7 +1,7 @@
 const { randomBytes, createHash } = require('crypto')
 const { userCollection, verifyCollection, dbCmd, LOG_TYPE } = require('../../common/constants')
 const { canEnter, accountEntry } = require('./account-policy')
-const { accountTypeOf, sameAccountTypes } = require('../../module/admin/account-types')
+const { accountTypeOf } = require('../../module/admin/account-types')
 const PasswordUtils = require('./password')
 const { PLATFORM_TENANT_ID } = require('./platform-tenant')
 const { ownerOf } = require('../../module/admin/tenant-scope')
@@ -44,7 +44,7 @@ async function consumeSelection(context, { selectionTicket, uid }, purpose) {
   const user = Array.isArray(result.data) ? result.data[0] : result.data
   if (!user || ownerOf(user) !== (context.entryTenantId || PLATFORM_TENANT_ID) ||
     (proof.tenant_id || PLATFORM_TENANT_ID) !== ownerOf(user) || !canEnter(context, user) ||
-    (user.status || 0) !== 0 || !sameAccountTypes(accountTypeOf(user), candidate.type) || digest(user.password) !== candidate.password) fail()
+    (user.status || 0) !== 0 || accountTypeOf(user) !== candidate.type || digest(user.password) !== candidate.password) fail()
   for (const [key, value] of Object.entries(proof.contact)) {
     if (user[key] !== value || user[`${key}_confirmed`] !== 1) fail()
   }

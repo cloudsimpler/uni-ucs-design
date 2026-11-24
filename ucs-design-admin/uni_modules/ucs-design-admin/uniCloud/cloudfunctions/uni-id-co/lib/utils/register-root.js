@@ -25,7 +25,7 @@ async function registerRootWithApp(db, user, clientInfo, applicationName, applic
   try {
     // The user collection's primary key prevents concurrent first registrations.
     const result = await transaction.collection('uni-id-users').add({
-      ...user, _id: initialRootId, tenant_id: PLATFORM_TENANT_ID
+      ...user, _id: initialRootId, tenant_id: PLATFORM_TENANT_ID, account_type: 0
     })
     const audit = createFields({ uid: result.id, name: actorName(user) })
     if (!await readDoc(transaction, TENANTS, PLATFORM_TENANT_ID))

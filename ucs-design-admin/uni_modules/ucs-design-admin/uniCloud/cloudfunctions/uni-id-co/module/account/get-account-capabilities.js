@@ -7,6 +7,6 @@ module.exports = async function () {
   const result = await userCollection.doc(this.authInfo.uid).field({ account_type: true, status: true, dcloud_appid: true }).get()
   const user = result.data?.[0]
   const available = Boolean(user && (user.status || 0) === 0 && isMatchUserApp(user.dcloud_appid, this.getUniversalClientInfo().appId))
-  return { errCode: 0, account_type: user ? accountTypeOf(user) : [],
+  return { errCode: 0, account_type: accountTypeOf(user) ?? null,
     canEnterManagement: available && hasManagementIdentity(user), canEnterClient: available && hasAccountType(user, 1) }
 }

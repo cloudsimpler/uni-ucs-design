@@ -969,7 +969,7 @@ const onUserAction = async (command, row) => {
 		return;
 	if (command === 'delete') {
 		try {
-			await ElMessageBox.confirm(`确定移除${accountLabel.value}“${row.username || row.nickname || row._id}”吗？${(row.account_type || []).length > 1 ? "仅移除当前身份，其他身份保留；不再具有后台身份时清空角色。" : "当前仅有此身份，操作将删除整个账号。"}`, '移除' + accountLabel.value, {
+			await ElMessageBox.confirm(`确定移除${accountLabel.value}“${row.username || row.nickname || row._id}”吗？此操作会删除该账号。`, '移除' + accountLabel.value, {
 				type: 'warning', confirmButtonText: '移除', cancelButtonText: '取消', confirmButtonClass: 'el-button--danger'
 			});
 		} catch { return; }
@@ -996,27 +996,23 @@ const onUserAction = async (command, row) => {
 	const status = { disable: 1, enable: 0 }[command];
 	if (row.is_root && status !== undefined) return;
 	if (status === undefined) return;
-	const action = { disable: '禁用', enable: '恢复正常', close: '注销' }[command];
+	const action = status === 1 ? '禁用' : '恢复正常';
 	try {
 		await ElMessageBox.confirm(
-			`确定将“${row.username || row.nickname || row._id}”${action}？` +
-                ((row.account_type || []).includes(0)
-                    ? `该账号还具有系统用户身份，本次将${status === 1 ? '同时停止社区用户端和管理后台访问' : '恢复整个账号的访问资格'}。`
-                    : (status === 1 ? '禁用后将无法登录和使用系统。' : '恢复后可正常登录。')),
+			`确定将“${row.username || row.nickname || row._id}”${action}？${status === 1 ? '禁用后将无法登录社区。' : '恢复后可正常登录社区。'}`,
             '账号状态确认',
-            { type: status === 0 ? 'info' : 'warning', confirmButtonText: status === 1 ? '禁用整个账号' : '恢复账号' }
+            { type: status === 0 ? 'info' : 'warning', confirmButtonText: status === 1 ? '禁用账号' : '恢复账号' }
 		);
 	} catch {
 		return;
 	}
 	saving.value = true;
 	try {
-		await call('setCustomerStatus', { uid: row._id, status, expectedAccountTypes: row.account_type });
+		await call('setCustomerStatus', { uid: row._id, status });
 		ElMessage.success('账号状态已更新');
 		await load();
 	} catch (e) {
 		ElMessage.error(message(e));
-		if (e.errCode === 'ACCOUNT_IDENTITY_CHANGED') await load();
 	} finally {
 		saving.value = false;
 	}

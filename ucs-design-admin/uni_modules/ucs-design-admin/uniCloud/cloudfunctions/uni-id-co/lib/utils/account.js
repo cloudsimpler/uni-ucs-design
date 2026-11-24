@@ -29,15 +29,7 @@ async function findUser (params = {}) {
     uniqueAccountType,
     tenantId = PLATFORM_TENANT_ID
   } = params
-  const typeCondition = types => types.includes(0)
-    ? dbCmd.or([{ account_type: dbCmd.in(types) }, { account_type: dbCmd.exists(false) }])
-    : { account_type: dbCmd.in(types) }
-  const uniqueTypes = Array.isArray(uniqueAccountType) ? uniqueAccountType : [uniqueAccountType]
-  const condition = getUserQueryCondition(userQuery, uniqueAccountType !== undefined).map(query =>
-    uniqueAccountType !== undefined && query.mobile
-      ? dbCmd.and([query, typeCondition(uniqueTypes)])
-      : query
-  )
+  const condition = getUserQueryCondition(userQuery, uniqueAccountType !== undefined)
   if (condition.length === 0) {
     throw new Error('Invalid user query')
   }
@@ -53,7 +45,8 @@ async function findUser (params = {}) {
   } else {
     finalQuery = dbCmd.or(condition)
   }
-  if (accountTypes) finalQuery = dbCmd.and([finalQuery, typeCondition(accountTypes)])
+  if (accountTypes) finalQuery = dbCmd.and([finalQuery, { account_type: dbCmd.in(accountTypes) }])
+  if (uniqueAccountType !== undefined) finalQuery = dbCmd.and([finalQuery, { account_type: uniqueAccountType }])
   const userQueryRes = await userCollection.where(dbCmd.and([finalQuery, tenantWhere({ command: dbCmd }, tenantId)])).get()
   return {
     total: userQueryRes.data.length,
@@ -81,7 +74,7 @@ function getUserQueryCondition (userRecord = {}, uniqueness = false) {
       [key]: value
     }
     // 邮箱兼容旧数据；账号始终按原始大小写精确匹配。
-    if (key === 'mobile') {
+    if (key === 'mobile' && !uniqueness) {
       queryItem.mobile_confirmed = 1
     } else if (key === 'email') {
       if (!uniqueness) queryItem.email_confirmed = 1

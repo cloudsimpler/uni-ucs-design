@@ -45,7 +45,7 @@ function createDepartmentAdmin({ db, uid, appId }) {
    const regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
    const filters = [
     db.command.or([{ status: 0 }, { status: db.command.exists(false) }]),
-    db.command.or([{ account_type: 0 }, { account_type: db.command.exists(false) }])
+    { account_type: 0 }
    ];
    if (keyword) filters.push(db.command.or([{ nickname: regex }, { username: new RegExp(regex.source) }, { mobile: regex }]));
    const query = () => db.collection('uni-id-users').where(db.command.and(filters));

@@ -19,7 +19,7 @@
         {
           "Name": "account_type",
           "Direction": "1",
-          "Type": "array"
+          "Type": "int"
         }
       ],
       "MgoIsUnique": false

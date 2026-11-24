@@ -1,4 +1,4 @@
-const { accountTypeOf, hasManagementIdentity, hasAccountType } = require('../../module/admin/account-types')
+const { ACCOUNT_TYPE, hasAccountType } = require('../../module/admin/account-types')
 const { assertRootChange } = require('../../module/admin/root-admin')
 const fail = (errMsg, errCode = 'ACCOUNT_IDENTITY_INVALID') => { throw { errCode, errMsg } }
 
@@ -22,14 +22,11 @@ async function mutateIdentity(db, uid, mutate) {
 }
 
 async function closeCustomer(db, uid) {
-  const user = await mutateIdentity(db, uid, user => {
-    if ((user.status || 0) !== 0 || !hasAccountType(user, 1)) fail('当前账号没有可注销的社区身份')
-    const remaining = accountTypeOf(user).filter(type => type !== 1)
-    return remaining.length
-      ? { account_type: remaining, customer_closed_date: Date.now() }
-      : { account_type: [1], status: 4, role: [], token: [], valid_token_date: Date.now(), customer_closed_date: Date.now() }
+  await mutateIdentity(db, uid, user => {
+    if ((user.status || 0) !== 0 || !hasAccountType(user, ACCOUNT_TYPE.COMMUNITY)) fail('当前账号没有可注销的社区身份')
+    const now = Date.now()
+    return { status: 4, role: [], token: [], valid_token_date: now, customer_closed_date: now }
   })
-  return { errCode: 0, account_type: accountTypeOf(user), accountClosed: user.status === 4,
-    canEnterManagement: (user.status || 0) === 0 && hasManagementIdentity(user) }
+  return { errCode: 0, account_type: ACCOUNT_TYPE.COMMUNITY, accountClosed: true, canEnterManagement: false }
 }
 module.exports = { mutateIdentity, closeCustomer }

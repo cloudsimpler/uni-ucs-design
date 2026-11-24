@@ -188,7 +188,7 @@ async function postRegister (params = {}) {
   }
 
   await realPreRegister.call(this, { user: userRecord })
-  userRecord = { ...normalizeIdentifiers(userRecord), account_type: [registrationType(this)] }
+  userRecord = { ...normalizeIdentifiers(userRecord), account_type: registrationType(this) }
   if (this.getMethodName() === 'registerAdmin') {
     // Server-owned fields are applied after hooks and cannot be supplied by clients.
     userRecord.is_root = true

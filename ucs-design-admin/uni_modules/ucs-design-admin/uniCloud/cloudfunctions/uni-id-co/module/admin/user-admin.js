@@ -110,8 +110,6 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
     assertAccountType(old)
     if (old) assertRootChange(old, { role: params.role, status: params.status, dcloud_appid: params.authorizedApp, mobile: params.mobile, email: params.email })
     if (!customer && params.status !== undefined) fail('系统用户管理不能修改账号状态')
-    if (customer && old && hasManagementIdentity(old) && !auth.isAdmin)
-      fail('兼具后台身份的账号只能由超级管理员修改', 'USER_ADMIN_FORBIDDEN')
     if (params.status !== undefined && old?._id === uid) fail('不能禁用或恢复当前登录账号')
     for (const [key, max] of Object.entries({ username: 80, nickname: 100, mobile: 20, email: 100, password: 64 })) {
       if (params[key] !== undefined && (typeof params[key] !== 'string' || params[key].length > max))
@@ -195,23 +193,11 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
         const user = Array.isArray(data) ? data[0] : data
         if (!user) fail('账号不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
         assertAccountType(user)
-        if (user.is_root && accountType === 0) fail('初始超级管理员不可移除系统身份', 'USER_ADMIN_FORBIDDEN')
-        const remaining = accountTypeOf(user).filter(type => type !== accountType)
-        if (remaining.length) {
-          const patch = { account_type: remaining, ...updateFields(auth) }
-          if (!remaining.includes(0)) {
-            patch.role = []
-            patch.department_id = []
-          }
-          assertRootChange(user, patch)
-          await target.update(patch)
-        } else {
-          if (user.is_root) fail('初始超级管理员不可删除', 'USER_ADMIN_FORBIDDEN')
-          const result = await target.remove()
-          if (!result.deleted) fail('账号不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
-        }
+        if (user.is_root) fail('初始超级管理员不可删除', 'USER_ADMIN_FORBIDDEN')
+        const result = await target.remove()
+        if (!result.deleted) fail('账号不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
         await transaction.commit()
-        return { errCode: 0, deleted: remaining.length === 0, account_type: remaining }
+        return { errCode: 0, deleted: true }
       } catch (error) {
         await transaction.rollback().catch(() => {})
         throw error
@@ -272,9 +258,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
         fail('分页参数不正确')
       if (typeof keyword !== 'string' || keyword.length > 80 || typeof role !== 'string' || role.length > 100)
         fail('筛选条件不正确')
-      const filters = [accountType === ACCOUNT_TYPE.EMPLOYEE
-        ? cmd.or([{ account_type: ACCOUNT_TYPE.EMPLOYEE }, { account_type: cmd.exists(false) }])
-        : { account_type: accountType }]
+      const filters = [{ account_type: accountType }]
       if (keyword.trim()) {
         const regex = new RegExp(keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
         const searchFields = customer ? ['user_no', 'mobile'] : ['username', 'nickname', 'mobile']
