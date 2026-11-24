@@ -13,7 +13,7 @@
 			</el-breadcrumb>
 		</div>
 		<div class="header-tools">
-			<ucs-admin-delegation v-if="store.delegation" class="header-delegation" hide-exit />
+			<ucs-admin-delegation v-if="store.delegation" class="header-delegation" />
 			<el-tooltip :content="isDark ? '切换浅色模式' : '切换深色模式'" placement="bottom">
 				<el-button class="header-icon" text :aria-label="isDark ? '切换浅色模式' : '切换深色模式'" @click="onDarkMode">
 					<el-icon><Sunny v-if="isDark" /><Moon v-else /></el-icon>
@@ -25,20 +25,19 @@
 				</el-button>
 			</el-tooltip>
 			<div class="tools-divider" />
-			<el-dropdown trigger="click" @command="onUserSelect">
-				<button type="button" class="account-trigger" aria-label="账号菜单" :disabled="isLoggingOut">
+			<el-dropdown trigger="click" :disabled="!hasAccountMenu || isLoggingOut" @command="onUserSelect">
+				<button type="button" class="account-trigger" aria-label="账号菜单" :disabled="!hasAccountMenu || isLoggingOut">
 					<el-avatar :size="32" :src="account.avatarPreview" class="account-avatar"><el-icon><User /></el-icon></el-avatar>
 					<span class="account-info">
 						<span class="account-name" :title="accountError || displayName">{{ isLoggingOut ? '正在退出…' : displayName }}</span>
 						<span v-if="account.username" class="account-username" :title="account.username">{{ account.username }}</span>
 					</span>
-					<el-icon class="account-arrow"><ArrowDown /></el-icon>
+					<el-icon v-if="hasAccountMenu" class="account-arrow"><ArrowDown /></el-icon>
 				</button>
 				<template #dropdown>
 					<el-dropdown-menu>
 						<el-dropdown-item v-if="accountError" command="reload-profile">重新加载用户资料</el-dropdown-item>
-						<el-dropdown-item v-if="store.delegation" command="exit-delegation" :icon="SwitchButton">退出代管</el-dropdown-item>
-						<el-dropdown-item v-else command="logout" :icon="SwitchButton" :disabled="isLoggingOut">退出登录</el-dropdown-item>
+						<el-dropdown-item v-if="!store.delegation" command="logout" :icon="SwitchButton" :disabled="isLoggingOut">退出登录</el-dropdown-item>
 					</el-dropdown-menu>
 				</template>
 			</el-dropdown>
@@ -64,7 +63,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	import pagesJson from '@/pages.json';
 	import manifestJson from '@/manifest.json';
 	import store from '../common/store.js';
-	import { exitDelegation, setDelegation } from '../common/tenant-session.js';
+	import { setDelegation } from '../common/tenant-session.js';
 	import { sidebarWidth } from '../common/window-layout.js';
 	import { resolveUserAvatars } from '../common/avatar.js';
 	import { withSessionHandling, describeRequestError } from '../common/session-errors.js';
@@ -72,6 +71,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	const account = ref({});
 	const accountLoading = ref(false);
 	const accountError = ref('');
+	const hasAccountMenu = computed(() => !store.delegation || Boolean(accountError.value));
 	const displayName = computed(() => account.value.nickname || account.value.username || (accountLoading.value ? '加载中…' : accountError.value ? '资料加载失败' : '当前用户'));
 	let accountRequest = 0;
 	const loadAccount = async () => {
@@ -145,14 +145,6 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	const isLoggingOut = ref(false);
 	const onUserSelect = async (command) => {
 		if (command === 'reload-profile' && !accountLoading.value) return loadAccount();
-		if (command === 'exit-delegation') {
-			try {
-				await exitDelegation();
-			} catch (error) {
-				uni.showToast({ title: error?.errMsg || error?.message || '退出代管失败，请重试', icon: 'none' });
-			}
-			return;
-		}
 		if (command !== 'logout' || isLoggingOut.value || store.delegation) return;
 		isLoggingOut.value = true;
 		try {
@@ -187,7 +179,8 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	.tools-divider { height: 22px; width: 1px; background: var(--el-border-color-lighter); margin: 0 12px; }
 	.account-trigger { display: flex; align-items: center; gap: 10px; height: 42px; margin: 0; padding: 0 6px; background: transparent; border: 0; border-radius: var(--el-border-radius-base); color: var(--el-text-color-regular); font: inherit; cursor: pointer; }
 	.account-trigger::after { border: 0; }
-	.account-trigger:hover { background: var(--el-fill-color-light); }
+	.account-trigger:not(:disabled):hover { background: var(--el-fill-color-light); }
+	.account-trigger:disabled { cursor: default; }
 	.account-trigger:focus-visible { outline: 2px solid var(--el-color-primary); outline-offset: 2px; }
 	.account-avatar { color: var(--el-color-primary); background: var(--el-color-primary-light-9); font-size: 18px; }
 	.account-info { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: 160px; gap: 2px; text-align: left; }
