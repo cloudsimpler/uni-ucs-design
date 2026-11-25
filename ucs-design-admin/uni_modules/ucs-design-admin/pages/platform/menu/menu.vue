@@ -213,7 +213,7 @@
 					</el-radio-group>
 					<text v-if="editing && hasChildren(form)" class="hint">有下级菜单的目录不能改为页面。</text>
 					<text v-if="editing && permissions.some((item) => item.menu_id === form.menu_id)" class="hint">
-						已有操作权限，请先移至其他页面，再改为目录。
+						已有操作权限，请先删除该页面的操作权限，再改为目录。
 					</text>
 					<text v-if="form.menu_type === MENU_TYPE.DIRECTORY" class="hint">
 						目录仅组织下级菜单，不配置路径和权限；有可见的下级页面时才显示。
@@ -401,7 +401,7 @@ import {
 	filterTree,
 	descendantIds
 } from '../../../common/menu.js';
-import PermissionPanel from '../../system/permission/permission-panel.vue';
+import PermissionPanel from './permission-panel.vue';
 const permissionVisible = ref(false),
 	permissionMenuId = ref(''),
 	permissionTitle = ref('');

@@ -1,28 +1,15 @@
 <template>
-	<div class="permission-panel" :class="{ 'permission-panel--fill': fill }">
+	<div class="permission-panel">
 		<div class="permission-toolbar">
 			<el-input v-model="keyword" placeholder="权限名称或标识" aria-label="搜索权限" clearable class="keyword" />
-			<el-tree-select
-				v-if="props.menuId === '*'"
-				aria-label="筛选所属菜单"
-				v-model="selectedMenu"
-				:data="filterMenus"
-				node-key="menu_id"
-				:props="treeProps"
-				:empty-values="[null, undefined]"
-				check-strictly
-				filterable
-				:render-after-expand="false"
-				class="menu-filter"
-			/>
-			<el-button v-if="auth.create" type="primary" :disabled="loading || saving" @click="edit()">
+			<el-button v-if="auth.create && isPage" type="primary" :disabled="loading || saving" @click="edit()">
 				新增权限
 			</el-button>
 			<el-button
 				v-if="
 					auth.isAdmin &&
-					builtinMenus.includes(selectedMenu) &&
-					menus.some((menu) => menu.menu_id === selectedMenu && menu.menu_type === MENU_TYPE.PAGE)
+					builtinMenus.includes(props.menuId) &&
+					isPage
 				"
 				:disabled="loading || saving"
 				@click="initialize"
@@ -36,8 +23,7 @@
 			v-loading="loading"
 			:data="filtered"
 			row-key="_id"
-			:height="fill ? '100%' : undefined"
-			:max-height="fill ? undefined : 540"
+			:max-height="540"
 		>
 			<template #empty>
 				<el-empty :image-size="100" :description="error ? '加载失败，请刷新重试' : '暂无权限，请新增或初始化菜单权限'" />
@@ -79,7 +65,6 @@
 				</template>
 			</el-table-column>
 		</el-table>
-		<div class="panel-note">每条操作权限必须归属页面，目录只用于分组。调整权限归属不会改变角色授权。</div>
 	</div>
 	<el-dialog
 		v-model="visible"
@@ -118,18 +103,6 @@
 					<text class="hint">需与按钮、接口校验使用的权限标识一致，创建后不可修改。</text>
 				</div>
 			</el-form-item>
-			<el-form-item label="所属页面" prop="menu_id">
-				<el-tree-select
-					v-model="form.menu_id"
-					:data="editMenus"
-					node-key="menu_id"
-					:props="treeProps"
-					:empty-values="[null, undefined]"
-					check-strictly
-					filterable
-					:render-after-expand="false"
-				/>
-			</el-form-item>
 			<el-form-item label="排序">
 				<el-input-number v-model="form.sort" :min="0" :max="999999" :precision="0" controls-position="right" />
 			</el-form-item>
@@ -146,7 +119,7 @@
 <script setup>
 import { importTenantAdmin } from '../../../common/tenant-session.js';
 import '../../../common/form-dialog.css';
-import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElInputNumber, ElTable, ElTableColumn, ElTreeSelect, vLoading } from 'element-plus';
+import { ElAlert, ElButton, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElInputNumber, ElTable, ElTableColumn, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
 import 'element-plus/es/components/button/style/css.mjs';
 import 'element-plus/es/components/dialog/style/css.mjs';
@@ -157,7 +130,6 @@ import 'element-plus/es/components/input/style/css.mjs';
 import 'element-plus/es/components/input-number/style/css.mjs';
 import 'element-plus/es/components/table/style/css.mjs';
 import 'element-plus/es/components/table-column/style/css.mjs';
-import 'element-plus/es/components/tree-select/style/css.mjs';
 import 'element-plus/es/components/loading/style/css.mjs';
 import 'element-plus/es/components/message/style/css.mjs';
 import 'element-plus/es/components/message-box/style/css.mjs';
@@ -166,8 +138,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Refresh } from '@element-plus/icons-vue';
 import store from '../../../common/store.js';
-import { MENU_TYPE, menuTree } from '../../../common/menu.js';
-const props = defineProps({ menuId: { type: String, default: '*' }, fill: { type: Boolean, default: false } });
+import { MENU_TYPE } from '../../../common/menu.js';
+const props = defineProps({ menuId: { type: String, required: true } });
 const emit = defineEmits(['change']);
 const api = importTenantAdmin();
 const rows = ref([]),
@@ -178,25 +150,18 @@ const rows = ref([]),
 	error = ref(''),
 	saveError = ref(''),
 	keyword = ref(''),
-	selectedMenu = ref(props.menuId),
 	visible = ref(false),
 	formRef = ref();
 const empty = () => ({ _id: '', permission_id: '', permission_name: '', menu_id: '', sort: 0, comment: '' });
 const form = reactive(empty());
-const treeProps = { label: 'name', children: 'children', value: 'menu_id', disabled: 'disabled' };
-const editMenus = computed(() => {
-	const visit = (nodes) =>
-		nodes.map((menu) => ({ ...menu, disabled: menu.menu_type !== MENU_TYPE.PAGE, children: visit(menu.children) }));
-	return visit(menuTree(menus.value));
-});
-const filterMenus = computed(() => [{ menu_id: '*', name: '全部权限' }, ...menuTree(menus.value)]);
+const isPage = computed(() => menus.value.some(menu => menu.menu_id === props.menuId && menu.menu_type === MENU_TYPE.PAGE));
 const builtinMenus = ['system_customer', 'system_developer', 'system_user', 'system_role', 'platform_menu', 'system_app'];
-const menuName = (id) => menus.value.find((menu) => menu.menu_id === id)?.name || '归属异常，请编辑修正';
+const menuName = (id) => menus.value.find((menu) => menu.menu_id === id)?.name || '所属页面不可用';
 const filtered = computed(() =>
 	rows.value
 		.filter(
 			(row) =>
-				(selectedMenu.value === '*' || (row.menu_id || '') === selectedMenu.value) &&
+				row.menu_id === props.menuId &&
 				(!keyword.value.trim() ||
 					[row.permission_name, row.permission_id].some((value) =>
 						(value || '').toLowerCase().includes(keyword.value.trim().toLowerCase())
@@ -205,7 +170,6 @@ const filtered = computed(() =>
 		.sort((a, b) => (a.sort || 0) - (b.sort || 0) || a.permission_id.localeCompare(b.permission_id))
 );
 const rules = {
-	menu_id: [{ required: true, message: '请选择所属页面', trigger: 'change' }],
 	permission_name: [{ required: true, whitespace: true, message: '请输入权限名称', trigger: 'blur' }],
 	permission_id: [
 		{ required: true, pattern: /^[A-Za-z0-9][A-Za-z0-9_:-]*$/, message: '请输入有效的权限标识', trigger: 'blur' }
@@ -223,7 +187,7 @@ async function load() {
 	loading.value = true;
 	error.value = '';
 	try {
-		const result = await call('listPermissions', selectedMenu.value === '*' ? {} : { menu_id: selectedMenu.value });
+		const result = await call('listPermissions', { menu_id: props.menuId });
 		if (id !== version) return;
 		rows.value = result.data;
 		menus.value = result.menus;
@@ -244,16 +208,13 @@ async function changed() {
 	await load();
 }
 async function edit(row) {
+	if (!row && !isPage.value) return;
 	Object.assign(
 		form,
 		empty(),
 		row
 			? { ...row, menu_id: row.menu_id || '', sort: row.sort ?? 0, comment: row.comment || '' }
-			: {
-					menu_id: menus.value.some((menu) => menu.menu_id === selectedMenu.value && menu.menu_type === MENU_TYPE.PAGE)
-						? selectedMenu.value
-						: ''
-			  }
+			: { menu_id: props.menuId }
 	);
 	saveError.value = '';
 	visible.value = true;
@@ -302,7 +263,7 @@ async function initialize() {
 			'初始化菜单权限',
 			{ confirmButtonText: '初始化', cancelButtonText: '取消', type: 'info' }
 		);
-		const result = await call('initializeMenuPermissions', { menu_id: selectedMenu.value });
+		const result = await call('initializeMenuPermissions', { menu_id: props.menuId });
 		ElMessage.success(`初始化完成，新增 ${result.created} 项权限`);
 		await changed();
 	} catch (e) {
@@ -313,12 +274,11 @@ async function initialize() {
 }
 watch(
 	() => props.menuId,
-	(value) => {
-		selectedMenu.value = value;
+	() => {
 		keyword.value = '';
+		load();
 	}
 );
-watch(selectedMenu, load);
 onMounted(load);
 onBeforeUnmount(() => {
 	version++;
@@ -327,21 +287,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .permission-panel :deep(table) {
 	user-select: text;
-}
-.permission-panel--fill {
-	display: flex;
-	flex-direction: column;
-	flex: 1;
-	min-height: 0;
-	min-width: 0;
-}
-.permission-panel--fill > .el-table {
-	flex: 1;
-	min-height: 0;
-}
-.permission-toolbar,
-.panel-note {
-	flex-shrink: 0;
 }
 .permission-toolbar {
 	display: flex;
@@ -353,9 +298,6 @@ onBeforeUnmount(() => {
 .permission-toolbar .keyword {
 	width: 220px;
 }
-.permission-toolbar .menu-filter {
-	width: 200px;
-}
 .permission-toolbar :deep(.el-button + .el-button),
 .actions :deep(.el-button + .el-button) {
 	margin-left: 0;
@@ -365,14 +307,10 @@ onBeforeUnmount(() => {
 	justify-content: center;
 	gap: 6px;
 }
-.panel-note,
 .hint {
 	color: var(--el-text-color-secondary);
 	font-size: 12px;
 	line-height: 1.7;
-}
-.panel-note {
-	padding-top: 14px;
 }
 .field {
 	display: flex;
@@ -397,8 +335,5 @@ onBeforeUnmount(() => {
 	min-height: 0;
 	overflow-y: auto;
 	overscroll-behavior: contain;
-}
-:global(.permission-editor .el-select) {
-	width: 100%;
 }
 </style>

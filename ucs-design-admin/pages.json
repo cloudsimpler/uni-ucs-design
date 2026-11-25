@@ -23,12 +23,6 @@
 			"style": { "navigationBarTitleText": "社区用户" }
 		},
 		{
-			"path": "uni_modules/ucs-design-admin/pages/system/permission/permission",
-			"style": {
-				"navigationBarTitleText": "权限管理"
-			}
-		},
-		{
 			"path": "uni_modules/ucs-design-admin/pages/system/role/role",
 			"style": {
 				"navigationBarTitleText": "角色管理"
