@@ -162,7 +162,7 @@
 		align-center
 		append-to-body
 		destroy-on-close
-		class="menu-permissions-dialog"
+		class="menu-permissions-dialog admin-form-dialog"
 		:close-on-click-modal="false"
 	>
 		<PermissionPanel :menu-id="permissionMenuId" @change="load" />
@@ -819,18 +819,6 @@ onBeforeUnmount(() => {
 .is-uploading {
 	cursor: wait;
 }
-:global(.menu-permissions-dialog) {
-	max-width: calc(100vw - 32px);
-	max-height: calc(100dvh - 48px);
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-}
-:global(.menu-permissions-dialog .el-dialog__body) {
-	overflow-y: auto;
-	min-height: 0;
-	overscroll-behavior: contain;
-}
 .menu-layout {
 	height: calc(100dvh - var(--top-window-height, 56px));
 	min-height: 0;
@@ -910,25 +898,5 @@ onBeforeUnmount(() => {
 :global(.menu-editor-overlay .el-overlay-dialog) {
 	overflow: hidden;
 }
-:global(.menu-editor) {
-	display: flex;
-	flex-direction: column;
-	max-width: calc(100vw - 32px);
-	max-height: calc(100dvh - 48px);
-	margin: 0;
-}
-:global(.menu-editor .el-dialog__body) {
-	overflow-y: auto;
-	min-height: 0;
-	padding: 16px 12px 0 0;
-	overscroll-behavior: contain;
-}
-:global(.menu-editor .el-dialog__header),
-:global(.menu-editor .el-dialog__footer) {
-	flex-shrink: 0;
-}
-:global(.menu-editor .el-select),
-:global(.menu-editor .menu-parent-select) {
-	width: 100%;
-}
+:global(.menu-editor .menu-parent-select) { width: 100%; }
 </style>

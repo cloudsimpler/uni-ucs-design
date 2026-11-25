@@ -516,32 +516,4 @@ onBeforeUnmount(() => {
 :global(.app-editor-overlay .el-overlay-dialog) {
 	overflow: hidden;
 }
-:global(.app-editor) {
-	display: flex;
-	flex-direction: column;
-	max-width: calc(100vw - 32px);
-	max-height: calc(100dvh - 32px);
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	border-radius: 8px;
-}
-:global(.app-editor > .el-dialog__header),
-:global(.app-editor > .el-dialog__footer) {
-	padding: 16px 24px;
-	margin: 0;
-	flex-shrink: 0;
-}
-:global(.app-editor > .el-dialog__header) {
-	border-bottom: 1px solid var(--el-border-color-lighter);
-}
-:global(.app-editor > .el-dialog__footer) {
-	border-top: 1px solid var(--el-border-color-lighter);
-}
-:global(.app-editor > .el-dialog__body) {
-	padding: 24px;
-	min-height: 0;
-	overflow-y: auto;
-	overscroll-behavior: contain;
-}
 </style>

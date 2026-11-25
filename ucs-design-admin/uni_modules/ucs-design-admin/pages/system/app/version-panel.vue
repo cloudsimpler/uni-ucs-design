@@ -5,7 +5,7 @@
 		width="1180px"
 		align-center
 		append-to-body
-		class="version-panel"
+		class="version-panel admin-form-dialog"
 		modal-class="version-overlay"
 		:close-on-click-modal="false"
 		:show-close="!busy"
@@ -129,7 +129,7 @@
 		width="680px"
 		align-center
 		append-to-body
-		class="version-editor version-detail"
+		class="version-editor version-detail admin-form-dialog"
 		modal-class="version-overlay"
 		:close-on-click-modal="false"
 		@close="detail = null"
@@ -626,36 +626,5 @@ onBeforeUnmount(() => {
 }
 :global(.version-overlay .el-overlay-dialog) {
 	overflow: hidden;
-}
-:global(.version-panel),
-:global(.version-editor) {
-	display: flex;
-	flex-direction: column;
-	max-width: calc(100vw - 32px);
-	max-height: calc(100dvh - 32px);
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	border-radius: 8px;
-}
-:global(.version-panel > .el-dialog__header),
-:global(.version-editor > .el-dialog__header),
-:global(.version-editor > .el-dialog__footer) {
-	padding: 16px 24px;
-	margin: 0;
-	flex-shrink: 0;
-	border-bottom: 1px solid var(--el-border-color-lighter);
-}
-:global(.version-panel > .el-dialog__body),
-:global(.version-editor > .el-dialog__body) {
-	padding: 20px 24px;
-	min-width: 0;
-	min-height: 0;
-	overflow-y: auto;
-	overscroll-behavior: contain;
-}
-:global(.version-editor > .el-dialog__footer) {
-	border-top: 1px solid var(--el-border-color-lighter);
-	border-bottom: 0;
 }
 </style>

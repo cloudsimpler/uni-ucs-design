@@ -128,7 +128,7 @@
 							</div>
 						</template>
 					</el-table-column>
-					<el-table-column label="操作" fixed="right" :width="canWrite || canChangeStatus || canResetPassword || canDelete || canDelegate ? 196 : 88">
+					<el-table-column label="操作" fixed="right" :width="actionColumnWidth">
 						<template #default="{ row }">
 							<el-button
 								size="small"
@@ -148,21 +148,31 @@
 							>
 								编辑
 							</el-button>
-							<el-dropdown
-								v-if="canDelegateRow(row) || canRemoveRow(row) || ((canChangeStatus || canResetPassword) && canManage(row) && (!customer || [0, 1].includes(row.status || 0)))"
-								trigger="click"
+							<el-button
+								v-if="canResetPassword && canManage(row)"
+								size="small"
+								plain
+								type="warning"
 								:disabled="saving || preparing || row._id === auth?.uid"
+								@click="onUserAction('password', row)"
+							>
+								重置密码
+							</el-button>
+							<el-dropdown
+								v-if="auth?.readLogs || canDelegateRow(row) || canRemoveRow(row) || (canChangeStatus && canManage(row) && [0, 1].includes(row.status || 0))"
+								trigger="click"
+								:disabled="saving || preparing || (row._id === auth?.uid && !auth?.readLogs)"
 								@command="(command) => onUserAction(command, row)"
 							>
-								<el-button size="small" :disabled="saving || preparing || row._id === auth?.uid">
+								<el-button size="small" :disabled="saving || preparing || (row._id === auth?.uid && !auth?.readLogs)">
 									更多
 									<el-icon><ArrowDown /></el-icon>
 								</el-button>
 								<template #dropdown>
 									<el-dropdown-menu>
+										<el-dropdown-item v-if="auth?.readLogs" command="logs">登录日志</el-dropdown-item>
 										<el-dropdown-item v-if="canDelegateRow(row)" command="delegate">进入代管</el-dropdown-item>
-										<el-dropdown-item v-if="canResetPassword && canManage(row)" command="password">重置密码</el-dropdown-item>
-										<el-dropdown-item v-if="canChangeStatus && canManage(row)" :disabled="row.is_root" :command="(row.status || 0) === 0 ? 'disable' : 'enable'">
+										<el-dropdown-item v-if="canChangeStatus && canManage(row)" :disabled="row.is_root || row._id === auth?.uid" :command="(row.status || 0) === 0 ? 'disable' : 'enable'">
 											{{ (row.status || 0) === 0 ? '禁用账号' : '恢复正常' }}
 										</el-dropdown-item>
 										<el-dropdown-item v-if="canRemoveRow(row)" command="delete" divided style="color: var(--el-color-danger)">
@@ -183,18 +193,46 @@
 		:uid="detailUid"
 		:account-label="accountLabel"
 		:customer="customer"
-		:detail-method="customer ? 'getCustomerDetail' : developer ? 'getDeveloperDetail' : 'getUserDetail'"
+		:detail-method="detailMethod"
 		:options="{ ...options, apps: appOptions }"
-		:busy="saving || preparing"
-		@edit="(row) => openEditor(row)"
-		@edit-roles="(row) => openEditor(row, false, true)"
-		@reset-password="(row) => onUserAction('password', row)"
 	/>
+	<el-dialog v-model="logsVisible" :title="'登录日志 · ' + logsName" width="840px" class="admin-form-dialog"
+		align-center append-to-body destroy-on-close :close-on-click-modal="false">
+		<el-alert v-if="logsError" :title="logsError" type="error" show-icon :closable="false">
+			<el-button size="small" @click="loadLoginLogs">重试</el-button>
+		</el-alert>
+		<el-table v-else v-loading="logsLoading" :data="loginLogs" max-height="420" empty-text="暂无登录日志">
+			<el-table-column label="时间" min-width="170">
+				<template #default="{ row }">{{ formatDate(row.create_date) }}</template>
+			</el-table-column>
+			<el-table-column label="操作" min-width="110">
+				<template #default="{ row }">{{ logTypes[row.type] || row.type || '—' }}</template>
+			</el-table-column>
+			<el-table-column prop="ip" label="IP" min-width="140" />
+			<el-table-column label="结果" width="90">
+				<template #default="{ row }"><el-tag :type="row.state === 1 ? 'success' : 'danger'" size="small">{{ row.state === 1 ? '成功' : '失败' }}</el-tag></template>
+			</el-table-column>
+			<el-table-column prop="appid" label="应用 ID" min-width="150" show-overflow-tooltip />
+		</el-table>
+		<div v-if="!logsError" class="login-log-pagination">
+			<el-pagination
+				background
+				size="small"
+				layout="total, prev, pager, next"
+				:pager-count="5"
+				:current-page="logsPage.current"
+				:page-size="logsPage.size"
+				:total="logsPage.count"
+				:disabled="logsLoading"
+				@update:current-page="changeLogsPage"
+			/>
+		</div>
+	</el-dialog>
 
 	<el-dialog
 		v-model="editorVisible"
 		:title="readOnly ? accountLabel + '详情' : (editingId ? '编辑' : '新增') + accountLabel"
-		width="680px"
+		width="600px"
 		align-center
 		class="user-editor admin-form-dialog"
 		modal-class="user-editor-overlay"
@@ -210,16 +248,15 @@
 			ref="formRef"
 			:model="form"
 			label-position="right"
-			label-width="108px"
+			:label-width="compactEditor ? '100px' : '108px'"
 			:disabled="saving || readOnly"
 			class="user-editor-form"
+			:class="{ 'user-editor-form--compact': compactEditor }"
 			@submit.prevent="saveUser"
 		>
 			<div class="user-editor-section">
-				<h3 class="user-editor-section-title">基本信息</h3>
+				<h3 v-if="!compactEditor" class="user-editor-section-title">基本信息</h3>
 				<div class="user-editor-grid">
-
-
 					<el-form-item
 						label="账号"
 						prop="username"
@@ -348,7 +385,7 @@
 			<div v-if="!customer && !original.is_root" class="user-editor-section">
 				<h3 class="user-editor-section-title">账号与授权</h3>
 				<div class="user-editor-grid">
-					<el-form-item ref="roleItemRef" label="角色">
+					<el-form-item label="角色">
 						<el-select
 							v-model="form.role"
 							multiple
@@ -371,7 +408,7 @@
 						class="user-field-full user-app-mode"
 						label="登录权限"
 						label-position="right"
-						label-width="108px"
+						:label-width="compactEditor ? '100px' : '108px'"
 					>
 						<el-radio-group v-model="appAccessMode" :disabled="original.is_root && (original.dcloud_appid == null || original.dcloud_appid.includes('*'))">
 							<el-radio-button value="partial">部分应用</el-radio-button>
@@ -383,7 +420,7 @@
 						class="user-field-full user-app-selection"
 						label="可登录的应用"
 						label-position="right"
-						label-width="108px"
+						:label-width="compactEditor ? '100px' : '108px'"
 					>
 						<el-checkbox-group v-model="form.authorizedApp" class="user-app-checkboxes">
 							<el-checkbox
@@ -417,13 +454,14 @@
 				{{ readOnly ? '关闭' : '取消' }}
 			</el-button>
 			<el-button v-if="!readOnly" type="primary" :loading="saving" :disabled="avatarUploading" @click="saveUser">
-				{{ editingId ? '保存' : '创建' + accountLabel }}
+				{{ editingId || compactEditor ? '保存' : '创建' + accountLabel }}
 			</el-button>
 		</template>
 	</el-dialog>
 
 	<el-dialog
 		v-model="passwordVisible"
+		class="admin-form-dialog"
 		:title="resetCredentials ? '密码重置成功' : '重置密码'"
 		append-to-body
 		align-center
@@ -474,7 +512,7 @@ import { exitDelegation, importTenantAdmin, setDelegation, systemUserRoute } fro
 import { getLoginRedirectUrl } from '../../../common/login-tenant.js';
 import { allowedMenuRoutes, loadNavigation } from '../../../common/navigation.js';
 import '../../../common/form-dialog.css';
-import { ElAlert, ElAvatar, ElButton, ElCheckbox, ElCheckboxGroup, ElDialog, ElDropdown, ElDropdownItem, ElDropdownMenu, ElEmpty, ElForm, ElFormItem, ElIcon, ElImage, ElInput, ElOption, ElProgress, ElRadio, ElRadioButton, ElRadioGroup, ElSelect, ElTreeSelect, ElTable, ElTableColumn, ElTag, ElUpload, vLoading } from 'element-plus';
+import { ElAlert, ElAvatar, ElButton, ElCheckbox, ElCheckboxGroup, ElDialog, ElDropdown, ElDropdownItem, ElDropdownMenu, ElEmpty, ElForm, ElFormItem, ElIcon, ElImage, ElInput, ElOption, ElPagination, ElProgress, ElRadio, ElRadioButton, ElRadioGroup, ElSelect, ElTreeSelect, ElTable, ElTableColumn, ElTag, ElUpload, vLoading } from 'element-plus';
 import 'element-plus/es/components/alert/style/css.mjs';
 import 'element-plus/es/components/avatar/style/css.mjs';
 import 'element-plus/es/components/button/style/css.mjs';
@@ -498,6 +536,7 @@ import 'element-plus/es/components/radio-group/style/css.mjs';
 import 'element-plus/es/components/select/style/css.mjs';
 import 'element-plus/es/components/tree-select/style/css.mjs';
 import 'element-plus/es/components/table/style/css.mjs';
+import 'element-plus/es/components/pagination/style/css.mjs';
 import 'element-plus/es/components/table-column/style/css.mjs';
 import 'element-plus/es/components/tag/style/css.mjs';
 import 'element-plus/es/components/upload/style/css.mjs';
@@ -516,6 +555,7 @@ import store from '@/uni_modules/ucs-design-admin/common/store.js';
 
 const props = defineProps({ developer: Boolean, customer: Boolean });
 const accountLabel = computed(() => props.customer ? '社区用户' : props.developer ? '开发者' : '系统用户');
+const detailMethod = computed(() => props.customer ? 'getCustomerDetail' : props.developer ? 'getDeveloperDetail' : 'getUserDetail');
 const customerMethods = { listUsers: 'listCustomers', getUserOptions: 'getCustomerOptions', updateUser: 'updateCustomer' };
 const developerMethods = {
 	listUsers: 'listDevelopers', getUserOptions: 'getDeveloperOptions',
@@ -557,6 +597,9 @@ const canRemoveRow = (row) => canDelete.value && !row.is_root && row._id !== aut
 const canDelegate = computed(() => !props.customer && !props.developer && !store.delegation?.userDelegationToken && auth.value?.delegate === true);
 const canDelegateRow = (row) => canDelegate.value && (row.status || 0) === 0 &&
 	row._id !== auth.value?.uid;
+const actionColumnWidth = computed(() =>
+	88 + (canWrite.value ? 48 : 0) + (canResetPassword.value ? 76 : 0) + (auth.value?.readLogs || canDelegate.value || canChangeStatus.value || canDelete.value ? 60 : 0)
+);
 const canManage = (row) => auth.value?.canManageAdmin || !(row?.role || []).includes('admin');
 const appOptions = computed(() => [
 	{ appid: '*', name: '全部应用' },
@@ -597,6 +640,17 @@ const departmentTree = computed(() => {
 });
 const formatDate = (value) => (value && dayjs(value).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '—');
 const accountDisplayName = (row) => row.nickname || row.username || '未设置' + nameLabel.value;
+const logTypes = {
+	login: '登录',
+	logout: '退出登录',
+	register: '注册',
+	'reset-pwd': '重置密码',
+	'bind-mobile': '绑定手机',
+	'bind-weixin': '绑定微信',
+	'bind-qq': '绑定 QQ',
+	'bind-apple': '绑定 Apple',
+	'bind-alipay': '绑定支付宝'
+};
 const message = (e) => e?.errMsg || e?.message || '操作失败，请稍后重试';
 const call = async (method, params) => {
 	const result = await api[props.customer ? customerMethods[method] || method : props.developer ? developerMethods[method] || method : method](params);
@@ -605,6 +659,52 @@ const call = async (method, params) => {
 };
 let requestId = 0,
 	disposed = false;
+const logsVisible = ref(false), logsName = ref(''), logsUid = ref('');
+const loginLogs = ref([]), logsLoading = ref(false), logsError = ref('');
+const logsPage = reactive({ current: 1, size: 20, count: 0 });
+let requestedLogsPage = 1;
+let logsRequestId = 0;
+function openLoginLogs(row) {
+	logsName.value = accountDisplayName(row);
+	logsUid.value = row._id;
+	loginLogs.value = [];
+	logsPage.current = 1;
+	logsPage.count = 0;
+	requestedLogsPage = 1;
+	logsVisible.value = true;
+	void loadLoginLogs();
+}
+function changeLogsPage(current) {
+	if (logsLoading.value || current === logsPage.current) return;
+	requestedLogsPage = current;
+	void loadLoginLogs();
+}
+async function loadLoginLogs() {
+	const id = ++logsRequestId;
+	logsLoading.value = true;
+	logsError.value = '';
+	logsError.value = '';
+	try {
+		const result = await call(detailMethod.value, {
+			uid: logsUid.value,
+			view: 'logs',
+			current: requestedLogsPage,
+			size: logsPage.size
+		});
+		if (disposed || id !== logsRequestId || !logsVisible.value) return;
+		if (!result.logsAllowed) {
+			logsError.value = '暂无查看登录日志的权限';
+			return;
+		}
+		logsError.value = result.logsError || '';
+		loginLogs.value = result.logs || [];
+		if (!logsError.value) Object.assign(logsPage, result.pagination);
+	} catch (error) {
+		if (!disposed && id === logsRequestId && logsVisible.value) logsError.value = message(error);
+	} finally {
+		if (id === logsRequestId) logsLoading.value = false;
+	}
+}
 const load = async (current = pagination.current) => {
 	const id = ++requestId;
 	clearSelection();
@@ -696,16 +796,13 @@ const selectableApps = computed(() => {
 const formRef = ref();
 const detailRef = ref(),
 	detailVisible = ref(false),
-	detailUid = ref(''),
-	roleItemRef = ref();
-let focusRoleOnOpen = false;
+	detailUid = ref('');
 const onEditorOpened = () => {
 	if (!editingId.value) formRef.value?.$el?.querySelector('input:not(:disabled)')?.focus({ preventScroll: true });
-	if (focusRoleOnOpen) roleItemRef.value?.$el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-	focusRoleOnOpen = false;
 };
 const isSelf = computed(() => Boolean(editingId.value) && editingId.value === auth.value?.uid);
 const isEmployee = computed(() => !props.developer && !props.customer);
+const compactEditor = computed(() => !props.developer && !readOnly.value);
 const nameLabel = computed(() => isEmployee.value ? '姓名' : '昵称');
 const requiresMobile = computed(() => isEmployee.value && !editingId.value);
 const requiresProfile = computed(() => (isEmployee.value && !original.value.is_root) || !editingId.value);
@@ -780,14 +877,13 @@ const uploadUserAvatar = async ({ file, onProgress }) => {
 };
 const confirmInitialPassword = (rule, value, callback) =>
 	callback(value === form.value.password ? undefined : new Error('两次密码不一致'));
-const openEditor = async (row, detail = false, focusRole = false) => {
-	if (saving.value || preparing.value || (focusRole && !canAssignRoles.value)) return;
+const openEditor = async (row, detail = false) => {
+	if (saving.value || preparing.value) return;
 	if (detail) {
 		detailUid.value = row._id;
 		detailVisible.value = true;
 		return;
 	}
-	focusRoleOnOpen = focusRole;
 	preparing.value = true;
 	try {
 		if (!(row ? canWrite.value && canManage(row) : canCreate.value) || disposed) return;
@@ -961,6 +1057,10 @@ async function enterUserDelegation(row) {
 
 const onUserAction = async (command, row) => {
 	if (command === 'delegate') return enterUserDelegation(row);
+	if (command === 'logs') {
+		if (auth.value?.readLogs && !saving.value && !preparing.value) openLoginLogs(row);
+		return;
+	}
 	if (
 		!(command === 'delete' ? canRemoveRow(row) : command === 'password' ? canResetPassword.value : canChangeStatus.value) ||
 		(command !== 'delete' && !canManage(row)) ||
@@ -1034,6 +1134,12 @@ const resetPassword = async () => {
 </script>
 
 <style scoped>
+.login-log-pagination {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 12px;
+	overflow-x: auto;
+}
 .user-content {
 	display: flex;
 	flex-direction: column;
@@ -1323,6 +1429,32 @@ const resetPassword = async () => {
 .user-editor-grid .user-field-help {
 	width: 100%;
 }
+.user-editor-form--compact .user-editor-grid :deep(.el-form-item) {
+	margin-bottom: 0;
+}
+.user-editor-form--compact .user-editor-grid :deep(.el-form-item__label) {
+	padding-right: 12px;
+}
+.user-editor-form--compact .user-access-help {
+	padding-left: 100px;
+}
+@media (max-width: 600px) {
+	.user-editor-form--compact .user-editor-grid :deep(.el-form-item) {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.user-editor-form--compact .user-editor-grid :deep(.el-form-item__label) {
+		width: auto !important;
+		height: auto;
+		justify-content: flex-start;
+		padding: 0;
+		margin-bottom: 8px;
+		line-height: 20px;
+	}
+	.user-editor-form--compact .user-access-help {
+		padding-left: 0;
+	}
+}
 .user-app-checkboxes {
 	display: flex;
 	flex-wrap: wrap;
@@ -1348,38 +1480,7 @@ const resetPassword = async () => {
 	color: var(--el-color-danger);
 	font-size: 12px;
 }
-:global(.user-editor) {
-	max-width: calc(100vw - 32px);
-	max-height: calc(100vh - 48px);
-	max-height: calc(100dvh - 48px);
-	display: flex;
-	flex-direction: column;
-	margin: 0 auto;
-	padding: 0;
-	overflow: hidden;
-	border-radius: 8px;
-}
 :global(.user-editor-overlay .el-overlay-dialog) {
 	overflow: hidden;
-}
-:global(.user-editor > .el-dialog__header) {
-	flex-shrink: 0;
-	margin: 0;
-	padding: 20px;
-	border-bottom: 1px solid var(--el-border-color-light);
-}
-:global(.user-editor > .el-dialog__body) {
-	min-height: 0;
-	padding: 24px;
-	overflow-y: auto;
-	overscroll-behavior: contain;
-}
-:global(.user-editor > .el-dialog__footer) {
-	flex-shrink: 0;
-	padding: 16px 20px;
-	border-top: 1px solid var(--el-border-color-light);
-}
-:global(.user-editor .el-select) {
-	width: 100%;
 }
 </style>

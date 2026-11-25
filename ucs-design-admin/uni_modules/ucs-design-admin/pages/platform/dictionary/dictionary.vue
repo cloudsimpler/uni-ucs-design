@@ -15,7 +15,7 @@
   </el-table>
   </div>
  </ucs-admin-layout>
- <el-dialog v-model="itemsVisible" :title="'字典项 · ' + (active?.name || '')" width="960px" align-center class="dict-dialog dict-items-dialog">
+ <el-dialog v-model="itemsVisible" :title="'字典项 · ' + (active?.name || '')" width="960px" align-center class="dict-dialog dict-items-dialog admin-form-dialog" :close-on-click-modal="false">
   <div class="dict-toolbar">
    <div class="dict-context"><span>字典编码</span><code>{{ active?.code }}</code></div>
    <div class="dict-item-actions">
@@ -157,12 +157,9 @@ onMounted(loadTypes);onBeforeUnmount(()=>{listRequest++;itemRequest++;});
 .dict-color{display:inline-flex;align-items:center;font-size:12px;font-family:ui-monospace,Consolas,monospace;}
 .dict-color-field{display:flex;align-items:center;gap:12px;}
 .dict-color-value{font-size:13px;color:var(--el-text-color-secondary);}
-:global(.dict-items-dialog .el-dialog__header){padding-bottom:20px;}
 
 .dict-note{font-size:12px;color:var(--el-text-color-secondary);margin:12px 0;}
 .color-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;}
-:global(.dict-dialog){max-width:calc(100vw - 32px);max-height:calc(100dvh - 40px);padding:24px;display:flex;flex-direction:column;}
-:global(.dict-dialog .el-dialog__body){overflow-y:auto;min-height:0;}
 .dict-editor-form :deep(.el-form-item){align-items:center;}
 .dict-editor-form :deep(.el-form-item__label){height:auto;line-height:22px;align-items:center;}
 .dict-sort-input{width:120px;}

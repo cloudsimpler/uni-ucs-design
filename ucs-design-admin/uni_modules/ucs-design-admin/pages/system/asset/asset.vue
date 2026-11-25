@@ -2,11 +2,14 @@
  <ucs-admin-layout title="素材管理" mode="card" :padding="false" class="asset-layout">
   <template #header>
    <div class="search-bar">
-    <el-input v-model="keyword" :prefix-icon="Search" placeholder="搜索素材名称" clearable @keyup.enter="search" @clear="search" />
+    <el-input v-model="keyword" :prefix-icon="Search" aria-label="素材名称" placeholder="搜索素材名称" clearable @keyup.enter="search" @clear="search" />
     <el-button type="primary" :loading="loading" @click="search">查询</el-button>
+    <el-button @click="resetSearch">重置</el-button>
    </div>
   </template>
   <template #button>
+   <el-button v-if="auth.create && groups.length" type="primary" :disabled="busy || groupsLoading" @click="openUpload(groupId || (groups.length === 1 ? groups[0]._id : null))">上传素材</el-button>
+   <el-button v-else-if="auth.update && !groupsLoading && !groupsError && !groups.length" type="primary" :disabled="busy" @click="editGroup()">新增分组</el-button>
    <el-button v-if="auth.delete" type="danger" plain :loading="deleting" :disabled="busy || loading || !selectedIds.length" @click="removeSelected">批量删除{{ selectedIds.length ? `（${selectedIds.length}）` : '' }}</el-button>
    <el-button :icon="Refresh" :loading="loading" :disabled="busy" aria-label="刷新素材" @click="refresh" />
   </template>
@@ -46,7 +49,7 @@
      <el-button v-if="selectedIds.length" text :disabled="busy || loading" @click="selectedIds = []">取消选择</el-button>
     </div>
     <div v-loading="loading" element-loading-text="正在加载素材…" class="asset-scroll">
-     <el-empty v-if="!loading && !rows.length" :description="error ? '素材加载失败，请点击刷新重试' : '暂无符合条件的素材'" />
+     <el-empty v-if="!loading && !rows.length" class="asset-empty" :description="error ? '素材加载失败，请点击刷新重试' : '暂无符合条件的素材'" />
      <div v-else class="asset-grid">
       <article v-for="row in rows" :key="row._id" class="asset-card" :class="{'is-selected': selectedIds.includes(row._id)}">
        <el-checkbox v-if="auth.delete" class="asset-check" :model-value="selectedIds.includes(row._id)" :disabled="busy || loading" :aria-label="'选择素材 ' + row.name" @change="checked => selectAsset(row._id, checked)" />
@@ -65,7 +68,7 @@
    </main>
   </div>
  </ucs-admin-layout>
- <el-dialog v-model="groupInfoVisible" title="分组信息" width="520px" align-center class="asset-dialog">
+ <el-dialog v-model="groupInfoVisible" title="分组信息" width="520px" align-center class="asset-dialog admin-form-dialog">
   <el-descriptions v-if="groupInfo" :column="1" border class="group-info">
    <el-descriptions-item label="分组名称">{{ groupInfo.name }}</el-descriptions-item>
    <el-descriptions-item label="分组 ID"><span class="group-id">{{ groupInfo._id }}</span></el-descriptions-item>
@@ -73,21 +76,27 @@
   </el-descriptions>
   <template #footer><el-button type="primary" :disabled="!groupInfo?._id" @click="copyGroupId">复制分组 ID</el-button></template>
  </el-dialog>
- <el-dialog v-model="uploadVisible" title="上传素材" width="600px" align-center :close-on-click-modal="!uploading" :close-on-press-escape="!uploading" :show-close="!uploading" class="asset-dialog">
-  <div class="upload-destination"><el-icon><Folder /></el-icon><span>上传到：<strong>{{ groups.find(item => item._id === uploadGroup)?.name || '当前分组' }}</strong></span></div>
-  <el-upload ref="uploadRef" drag multiple :auto-upload="false" :limit="20" :disabled="uploading" :accept="uploadAccept" :on-change="fileChanged" :on-remove="fileChanged" :on-exceed="() => ElMessage.warning('每批最多选择 20 个文件')">
+ <el-dialog v-model="uploadVisible" title="上传素材" width="600px" align-center :close-on-click-modal="false" :close-on-press-escape="!uploading" :show-close="!uploading" class="asset-dialog admin-form-dialog">
+  <el-form label-position="top">
+   <el-form-item label="上传分组" required>
+    <el-select :model-value="uploadGroup" placeholder="请选择上传分组" :disabled="uploading || files.some(file => file.assetTicket)" @change="openUpload">
+     <el-option v-for="item in groups" :key="item._id" :label="item.name" :value="item._id" />
+    </el-select>
+   </el-form-item>
+  </el-form>
+  <el-upload ref="uploadRef" drag multiple :auto-upload="false" :limit="20" :disabled="uploading || !uploadGroup" :accept="uploadAccept" :on-change="fileChanged" :on-remove="fileChanged" :on-exceed="() => ElMessage.warning('每批最多选择 20 个文件')">
    <el-icon :size="36"><UploadFilled /></el-icon><div class="upload-copy">拖拽文件至此，或<span>点击选择</span></div><template #tip><div class="upload-tip">支持 JPG、PNG、WebP、GIF、MP4、WebM、MP3、WAV、PDF、TXT、DOCX、XLSX、PPTX，单个文件不超过 200 MB。</div></template>
   </el-upload>
   <div v-if="uploading" class="upload-tip">{{ uploadStage }}</div>
   <el-progress v-if="uploading" :percentage="progress" />
   <el-alert v-if="uploadError" :title="uploadError" type="error" :closable="false" class="upload-error" />
-  <template #footer><el-button :disabled="uploading" @click="uploadVisible = false">关闭</el-button><el-button type="primary" :loading="uploading" :disabled="!files.length" @click="upload">开始上传</el-button></template>
+  <template #footer><el-button :disabled="uploading" @click="uploadVisible = false">取消</el-button><el-button type="primary" :loading="uploading" :disabled="!uploadGroup || !files.length" @click="upload">开始上传</el-button></template>
  </el-dialog>
  <el-dialog v-model="editVisible" title="编辑素材" width="560px" align-center :close-on-click-modal="false" class="asset-dialog asset-edit-dialog admin-form-dialog">
   <el-form class="asset-edit-form" label-position="right" label-width="100px" @submit.prevent="save"><el-form-item label="素材名称" required><el-input v-model="form.name" placeholder="请输入素材名称" maxlength="200" /></el-form-item><el-form-item label="素材分组" required><el-select v-model="form.group_id" placeholder="请选择素材分组" no-data-text="暂无分组，请先新增分组"><el-option v-for="item in groups" :key="item._id" :label="item.name" :value="item._id" /></el-select></el-form-item></el-form>
   <template #footer><el-button @click="editVisible = false">取消</el-button><el-button type="primary" :loading="saving" @click="save">保存</el-button></template>
  </el-dialog>
- <el-dialog v-model="previewVisible" title="素材详情" width="760px" align-center class="asset-dialog" @closed="selected = null">
+ <el-dialog v-model="previewVisible" title="素材详情" width="760px" align-center class="asset-dialog admin-form-dialog" @closed="selected = null">
   <template v-if="selected">
    <div class="preview-content"><img v-if="selected.type === 'image'" :src="urls[selected.file_id]" :alt="selected.name" /><video v-else-if="selected.type === 'video'" :src="urls[selected.file_id]" :poster="urls[selected.cover_file_id]" controls /><audio v-else-if="selected.type === 'audio'" :src="urls[selected.file_id]" controls /><el-icon v-else :size="64"><Document /></el-icon></div>
    <el-descriptions :column="1" border class="asset-detail-info"><el-descriptions-item label="fileID"><div class="file-id-row"><span class="file-id-value">{{ selected.file_id }}</span><el-button link type="primary" @click="copyId(selected)">复制</el-button></div></el-descriptions-item><el-descriptions-item label="素材名称">{{ selected.name }}</el-descriptions-item><el-descriptions-item label="文件类型">{{ selected.ext.toUpperCase() }}</el-descriptions-item><el-descriptions-item label="文件大小">{{ sizeLabel(selected.size) }}</el-descriptions-item><el-descriptions-item v-if="selected.type === 'image' && resolution(selected)" label="分辨率">{{ resolution(selected) }}</el-descriptions-item><el-descriptions-item label="所属分组">{{ groups.find(item => item._id === selected.group_id)?.name || types[selected.type] }}</el-descriptions-item><el-descriptions-item v-if="selected.create_name" label="上传人">{{ selected.create_name }}</el-descriptions-item><el-descriptions-item label="上传时间">{{ dateLabel(selected.create_date, true) }}</el-descriptions-item></el-descriptions>
@@ -95,7 +104,7 @@
   </template>
   <template #footer><el-button :loading="copyingAddress" :disabled="!selected" @click="copyAddress(selected)">复制临时地址</el-button><el-button type="primary" :loading="downloading" @click="downloadFile(selected)">下载文件</el-button></template>
  </el-dialog>
- <el-dialog v-model="referencesVisible" title="使用记录" width="760px" align-center class="asset-dialog" @closed="referenceAsset = null">
+ <el-dialog v-model="referencesVisible" title="使用记录" width="760px" align-center class="asset-dialog admin-form-dialog" @closed="referenceAsset = null">
    <section class="asset-references">
     <p class="reference-name">{{ referenceAsset?.name }}</p>
     <p class="reference-note">仅显示已登记的引用；暂无记录不代表素材未被使用。</p>
@@ -194,6 +203,7 @@ async function loadGroups() {
 }
 async function refresh() { await Promise.all([load(), loadGroups().catch(() => {})]); }
 function search() { page.value = 1; load(); }
+function resetSearch() { keyword.value = ''; search(); }
 function selectGroup(id) { groupId.value = id; type.value = ''; search(); }
 function toggleTypes() {
  typesExpanded.value = !typesExpanded.value;
@@ -222,7 +232,7 @@ async function removeGroup(row) {
 }
 function fileChanged(file, list) { files.value = list; }
 function openUpload(id) {
- if (busy.value || !auth.create || !groups.value.some(item => item._id === id)) return;
+ if (busy.value || !auth.create || (id !== null && !groups.value.some(item => item._id === id))) return;
  if (uploadGroup.value !== id && files.value.some(file => file.assetTicket)) {
   ElMessage.warning('请先在原分组完成待重试的上传');
   uploadVisible.value = true;
@@ -234,7 +244,7 @@ function openUpload(id) {
  uploadVisible.value = true;
 }
 async function upload() {
- if (uploading.value || !files.value.length) return;
+ if (uploading.value || !uploadGroup.value || !files.value.length) return;
  uploading.value = true; uploadError.value = ''; progress.value = 0;
  const pending = [...files.value]; let succeeded = 0;
  const coverWarnings = [];
@@ -400,6 +410,7 @@ onBeforeUnmount(() => { sequence++; });
 .asset-layout { height: calc(100dvh - var(--top-window-height, 56px)); min-height: 0; }
 .asset-layout :deep(.layout-card) { display: flex; min-height: 0; overflow: hidden; }
 .search-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.search-bar .el-button + .el-button { margin-left: 0; }
 .search-bar .el-input { width: 240px; }
 .search-bar .el-select { width: 130px; }
 .asset-workspace { display: flex; flex: 1; min-width: 0; min-height: 0; }
@@ -440,6 +451,7 @@ onBeforeUnmount(() => { sequence++; });
 .group-empty { padding: 10px 12px; color: var(--el-text-color-placeholder); font-size: 12px; }
 .asset-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .asset-scroll { flex: 1; min-height: 180px; overflow-y: auto; padding: 20px; }
+.asset-empty { min-height: 100%; }
 .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 18px; }
 .asset-card { position: relative; border: 1px solid var(--el-border-color-light); border-radius: 8px; overflow: hidden; background: var(--el-bg-color); }
 .asset-card.is-selected { border-color: var(--el-color-primary); box-shadow: 0 0 0 1px var(--el-color-primary); }
@@ -453,9 +465,7 @@ onBeforeUnmount(() => { sequence++; });
 .asset-info span { font-size: 12px; color: var(--el-text-color-secondary); }
 .asset-actions { display: flex; padding: 4px 6px 8px; flex-wrap: wrap; }
 .asset-actions .el-button { padding: 6px; margin: 0; }
-.asset-pagination { display: flex; justify-content: flex-end; padding: 16px 20px; border-top: 1px solid var(--el-border-color-light); overflow-x: auto; }
-.upload-destination { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 12px; border-radius: 6px; background: var(--el-fill-color-light); color: var(--el-text-color-regular); font-size: 14px; overflow-wrap: anywhere; }
-.upload-destination strong { font-weight: 500; color: var(--el-text-color-primary); }
+.asset-pagination { display: flex; align-items: center; justify-content: flex-end; min-height: 56px; box-sizing: border-box; padding: 11px 16px; border-top: 1px solid var(--el-border-color-light); overflow-x: auto; }
 .upload-copy { margin-top: 12px; }
 .upload-copy span { color: var(--el-color-primary); }
 .upload-tip { color: var(--el-text-color-secondary); font-size: 12px; line-height: 1.7; margin: 8px 0 16px; }
@@ -467,8 +477,6 @@ onBeforeUnmount(() => { sequence++; });
 .asset-references .el-pagination { margin-top: 12px; justify-content: flex-end; }
 .preview-content { display: flex; justify-content: center; align-items: center; min-height: 160px; margin-bottom: 20px; background: var(--el-fill-color-light); padding: 12px; }
 .preview-content img, .preview-content video { max-width: 100%; max-height: 45vh; object-fit: contain; }
-:global(.asset-dialog) { max-width: calc(100vw - 32px); max-height: calc(100dvh - 40px); display: flex; flex-direction: column; }
-:global(.asset-dialog .el-dialog__body) { overflow-y: auto; min-height: 0; }
 .asset-edit-form :deep(.el-form-item) { margin-bottom: 24px; }
 .asset-edit-form :deep(.el-form-item:last-child) { margin-bottom: 0; }
 .asset-edit-form :deep(.el-select) { width: 100%; }

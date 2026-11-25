@@ -19,6 +19,8 @@
 			<el-alert v-if="error" :title="error" type="error" :closable="false" />
 			<el-table :data="rows" row-key="_id" height="100%">
 				<template #empty><el-empty :image-size="100" :description="error ? '产品包加载失败，请刷新重试' : '暂无符合条件的产品包'" /></template>
+				<el-table-column type="index" label="序号" width="64" align="center"
+					:index="(index) => (pagination.current - 1) * pagination.size + index + 1" />
 				<el-table-column prop="name" label="产品包名称" min-width="180" show-overflow-tooltip />
 				<el-table-column prop="remark" label="备注" min-width="260" show-overflow-tooltip>
 					<template #default="{ row }">{{ row.remark || '—' }}</template>
@@ -52,21 +54,18 @@
 					:props="{ label: 'name' }"
 					node-key="key"
 					class="package-menu-tree"
-					aria-label="可分配页面和操作权限"
+					aria-label="可分配页面"
 					empty-text="暂无可分配页面"
-					:default-expanded-keys="directoryKeys"
 					:expand-on-click-node="false"
 				>
 					<template #default="{ data }">
 						<el-checkbox
-							v-if="data.menu_type !== undefined"
 							:model-value="isChecked(data)"
 							:indeterminate="data.menu_type === MENU_TYPE.DIRECTORY && !isChecked(data) && data.keys.some(key => checkedKeys.has(key))"
 							:disabled="saving"
 							@click.stop
 							@change="toggleNode(data, $event)"
 						>{{ data.name }}</el-checkbox>
-						<span v-else class="package-permission-label">{{ data.name }}</span>
 					</template>
 				</el-tree>
 			</div>
@@ -91,7 +90,7 @@ import { usePlatformList } from '../use-platform-list.js';
 
 const api = importTenantAdmin();
 const { rows, auth, keyword, pagination, loading, error, load, search, reset, changePage } = usePlatformList(params => api.listProductPackages(params));
-const menus = ref([]), permissions = ref([]);
+const menus = ref([]);
 const saving = ref(false), editor = ref(false);
 const loadingAuthorization = ref(false), authorizationLoaded = ref(false);
 let authorizationRequest = 0;
@@ -101,23 +100,11 @@ const draft = reactive({ _id: '', name: '', remark: '' });
 const treeVersion = ref(0);
 const checkedKeys = ref(new Set());
 const menuKey = id => 'menu:' + id;
-const permissionKey = id => 'permission:' + id;
-const directoryKeys = computed(() => menus.value.filter(menu => menu.menu_type === MENU_TYPE.DIRECTORY)
-	.map(menu => menuKey(menu.menu_id)));
 const permissionTree = computed(() => {
-	const byMenu = new Map();
-	const orderedPermissions = [...permissions.value].sort((a, b) =>
-		(a.sort || 0) - (b.sort || 0) || a.permission_id.localeCompare(b.permission_id)
-	);
-	for (const row of orderedPermissions) {
-		if (!byMenu.has(row.menu_id)) byMenu.set(row.menu_id, []);
-		const key = permissionKey(row.permission_id);
-		byMenu.get(row.menu_id).push({ key, name: row.permission_name });
-	}
 	const visit = nodes => nodes.map(node => {
 		const key = menuKey(node.menu_id);
 		const isPage = node.menu_type === MENU_TYPE.PAGE;
-		const children = isPage ? byMenu.get(node.menu_id) || [] : visit(node.children);
+		const children = isPage ? [] : visit(node.children);
 		return { ...node, key, children, keys: isPage ? [key] : children.flatMap(child => child.keys) };
 	});
 	return visit(menuTree(menus.value));
@@ -148,14 +135,12 @@ async function open(row, permissionsOnly = false) {
 	authorizationLoaded.value = false;
 	loadingAuthorization.value = true;
 	menus.value = [];
-	permissions.value = [];
 	checkedKeys.value = new Set();
 	try {
 		const result = await api.getProductPackageAuthorization();
 		if (id !== authorizationRequest) return;
 		if (result.errCode) throw result;
 		menus.value = result.menus;
-		permissions.value = result.permissions;
 		const selectedMenus = new Set(row.menu_ids || []);
 		checkedKeys.value = new Set(menus.value
 			.filter(menu => menu.menu_type === MENU_TYPE.PAGE && selectedMenus.has(menu.menu_id))

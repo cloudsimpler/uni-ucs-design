@@ -182,9 +182,8 @@ module.exports = {
     const { db, actor } = await platform(this)
     required(actor, packageRights.update)
     const menuRows = await list(db, 'ucsdb-admin-menus')
-    const { product, productMenus } = classifyPages(menuRows)
-    const rights = product.size ? await list(db, 'uni-id-permissions', { menu_id: db.command.in([...product]) }) : []
-    return { errCode: 0, menus: menuRows.filter(row => productMenus.has(row.menu_id)), permissions: rights }
+    const { productMenus } = classifyPages(menuRows)
+    return { errCode: 0, menus: menuRows.filter(row => productMenus.has(row.menu_id)) }
   },
   async saveProductPackage({ _id, name, remark, menu_ids } = {}) {
     const { db, actor } = await platform(this)

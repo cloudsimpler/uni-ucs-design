@@ -5,6 +5,10 @@ const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant')
 const fail = (errMsg, errCode = 'USER_ADMIN_INVALID') => {
   throw { errCode, errMsg }
 }
+const validatePagination = (current, size) => {
+  if (!Number.isInteger(current) || current < 1 || current > 100000 ||
+      !Number.isInteger(size) || size < 1 || size > 100) fail('分页参数不正确')
+}
 const equalSet = (a = [], b = []) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort())
 // Historical accounts without dcloud_appid allow all apps; an empty array allows none.
 const equalApps = (a, b) => (Array.isArray(a) && Array.isArray(b) ? equalSet(a, b) : a === b)
@@ -77,6 +81,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
       create: isAdmin || permissions.includes(`CREATE_${suffix}`),
       update: isAdmin || permissions.includes(`UPDATE_${suffix}`),
       delete: isAdmin || permissions.includes(`DELETE_${suffix}`),
+      readLogs: isAdmin || permissions.includes(customer ? 'READ_CUSTOMER_LOG' : 'READ_UNI_ID_LOG'),
       resetPassword: isAdmin || permissions.includes(`RESET_PASSWORD_${suffix}`) }
     if (customer) {
       auth.create = auth.delete = auth.resetPassword = false
@@ -202,12 +207,35 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
         throw error
       }
     },
-    async detail({ uid: targetId } = {}) {
+    async detail({ uid: targetId, view, current = 1, size = 20 } = {}) {
       const auth = await authorize()
       if (typeof targetId !== 'string' || !targetId || targetId.length > 100) fail('用户 ID 不正确')
       const user = await getUser(targetId)
       if (!user) fail('用户不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
       assertAccountType(user)
+      const paginated = view === 'logs'
+      if (paginated) validatePagination(current, size)
+      const readLogs = async () => {
+        const logsAllowed = auth.readLogs
+        let logs = [], logsError = ''
+        const pagination = { current, size, count: 0 }
+        if (logsAllowed) {
+          try {
+            const query = db.collection('uni-id-log').where({ user_id: targetId, type: cmd.neq('user-delegation') })
+            if (paginated) {
+              pagination.count = (await query.count()).total
+              pagination.current = Math.min(current, Math.max(1, Math.ceil(pagination.count / size)))
+            }
+            const result = await query
+              .field({ _id: true, create_date: true, type: true, ip: true, state: true, appid: true })
+              .orderBy('create_date', 'desc').orderBy('_id', 'desc')
+              .skip(paginated ? (pagination.current - 1) * size : 0).limit(paginated ? size : 20).get()
+            logs = result.data
+          } catch { logsError = '登录日志加载失败，请重试' }
+        }
+        return paginated ? { logsAllowed, logs, logsError, pagination } : { logsAllowed, logs, logsError }
+      }
+      if (paginated) return { errCode: 0, ...await readLogs() }
       const allowed = [...Object.keys(fields), 'avatar', 'gender', 'comment', 'register_ip', 'mobile_confirmed', 'email_confirmed', 'my_invite_code', 'inviter_uid', 'invite_time']
       const data = Object.fromEntries(allowed.filter(key => user[key] !== undefined).map(key => [key, user[key]]))
       data.account_type = accountTypeOf(user)
@@ -223,6 +251,7 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
         { name: 'Apple', bound: bound(user.apple_openid) },
         { name: 'QQ', bound: bound(user.qq_openid) || bound(user.qq_unionid) }
       ]
+      if (view === 'profile') return { errCode: 0, data, auth }
       const roleIds = customer ? [] : (user.role || []).filter(id => !auth.isPlatform || id !== 'admin')
       const roles = roleIds.length ? await all('uni-id-roles', { role_id: cmd.in(roleIds) }, { role_id: true, role_name: true, permission: true }) : []
       data.roleDetails = (customer ? [] : user.role || []).map(id => {
@@ -231,30 +260,11 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
         return role ? { ...role, packagePermissions: id === 'admin' }
           : { role_id: id, role_name: id, permission: [], missing: true }
       })
-      const logPermission = customer ? 'READ_CUSTOMER_LOG' : 'READ_UNI_ID_LOG'
-      const logsAllowed = auth.isAdmin || auth.permissions.includes(logPermission)
-      let logs = [], logsError = ''
-      if (logsAllowed) {
-        try {
-          const result = await db.collection('uni-id-log').where({ user_id: targetId, type: cmd.neq('user-delegation') })
-            .field({ _id: true, create_date: true, type: true, ip: true, state: true, appid: true })
-            .orderBy('create_date', 'desc').limit(20).get()
-          logs = result.data
-        } catch { logsError = '登录日志加载失败，请刷新重试' }
-      }
-      return { errCode: 0, data, auth, logsAllowed, logs, logsError }
+      return { errCode: 0, data, auth, ...await readLogs() }
     },
     async list({ current = 1, size = 20, keyword = '', status = '', role = '', department_id = '' } = {}) {
       const auth = await authorize()
-      if (
-        !Number.isInteger(current) ||
-        current < 1 ||
-        current > 100000 ||
-        !Number.isInteger(size) ||
-        size < 1 ||
-        size > 100
-      )
-        fail('分页参数不正确')
+      validatePagination(current, size)
       if (typeof keyword !== 'string' || keyword.length > 80 || typeof role !== 'string' || role.length > 100)
         fail('筛选条件不正确')
       const filters = [{ account_type: accountType }]

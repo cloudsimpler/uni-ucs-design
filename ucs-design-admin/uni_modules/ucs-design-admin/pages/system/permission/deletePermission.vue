@@ -1,6 +1,6 @@
 <!-- 删除权限 -->
 <template>
-	<el-dialog v-model="visible" title="确认删除表权限" :close-on-click-modal="false" align-center width="min(90vw, 520px)">
+	<el-dialog v-model="visible" title="确认删除表权限" class="admin-form-dialog" :close-on-click-modal="false" align-center width="min(90vw, 520px)">
 		<el-form :model="form" @submit.prevent="handleSubmit" ref="formRef">
 			<text class="prkv_S">{{sendParams.permission_id}}</text>
 			<el-form-item prop="table_name" label="验证" required
@@ -21,6 +21,7 @@
 </template>
 
 <script setup>
+import '../../../common/form-dialog.css';
 import { ElButton, ElCol, ElDialog, ElForm, ElFormItem, ElInput, ElRow } from 'element-plus';
 import 'element-plus/es/components/button/style/css.mjs';
 import 'element-plus/es/components/col/style/css.mjs';
