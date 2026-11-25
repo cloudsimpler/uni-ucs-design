@@ -83,8 +83,10 @@ function memoryDatabase() {
       } }
     }
     return { collection: transactionCollection, async commit() {}, async rollback() {
-      tables.clear()
-      for (const [name, data] of snapshot) tables.set(name, data)
+      for (const [name, table] of tables) {
+        table.clear()
+        for (const [id, row] of snapshot.get(name) || []) table.set(id, row)
+      }
     } }
   } }
 }
@@ -116,25 +118,6 @@ test('登录链接识别有效租户，重新登录链接携带原租户号', as
   assert.equal(getLoginRedirectUrl(), `${loginPath}?tenant_no=00001`)
   rememberLoginTenant('invalid')
   assert.equal(getLoginRedirectUrl(), loginPath)
-})
-
-test('系统用户和社区用户共用全局唯一的 user_no 分配空间', async () => {
-  const { createNumberedUser } = require(path.join(root, 'lib/utils/user-number'))
-  const indexes = JSON.parse(fs.readFileSync(path.resolve(root, '../../database/uni-id-users.index.json'), 'utf8'))
-  const index = indexes.find(item => item.IndexName === 'user_no').MgoKeySchema
-  assert.equal(index.MgoIsUnique, true)
-  assert.deepEqual(index.MgoIndexKeys.map(key => key.Name), ['user_no'])
-  const users = new Map()
-  const insert = async user => {
-    if (users.has(user.user_no)) throw new Error('E11000 duplicate key user_no')
-    users.set(user.user_no, user)
-    return user.user_no
-  }
-  await createNumberedUser({ account_type: 0 }, insert, () => '1000000000')
-  const candidates = ['1000000000', '1000000001']
-  const number = await createNumberedUser({ account_type: 1 }, insert, () => candidates.shift())
-  assert.equal(number, '1000000001')
-  assert.equal(users.get('1000000000').account_type, 0)
 })
 
 test('登录复用签发所需的授权数据，只清理本租户已绑定角色中失效的授权', async t => {
@@ -238,6 +221,11 @@ test('系统用户操作按令牌授权，旧角色授权不拦截操作', async
     uid: 'operator', appId: 'test'
   })
   const admin = adminWith(permissions)
+  const customerAdmin = createUserAdmin({
+    db: scopedDatabase(db, { tenantId: 'tenant-a', user: employee, permissions: ['READ_UNI_ID_CUSTOMERS'] }),
+    uid: 'operator', appId: 'test', accountType: 1
+  })
+  assert.deepEqual((await customerAdmin.list({ keyword: '1390000' })).data.map(row => row._id), ['community-user'])
   const logs = db.collection('uni-id-log')
   await logs.add({ _id: 'own-login', tenant_id: 'tenant-a', user_id: 'target', type: 'login' })
   await logs.add({ _id: 'own-logout', tenant_id: 'tenant-a', user_id: 'target', type: 'logout' })
@@ -259,7 +247,27 @@ test('系统用户操作按令牌授权，旧角色授权不拦截操作', async
   assert.deepEqual(await admin.detail({ uid: 'target', view: 'logs' }),
     { errCode: 0, logsAllowed: false, logs: [], logsError: '', pagination: { current: 1, size: 20, count: 0 } })
   const target = await admin.getUser('target')
+  const setUserStatus = require(path.join(root, 'module/admin/set-user-status'))
+  const changeStatus = (claims, uid, status) => setUserStatus.call({
+    adminDb: scopedDatabase(db, { tenantId: 'tenant-a', user: employee, permissions: claims }),
+    authInfo: { uid: 'operator' },
+    getUniversalClientInfo: () => ({ appId: 'test' }),
+    getMethodName: () => 'setUserStatus'
+  }, { uid, status })
+  await assert.rejects(changeStatus(['READ_UNI_ID_USERS'], 'target', 1), { errCode: 'USER_ADMIN_FORBIDDEN' })
+  await assert.rejects(changeStatus(['UPDATE_UNI_ID_USERS'], 'community-user', 1), { errCode: 'USER_ADMIN_FORBIDDEN' })
+  await assert.rejects(changeStatus(['UPDATE_UNI_ID_USERS'], 'foreign', 1), { errCode: 'ACCOUNT_IDENTITY_INVALID' })
+  await assert.rejects(changeStatus(['UPDATE_UNI_ID_USERS'], 'tenant-admin', 1), { errCode: 'USER_ADMIN_FORBIDDEN' })
+  await changeStatus(['UPDATE_UNI_ID_USERS'], 'target', 1)
+  const disabled = await admin.getUser('target')
+  assert.equal(disabled.status, 1)
+  assert.deepEqual(disabled.token, [])
+  assert.ok(disabled.valid_token_date > 0)
+  await changeStatus(['UPDATE_UNI_ID_USERS'], 'target', 0)
+  assert.equal((await admin.getUser('target')).status, 0)
   await admin.validateChange({ uid: 'target', nickname: '新名称' }, target)
+  await assert.rejects(admin.validateChange({ uid: 'target', nickname: ' ' }, target), { errMsg: '请输入姓名' })
+  await assert.rejects(admin.validateChange({ uid: 'target', mobile: '' }, target), { errMsg: '请输入手机号' })
   assert.deepEqual((await admin.options()).roles.map(role => role.role_id), ['old'])
   await admin.validateChange({ uid: 'target', role: [] }, target)
   await assert.rejects(adminWith(['CREATE_UNI_ID_USERS']).validateChange({ nickname: '新用户', gender: 1, role: ['old'] }),
@@ -440,6 +448,7 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     name: '系统人员', remark: '  用于人员管理  ', menu_ids: ['system_user']
   })
   const packageData = await run('listProductPackages', 'root')
+  assert.equal(packageData.auth.delete, true)
   assert.equal(Object.hasOwn(packageData, 'menus'), false)
   assert.deepEqual(packageData.pagination, { current: 1, size: 20, count: 1 })
   const packageAuthorization = await run('getProductPackageAuthorization', 'root')
@@ -475,6 +484,9 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   const packagePage = await run('listProductPackages', 'root', { keyword: '运营', size: 1 })
   assert.deepEqual(packagePage.data.map(row => row._id), [operationsPackage])
   assert.deepEqual(packagePage.pagination, { current: 1, size: 1, count: 1 })
+  const byPackageId = await run('listProductPackages', 'root', { keyword: ' ' + pkg + ' ' })
+  assert.deepEqual(byPackageId.data.map(row => row._id), [pkg])
+  await assert.rejects(run('deleteProductPackage', 'operator', { _id: pkg }), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
   const productRemark = async () => (await run('listProductPackages', 'root')).data.find(row => row._id === pkg).remark
   assert.equal(await productRemark(), '用于人员管理')
   const { id: a } = await run('createTenant', 'root', { tenant_no: '00001', name: '企业甲' })
@@ -495,6 +507,12 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   for (const _id of [a, b]) await run('assignTenantPackage', 'root', { _id, product_package_ids: [pkg] })
   await run('assignTenantPackage', 'root', { _id: a, product_package_ids: [pkg, addOn, addOn] })
   assert.deepEqual((await db.collection('ucsdb-tenants').doc(a).get()).data[0].product_package_ids, [pkg, addOn])
+  await assert.rejects(run('deleteProductPackage', 'root', { _id: addOn }), { errCode: 'PRODUCT_PACKAGE_IN_USE' })
+  const { id: unusedPackage } = await run('saveProductPackage', 'root', { name: '待删除产品包' })
+  await run('deleteProductPackage', 'root', { _id: unusedPackage })
+  assert.equal((await db.collection('ucsdb-product-packages').doc(unusedPackage).get()).data.length, 0)
+  await assert.rejects(run('assignTenantPackage', 'root', { _id: b, product_package_ids: [unusedPackage] }), { errCode: 'TENANT_INVALID' })
+  assert.deepEqual((await db.collection('ucsdb-tenants').doc(b).get()).data[0].product_package_ids, [pkg])
   assert.equal(await resolveEntryTenant(db, '00001'), a)
   assert.equal(await resolveEntryTenant(db, '00002'), b)
   for (const tenant_id of [a, b]) {

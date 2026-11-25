@@ -44,7 +44,6 @@
 				</template>
 			</el-table-column>
 			<el-table-column prop="appid" label="AppID" min-width="210" align="center" show-overflow-tooltip />
-			<el-table-column prop="tenant_no" label="租户号" width="100" align="center" />
 			<el-table-column label="应用类型" width="130" align="center">
 				<template #default="{ row }">{{ row.app_type === 1 ? 'uni-app x' : 'uni-app' }}</template>
 			</el-table-column>

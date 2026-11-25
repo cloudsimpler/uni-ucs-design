@@ -145,6 +145,7 @@ module.exports = {
   },
   getCurrentUserProfile: require('./module/account/get-current-user-profile'),
   ...require('./module/admin/customer-methods'),
+  setUserStatus: adminMethods.setUserStatus,
   ...require('./module/admin/asset-methods'),
   ...dictionaryMethods,
   ...require('./module/admin/department-methods'),

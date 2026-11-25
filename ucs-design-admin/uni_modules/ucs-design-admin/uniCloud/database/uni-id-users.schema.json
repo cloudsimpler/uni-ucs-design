@@ -11,16 +11,6 @@
 		"delete": false
 	},
 	"properties": {
-		"user_no": {
-			"bsonType": "string",
-			"title": "UID",
-			"description": "服务端分配的固定10位随机数字，各身份共用",
-			"pattern": "^[1-9][0-9]{9}$",
-			"permission": {
-				"read": true,
-				"write": false
-			}
-		},
 		"is_root": {
 			"bsonType": "bool",
 			"description": "初始超级管理员，仅此账号存 true，普通账号不存此字段",

@@ -64,7 +64,26 @@ function searchPackages(db, params, fields) {
   if (!params || typeof params !== 'object' || Array.isArray(params)) invalid('产品包查询参数不正确')
   const { keyword = '' } = params
   if (typeof keyword !== 'string' || keyword.trim().length > 80) invalid('搜索关键词最多输入 80 字')
-  return searchPage(db, PACKAGES, keyword.trim() ? { name: literal(keyword) } : {}, 'name', params, fields)
+  const id = keyword.trim()
+  const where = id ? db.command.or([{ _id: id }, { name: literal(id) }]) : {}
+  return searchPage(db, PACKAGES, where, 'name', params, fields)
+}
+
+// Assignment and deletion both write the package document to serialize changes to its references.
+async function withPackageTransaction(db, ids, operation) {
+  const transaction = await db.startTransaction()
+  try {
+    const packages = transaction.collection(PACKAGES)
+    for (const id of [...ids].sort()) {
+      const { updated } = await packages.doc(id).update({ assignment_revision: db.command.inc(1) })
+      if (!updated) invalid('产品包不存在或已删除，请刷新后重试')
+    }
+    await operation(transaction)
+    await transaction.commit()
+  } catch (error) {
+    await transaction.rollback().catch(() => {})
+    throw error
+  }
 }
 
 function nameOf(value) {
@@ -146,10 +165,11 @@ module.exports = {
       product_package_ids.some(id => typeof id !== 'string' || !id || id.length > 100))
       invalid('请选择有效的产品包')
     const ids = [...new Set(product_package_ids)]
-    if ((await readByIds(db, PACKAGES, '_id', ids)).length !== ids.length) invalid('请选择有效的产品包')
-    await db.collection(TENANTS).doc(tenant._id).update({
+    const update = source => source.collection(TENANTS).doc(tenant._id).update({
       product_package_ids: ids, ...updateFields(actor)
     })
+    if (ids.length) await withPackageTransaction(db, ids, update)
+    else await update(db)
     return { errCode: 0 }
   },
   async setTenantStatus({ _id, enabled } = {}) {
@@ -208,6 +228,18 @@ module.exports = {
     }
     const { id } = await db.collection(PACKAGES).add({ ...value, ...createFields(actor) })
     return { errCode: 0, id }
+  },
+  async deleteProductPackage({ _id } = {}) {
+    const { db, actor } = await platform(this)
+    required(actor, packageRights.delete)
+    if (typeof _id !== 'string' || !_id || _id.length > 100) invalid('产品包 ID 不正确')
+    await withPackageTransaction(db, [_id], async transaction => {
+      const { data } = await db.collection(TENANTS)
+        .where({ product_package_ids: db.command.in([_id]) }).field({ _id: true }).limit(1).get()
+      if (data.length) fail('该产品包已分配给租户，请先解除分配', 'PRODUCT_PACKAGE_IN_USE')
+      await transaction.collection(PACKAGES).doc(_id).remove()
+    })
+    return { errCode: 0 }
   },
   async enterTenantManagement({ _id } = {}) {
     const { db, actor } = await platform(this)

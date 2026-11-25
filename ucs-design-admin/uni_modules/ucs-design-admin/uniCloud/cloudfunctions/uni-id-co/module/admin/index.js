@@ -3,6 +3,7 @@ module.exports = {
   ...require('./dictionary-methods'),
   ...require('./department-methods'),
   ...require('./customer-methods'),
+  setUserStatus: require('./set-user-status'),
   deleteUser: require('./delete-user'),
   listDevelopers: require('./list-users'),
   getDeveloperOptions: require('./get-user-options'),

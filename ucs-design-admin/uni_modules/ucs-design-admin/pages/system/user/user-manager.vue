@@ -1,7 +1,6 @@
 <template>
 	<ucs-admin-layout :title="accountLabel + '管理'" mode="table" :pagination="pagination" @change="onPaginationChange">
 		<template #button>
-			<el-button v-if="selectedUsers.length" @click="clearSelection">清空选择</el-button>
 			<el-button v-if="canCreate" type="primary" :disabled="saving || preparing" @click="openEditor()">
 				新增{{ accountLabel }}
 			</el-button>
@@ -14,7 +13,7 @@
 					<el-input
 						v-model="filters.keyword"
                         aria-label="关键词" :prefix-icon="Search"
-						:placeholder="developer ? '请输入账号' : isEmployee ? '账号、姓名或手机号' : '请输入UID或手机号'"
+						:placeholder="developer ? '请输入账号' : isEmployee ? '账号、姓名或手机号' : '请输入手机号'"
 						maxlength="80"
 						clearable
 						@clear="search"
@@ -57,12 +56,10 @@
 					:cell-style="({ column }) => ({ textAlign: column.property === 'username' ? 'left' : 'center' })"
 					row-key="_id"
 					height="100%"
-					@selection-change="selectedUsers = $event"
 				>
 					<template #empty>
 						<el-empty :image-size="100" :description="'暂无符合条件的' + accountLabel" />
 					</template>
-					<el-table-column type="selection" width="48" fixed="left" :selectable="() => !loading && !saving" />
 					<el-table-column
 						label="序号"
 						type="index"
@@ -90,9 +87,6 @@
 							</div>
 						</template>
 					</el-table-column>
-					<el-table-column v-if="customer" prop="user_no" label="UID" min-width="140">
-                        <template #default="{ row }">{{ row.user_no || '—' }}</template>
-                    </el-table-column>
 					<el-table-column label="手机号" min-width="132" show-overflow-tooltip>
 						<template #default="{ row }">{{ row.mobile || '—' }}</template>
 					</el-table-column>
@@ -159,7 +153,7 @@
 								重置密码
 							</el-button>
 							<el-dropdown
-								v-if="auth?.readLogs || canDelegateRow(row) || canRemoveRow(row) || (canChangeStatus && canManage(row) && [0, 1].includes(row.status || 0))"
+								v-if="auth?.readLogs || canDelegateRow(row) || canRemoveRow(row) || hasStatusAction(row)"
 								trigger="click"
 								:disabled="saving || preparing || (row._id === auth?.uid && !auth?.readLogs)"
 								@command="(command) => onUserAction(command, row)"
@@ -172,7 +166,7 @@
 									<el-dropdown-menu>
 										<el-dropdown-item v-if="auth?.readLogs" command="logs">登录日志</el-dropdown-item>
 										<el-dropdown-item v-if="canDelegateRow(row)" command="delegate">进入代管</el-dropdown-item>
-										<el-dropdown-item v-if="canChangeStatus && canManage(row)" :disabled="row.is_root || row._id === auth?.uid" :command="(row.status || 0) === 0 ? 'disable' : 'enable'">
+										<el-dropdown-item v-if="hasStatusAction(row)" :disabled="row.is_root || row._id === auth?.uid" :command="(row.status || 0) === 0 ? 'disable' : 'enable'">
 											{{ (row.status || 0) === 0 ? '禁用账号' : '恢复正常' }}
 										</el-dropdown-item>
 										<el-dropdown-item v-if="canRemoveRow(row)" command="delete" divided style="color: var(--el-color-danger)">
@@ -276,7 +270,7 @@
 					<el-form-item
 						:label="nameLabel"
 						prop="nickname"
-						:rules="[{ required: !isEmployee || !editingId, whitespace: true, message: '请输入' + nameLabel }, { validator: validateNickname }]"
+						:rules="[{ required: true, whitespace: true, message: '请输入' + nameLabel }, { validator: validateNickname }]"
 					>
 						<el-input v-model.trim="form.nickname" :placeholder="'请输入' + nameLabel" maxlength="100" />
 					</el-form-item>
@@ -438,7 +432,6 @@
 							未选择应用，该用户将不能登录任何应用。
 						</text>
 					</el-form-item>
-					<text class="user-field-help user-access-help">修改角色或应用授权后，原有登录会失效。</text>
 				</div>
 			</div>
 			<el-alert
@@ -582,13 +575,8 @@ const filters = reactive({ keyword: '', status: '', role: '', department_id: '' 
 	applied = reactive({ ...filters });
 const pagination = reactive({ current: 1, size: 20, count: 0 });
 const tableRef = ref();
-const selectedUsers = ref([]);
-const clearSelection = () => {
-	tableRef.value?.clearSelection();
-	selectedUsers.value = [];
-};
 const canWrite = computed(() => auth.value?.update === true);
-const canChangeStatus = computed(() => props.customer && auth.value?.status === true);
+const canChangeStatus = computed(() => props.customer ? auth.value?.status === true : !props.developer && canWrite.value);
 const canCreate = computed(() => !props.customer && auth.value?.create === true);
 const canResetPassword = computed(() => !props.customer && auth.value?.resetPassword === true);
 const canAssignRoles = computed(() => !props.customer && canWrite.value);
@@ -601,6 +589,7 @@ const actionColumnWidth = computed(() =>
 	88 + (canWrite.value ? 48 : 0) + (canResetPassword.value ? 76 : 0) + (auth.value?.readLogs || canDelegate.value || canChangeStatus.value || canDelete.value ? 60 : 0)
 );
 const canManage = (row) => auth.value?.canManageAdmin || !(row?.role || []).includes('admin');
+const hasStatusAction = (row) => canChangeStatus.value && canManage(row) && [0, 1].includes(row.status || 0);
 const appOptions = computed(() => [
 	{ appid: '*', name: '全部应用' },
 	{ appid: manifest.appid, name: manifest.name + '（当前应用）' },
@@ -707,7 +696,6 @@ async function loadLoginLogs() {
 }
 const load = async (current = pagination.current) => {
 	const id = ++requestId;
-	clearSelection();
 	loading.value = true;
 	error.value = '';
 	try {
@@ -804,7 +792,7 @@ const isSelf = computed(() => Boolean(editingId.value) && editingId.value === au
 const isEmployee = computed(() => !props.developer && !props.customer);
 const compactEditor = computed(() => !props.developer && !readOnly.value);
 const nameLabel = computed(() => isEmployee.value ? '姓名' : '昵称');
-const requiresMobile = computed(() => isEmployee.value && !editingId.value);
+const requiresMobile = computed(() => isEmployee.value && !original.value.is_root);
 const requiresProfile = computed(() => (isEmployee.value && !original.value.is_root) || !editingId.value);
 const passwordRules = [
 	{ required: true, message: '请输入密码' },
@@ -1085,7 +1073,6 @@ const onUserAction = async (command, row) => {
 		return;
 	}
 	if (command === 'close') return;
-	if (props.customer && ![0, 1].includes(row.status || 0)) return;
 	if (command === 'password') {
 		resetCredentials.value = null;
 		passwordUser.value = row;
@@ -1093,14 +1080,13 @@ const onUserAction = async (command, row) => {
 		passwordVisible.value = true;
 		return;
 	}
-	if (!props.customer) return;
 	const status = { disable: 1, enable: 0 }[command];
-	if (row.is_root && status !== undefined) return;
-	if (status === undefined) return;
+	if (status === undefined || row.is_root || !hasStatusAction(row)) return;
 	const action = status === 1 ? '禁用' : '恢复正常';
+	const entry = props.customer ? '社区' : '后台';
 	try {
 		await ElMessageBox.confirm(
-			`确定将“${row.username || row.nickname || row._id}”${action}？${status === 1 ? '禁用后将无法登录社区。' : '恢复后可正常登录社区。'}`,
+			`确定将“${row.username || row.nickname || row._id}”${action}？${status === 1 ? '禁用后将无法再次登录' : '恢复后可重新登录'}${entry}。`,
             '账号状态确认',
             { type: status === 0 ? 'info' : 'warning', confirmButtonText: status === 1 ? '禁用账号' : '恢复账号' }
 		);
@@ -1109,7 +1095,7 @@ const onUserAction = async (command, row) => {
 	}
 	saving.value = true;
 	try {
-		await call('setCustomerStatus', { uid: row._id, status });
+		await call(props.customer ? 'setCustomerStatus' : 'setUserStatus', { uid: row._id, status });
 		ElMessage.success('账号状态已更新');
 		await load();
 	} catch (e) {
@@ -1416,13 +1402,6 @@ const resetPassword = async () => {
 .user-avatar-field :deep(.el-form-item__label) {
 	align-self: flex-start;
 }
-.user-editor-grid > .user-access-help {
-	box-sizing: border-box;
-	min-width: 0;
-	padding-left: 108px;
-	margin: -8px 0 0;
-	overflow-wrap: anywhere;
-}
 .user-editor-grid .user-field-full {
 	grid-column: 1 / -1;
 }
@@ -1434,9 +1413,6 @@ const resetPassword = async () => {
 }
 .user-editor-form--compact .user-editor-grid :deep(.el-form-item__label) {
 	padding-right: 12px;
-}
-.user-editor-form--compact .user-access-help {
-	padding-left: 100px;
 }
 @media (max-width: 600px) {
 	.user-editor-form--compact .user-editor-grid :deep(.el-form-item) {
@@ -1450,9 +1426,6 @@ const resetPassword = async () => {
 		padding: 0;
 		margin-bottom: 8px;
 		line-height: 20px;
-	}
-	.user-editor-form--compact .user-access-help {
-		padding-left: 0;
 	}
 }
 .user-app-checkboxes {

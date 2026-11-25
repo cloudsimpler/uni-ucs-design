@@ -305,5 +305,11 @@
     "permission_id": "UPDATE_UCSDB_PRODUCT_PACKAGES",
     "permission_name": "编辑产品包",
     "sort": 8
+  },
+  {
+    "menu_id": "platform_product_package",
+    "permission_id": "DELETE_UCSDB_PRODUCT_PACKAGES",
+    "permission_name": "删除产品包",
+    "sort": 9
   }
 ]

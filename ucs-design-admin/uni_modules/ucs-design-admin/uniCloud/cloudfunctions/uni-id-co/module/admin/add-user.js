@@ -141,17 +141,14 @@ module.exports = async function (params = {}) {
   userRecord = { ...normalizeIdentifiers(userRecord), account_type: accountType }
   if (userRecord.mobile) userRecord.mobile_confirmed = 0
   delete userRecord.is_root
-  await require('../../lib/utils/user-number').createNumberedUser(
-    { ...userRecord, ...createFields(authorized, data.register_date) },
-    record => {
-      const tenantId = this.adminDb.tenantActor.tenantId
-      if (isEmployee && record.mobile) {
-        return writeSystemMobile({ db: uniCloud.database(), tenantId, mobile: record.mobile },
-          users => users.add({ ...record, tenant_id: tenantId }))
-      }
-      return this.adminDb.collection('uni-id-users').add(record)
-    }
-  )
+  const record = { ...userRecord, ...createFields(authorized, data.register_date) }
+  if (isEmployee && record.mobile) {
+    const tenantId = this.adminDb.tenantActor.tenantId
+    await writeSystemMobile({ db: uniCloud.database(), tenantId, mobile: record.mobile },
+      users => users.add({ ...record, tenant_id: tenantId }))
+  } else {
+    await this.adminDb.collection('uni-id-users').add(record)
+  }
   return {
     errCode: 0,
     errMsg: ''

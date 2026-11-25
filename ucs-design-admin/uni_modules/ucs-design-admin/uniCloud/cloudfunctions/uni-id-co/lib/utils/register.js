@@ -18,7 +18,6 @@ const {
 const PasswordUtils = require('./password')
 const { registerRootWithApp } = require('./register-root')
 const { PLATFORM_TENANT_ID } = require('./platform-tenant')
-const { createNumberedUser } = require('./user-number')
 const { createFields } = require('./record-metadata')
 const { assertRegistration, registrationType, normalizeIdentifiers } = require('./account-policy')
 const { 
@@ -202,9 +201,9 @@ async function postRegister (params = {}) {
   const record = { ...userRecord,
     tenant_id: this.entryTenantId || PLATFORM_TENANT_ID,
     ...createFields(undefined, registeredAt) }
-  const { id: uid } = await createNumberedUser(record, numberedRecord => this.getMethodName() === 'registerAdmin'
-    ? registerRootWithApp(uniCloud.database(), numberedRecord, this.getUniversalClientInfo(), params.applicationName, params.applicationType)
-    : userCollection.add(numberedRecord))
+  const { id: uid } = await (this.getMethodName() === 'registerAdmin'
+    ? registerRootWithApp(uniCloud.database(), record, this.getUniversalClientInfo(), params.applicationName, params.applicationType)
+    : userCollection.add(record))
 
   const createTokenRes = await this.uniIdCommon.createToken({
     uid

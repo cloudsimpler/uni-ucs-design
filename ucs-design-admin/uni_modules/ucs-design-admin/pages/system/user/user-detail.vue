@@ -28,10 +28,6 @@
 								<dd>{{ user.username || '—' }}</dd>
 							</div>
 							<div>
-								<dt>UID：</dt>
-								<dd>{{ user.user_no || '—' }}</dd>
-							</div>
-							<div>
 								<dt>账号身份：</dt>
 								<dd class="detail-tags">
 									<el-tag size="small">{{ ['系统用户', '社区用户'][user.account_type] }}</el-tag>

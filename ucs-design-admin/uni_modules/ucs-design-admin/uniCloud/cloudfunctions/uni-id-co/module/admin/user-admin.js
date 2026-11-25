@@ -18,7 +18,6 @@ const { actorName, updateFields } = require('../../lib/utils/record-metadata')
 const fields = Object.fromEntries(
   [
     '_id',
-    'user_no',
     'is_root',
     'account_type',
     'username',
@@ -93,17 +92,14 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
       fail('没有此项用户管理权限', 'USER_ADMIN_FORBIDDEN')
     return auth
   }
-  const validateChange = async (params, old, authorized) => {
+  const validateChange = async (params, old, authorized, { statusAction = false } = {}) => {
     rejectRootInput(params)
     if (Object.prototype.hasOwnProperty.call(params, 'id_card')) fail('已移除身份证号字段，不支持录入')
-    if (params.user_no !== undefined) fail('UID由系统分配，不允许修改')
     if (params.account_type !== undefined) fail('账号类型由管理入口指定，不允许修改')
     if (customer) {
       if (!params.uid) fail('客户账号请通过客户端注册')
       const allowed = ['uid', 'avatar', 'nickname', 'gender', 'mobile', 'email', 'tags', 'status']
       if (Object.keys(params).some(key => !allowed.includes(key))) fail('客户管理仅支持修改基础资料和账号状态')
-      if (params.status !== undefined && ![0, 1].includes(params.status)) fail('客户管理仅支持禁用或恢复正常')
-      if (params.status !== undefined && old && ![0, 1].includes(old.status || 0)) fail('此账号状态不支持在客户管理中恢复')
     }
     const resetOnly = params.password !== undefined && Object.keys(params).every(key => ['uid', 'password'].includes(key))
     const auth = authorized || await authorize(params.uid ? (resetOnly ? 'resetPassword' : 'update') : 'create')
@@ -113,20 +109,23 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
     if (params.uid && !old) fail('用户不存在或已被删除', 'USER_ADMIN_NOT_FOUND')
     assertAccountType(old)
     if (old) assertRootChange(old, { role: params.role, status: params.status, dcloud_appid: params.authorizedApp, mobile: params.mobile, email: params.email })
-    if (!customer && params.status !== undefined) fail('系统用户管理不能修改账号状态')
-    if (params.status !== undefined && old?._id === uid) fail('不能禁用或恢复当前登录账号')
+    if (params.status !== undefined) {
+      if (!statusAction) fail('请通过账号状态操作禁用或恢复账号')
+      if (old?.is_root || old?._id === uid) fail('不能禁用或恢复初始管理员或当前登录账号', 'USER_ADMIN_FORBIDDEN')
+      if (![0, 1].includes(params.status) || ![0, 1].includes(old?.status || 0)) fail('此账号状态不支持禁用或恢复')
+    }
     for (const [key, max] of Object.entries({ username: 80, nickname: 100, mobile: 20, email: 100, password: 64 })) {
       if (params[key] !== undefined && (typeof params[key] !== 'string' || params[key].length > max))
         fail('账号资料或密码长度不正确')
     }
-    if ((!params.uid || (accountType !== ACCOUNT_TYPE.EMPLOYEE && params.nickname !== undefined)) && !params.nickname?.trim()) fail('请输入昵称')
+    if ((!params.uid || params.nickname !== undefined) && !params.nickname?.trim())
+      fail(customer ? '请输入昵称' : '请输入姓名')
+    if (!customer && params.mobile !== undefined && !params.mobile.trim()) fail('请输入手机号')
     if (!params.uid || accountType === ACCOUNT_TYPE.EMPLOYEE) {
       // Partial actions (avatar upload, password reset, status changes) omit profile fields.
       if ((!params.uid || params.gender !== undefined) && !(old?.is_root && params.gender === 0) && ![1, 2].includes(params.gender)) fail('请选择男或女')
     }
     if (params.mobile && !/^1\d{10}$/.test(params.mobile)) fail('请输入有效的 11 位手机号')
-    if (params.status !== undefined && (!Number.isInteger(params.status) || params.status < 0 || params.status > 4))
-      fail('用户状态不正确')
     if (params.gender !== undefined && ![0, 1, 2].includes(params.gender)) fail('性别不正确')
     if (params.avatar !== undefined && (typeof params.avatar !== 'string' || params.avatar.length > 2048 ||
       (params.avatar !== '' && !/^(https?:\/\/|cloud:\/\/)[^\s]+$/i.test(params.avatar)))) fail('头像文件地址无效，请重新上传图片')
@@ -270,8 +269,9 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
       const filters = [{ account_type: accountType }]
       if (keyword.trim()) {
         const regex = new RegExp(keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
-        const searchFields = customer ? ['user_no', 'mobile'] : ['username', 'nickname', 'mobile']
-        filters.push(cmd.or(searchFields.map((key) => ({ [key]: key === 'username' ? new RegExp(regex.source) : regex }))))
+        filters.push(customer ? { mobile: regex } : cmd.or([
+          { username: new RegExp(regex.source) }, { nickname: regex }, { mobile: regex }
+        ]))
       }
       if (status !== '') {
         if (!Number.isInteger(status) || status < 0 || status > 4) fail('用户状态不正确')

@@ -3,7 +3,7 @@
 		<template #header>
 			<el-form class="platform-search" inline @submit.prevent="search">
 				<el-form-item>
-					<el-input v-model="keyword" :prefix-icon="Search" aria-label="产品包名称" placeholder="产品包名称" maxlength="80" clearable @clear="search" />
+					<el-input v-model="keyword" :prefix-icon="Search" aria-label="产品包编号或名称" placeholder="请输入产品包编号或名称" maxlength="80" clearable @clear="search" />
 				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" native-type="submit" :loading="loading">查询</el-button>
@@ -21,17 +21,20 @@
 				<template #empty><el-empty :image-size="100" :description="error ? '产品包加载失败，请刷新重试' : '暂无符合条件的产品包'" /></template>
 				<el-table-column type="index" label="序号" width="64" align="center"
 					:index="(index) => (pagination.current - 1) * pagination.size + index + 1" />
-				<el-table-column prop="name" label="产品包名称" min-width="180" show-overflow-tooltip />
-				<el-table-column prop="remark" label="备注" min-width="260" show-overflow-tooltip>
+				<el-table-column prop="_id" label="产品包 ID" width="220" align="center" show-overflow-tooltip />
+				<el-table-column prop="name" label="产品包名称" min-width="180" align="center" show-overflow-tooltip />
+				<el-table-column prop="remark" label="备注" min-width="260" align="center" show-overflow-tooltip>
 					<template #default="{ row }">{{ row.remark || '—' }}</template>
 				</el-table-column>
-				<el-table-column label="操作" width="200" align="center">
+				<el-table-column label="操作" width="224" align="center" fixed="right">
 					<template #default="{ row }">
 						<template v-if="auth.update">
 							<el-button size="small" plain type="warning" @click="open(row, true)">菜单权限</el-button>
 							<el-button size="small" plain type="primary" @click="open(row)">编辑</el-button>
 						</template>
-						<span v-else>—</span>
+						<el-button v-if="auth.delete" size="small" plain type="danger" :loading="deletingId === row._id"
+							:disabled="!!deletingId && deletingId !== row._id" @click="removePackage(row)">删除</el-button>
+						<span v-if="!auth.update && !auth.delete">—</span>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -80,7 +83,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
-import { ElAlert, ElButton, ElCheckbox, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElTable, ElTableColumn, ElTree, vLoading } from 'element-plus';
+import { ElAlert, ElButton, ElCheckbox, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElMessage, ElMessageBox, ElTable, ElTableColumn, ElTree, vLoading } from 'element-plus';
 import { Refresh, Search } from '@element-plus/icons-vue';
 import 'element-plus/es/components/tree/style/css.mjs';
 import { menuTree, MENU_TYPE } from '../../../common/menu.js';
@@ -92,6 +95,7 @@ const api = importTenantAdmin();
 const { rows, auth, keyword, pagination, loading, error, load, search, reset, changePage } = usePlatformList(params => api.listProductPackages(params));
 const menus = ref([]);
 const saving = ref(false), editor = ref(false);
+const deletingId = ref('');
 const loadingAuthorization = ref(false), authorizationLoaded = ref(false);
 let authorizationRequest = 0;
 const editingPermissions = ref(false);
@@ -172,6 +176,23 @@ async function save() {
 		await load();
 	} catch (e) { editorError.value = message(e); }
 	finally { saving.value = false; }
+}
+
+async function removePackage(row) {
+	if (!auth.value.delete || deletingId.value) return;
+	deletingId.value = row._id;
+	try {
+		await ElMessageBox.confirm(`确定删除产品包“${row.name}”？删除后无法恢复，已分配给租户的产品包须先解除分配。`,
+			'删除产品包', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' });
+		const result = await api.deleteProductPackage({ _id: row._id });
+		if (result.errCode) throw result;
+		ElMessage.success('产品包已删除');
+		await load();
+	} catch (e) {
+		if (e !== 'cancel' && e !== 'close') ElMessage.error(message(e));
+	} finally {
+		deletingId.value = '';
+	}
 }
 
 onMounted(load);

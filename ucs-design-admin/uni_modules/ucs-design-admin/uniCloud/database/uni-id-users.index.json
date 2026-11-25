@@ -1,18 +1,5 @@
 [
   {
-    "IndexName": "user_no",
-    "MgoKeySchema": {
-      "MgoIndexKeys": [
-        {
-          "Name": "user_no",
-          "Direction": "1",
-          "Type": "varchar"
-        }
-      ],
-      "MgoIsUnique": true
-    }
-  },
-  {
     "IndexName": "account_type",
     "MgoKeySchema": {
       "MgoIndexKeys": [

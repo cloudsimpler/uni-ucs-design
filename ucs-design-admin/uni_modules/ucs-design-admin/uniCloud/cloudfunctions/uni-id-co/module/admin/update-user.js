@@ -50,7 +50,7 @@ module.exports = async function (params = {}) {
     }
     params = { uid: params.uid, password: chars.join('') }
   }
-  authorized ||= await admin.authorize(this.getMethodName() === 'setCustomerStatus' ? 'status' : params.password !== undefined && Object.keys(params).every(key => ['uid', 'password'].includes(key)) ? 'resetPassword' : 'update')
+  authorized ||= await admin.authorize(params.password !== undefined && Object.keys(params).every(key => ['uid', 'password'].includes(key)) ? 'resetPassword' : 'update')
   const schema = {
     avatar: { required: false, type: 'string' },
     gender: { required: false, type: 'number' },

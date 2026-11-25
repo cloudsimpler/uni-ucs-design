@@ -31,6 +31,10 @@
         "bsonType": "string"
       }
     },
+    "assignment_revision": {
+      "description": "产品包分配和删除操作的并发控制版本号",
+      "bsonType": "int"
+    },
     "create_id": {
       "description": "创建人账号 ID",
       "bsonType": "string"

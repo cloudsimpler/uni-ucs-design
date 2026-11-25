@@ -24,7 +24,8 @@ const tenantRights = {
 const packageRights = {
   read: 'READ_UCSDB_PRODUCT_PACKAGES',
   create: 'CREATE_UCSDB_PRODUCT_PACKAGES',
-  update: 'UPDATE_UCSDB_PRODUCT_PACKAGES'
+  update: 'UPDATE_UCSDB_PRODUCT_PACKAGES',
+  delete: 'DELETE_UCSDB_PRODUCT_PACKAGES'
 }
 const permissions = [
   [TENANT_MENU, tenantRights.read, '查看租户'],
@@ -34,7 +35,8 @@ const permissions = [
   [TENANT_MENU, tenantRights.enter, '进入代管'],
   [PACKAGE_MENU, packageRights.read, '查看产品包'],
   [PACKAGE_MENU, packageRights.create, '新增产品包'],
-  [PACKAGE_MENU, packageRights.update, '编辑产品包']
+  [PACKAGE_MENU, packageRights.update, '编辑产品包'],
+  [PACKAGE_MENU, packageRights.delete, '删除产品包']
 ].map(([menu_id, permission_id, permission_name], index) => ({ menu_id, permission_id, permission_name, sort: index + 1 }))
 
 module.exports = { DIRECTORY, MENU_MANAGEMENT, DICTIONARY, menus, legacyMenuNames, permissions, defaultPlatformPageIds, tenantRights, packageRights }

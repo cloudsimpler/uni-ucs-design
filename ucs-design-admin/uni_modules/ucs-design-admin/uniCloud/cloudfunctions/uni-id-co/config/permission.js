@@ -33,6 +33,7 @@ module.exports = {
   getCurrentUserProfile: { auth: true },
   listCustomers: { auth: true }, getCustomerOptions: { auth: true }, getCustomerDetail: { auth: true },
   updateCustomer: { auth: true }, setCustomerStatus: { auth: true },
+  setUserStatus: { auth: true },
   deleteUser: { auth: true },
   listDevelopers: { auth: true }, getDeveloperOptions: { auth: true }, getDeveloperDetail: { auth: true },
   addDeveloper: { auth: true }, updateDeveloper: { auth: true },
