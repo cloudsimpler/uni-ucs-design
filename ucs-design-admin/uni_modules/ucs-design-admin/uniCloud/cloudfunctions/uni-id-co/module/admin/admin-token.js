@@ -1,7 +1,9 @@
 const { PLATFORM_TENANT_ID, TENANTS } = require('../../lib/utils/platform-tenant')
+const { checkLoginToken } = require('../../lib/utils/login-token')
 const { readDoc, resolveTenantScope, enterpriseScope, platformActor, fail } = require('./tenant-scope')
 const { tenantRights } = require('./tenant-catalog')
 const { cleanLoginRoleGrants } = require('./login-role-grants')
+const { signDelegationToken, verifyDelegationToken } = require('./delegation-token')
 
 function claimsFor(scope, appId) {
   const { _id, name, tenant_no, type } = scope.tenant
@@ -25,6 +27,15 @@ function scopeFrom(payload, claims, appId) {
   return { ...claims, uid: payload.uid, tenantId: claims.tenant._id }
 }
 
+function decodeAdminClaims(claims) {
+  if (typeof claims !== 'string') return claims
+  try {
+    return JSON.parse(Buffer.from(claims, 'base64url').toString('utf8'))
+  } catch {
+    fail('后台权限快照无效，请重新登录', 'uni-id-check-token-failed')
+  }
+}
+
 function installAdminTokenIssuer(context) {
   const previous = context.uniIdCommon.interceptorMap?.get('customToken')
   context.uniIdCommon.setInterceptor('customToken', async (claims) => {
@@ -41,7 +52,9 @@ function installAdminTokenIssuer(context) {
       }
     })
     const scope = await resolveTenantScope(db, claims.uid, appId, { user, tenant: user && context.entryTenant, cleanGrants })
-    return { ...tokenClaims, ucsAdmin: claimsFor(scope, appId) }
+    // The Web SDK decodes the outer JWT payload with atob. Keep this claim ASCII-safe.
+    const snapshot = Buffer.from(JSON.stringify(claimsFor(scope, appId))).toString('base64url')
+    return { ...tokenClaims, ucsAdmin: snapshot }
   })
 }
 
@@ -53,15 +66,16 @@ function needsRenewal(context, payload) {
 async function authenticateAdmin(context, credential) {
   const appId = context.getUniversalClientInfo().appId
   const token = context.getUniversalUniIdToken()
-  let payload = checked(await context.uniIdCommon.checkToken(token, { autoRefresh: false }))
-  if (payload.ucsAdmin) scopeFrom(payload, payload.ucsAdmin, appId)
-  if (!payload.ucsAdmin || needsRenewal(context, payload)) {
+  let payload = await checkLoginToken(context, token)
+  let baseScope = payload.ucsAdmin === undefined
+    ? undefined : scopeFrom(payload, decodeAdminClaims(payload.ucsAdmin), appId)
+  if (typeof payload.ucsAdmin !== 'string' || needsRenewal(context, payload)) {
     context.issueAdminScope = true
     const renewal = checked(await context.uniIdCommon.refreshToken({ token }))
-    payload = checked(await context.uniIdCommon.checkToken(renewal.token, { autoRefresh: false }))
+    payload = await checkLoginToken(context, renewal.token)
+    baseScope = scopeFrom(payload, decodeAdminClaims(payload.ucsAdmin), appId)
     context.response.newToken = { token: renewal.token, tokenExpired: renewal.tokenExpired }
   }
-  const baseScope = scopeFrom(payload, payload.ucsAdmin, appId)
   context.authInfo = payload
   context.entryTenantId = baseScope.tenantId
   context.platformTokenExpires = payload.exp * 1000
@@ -90,8 +104,8 @@ async function authenticateAdmin(context, credential) {
 
 async function verifyDelegation(context, credential) {
   if (typeof credential !== 'string' || !credential) fail('代管凭证无效', 'TENANT_SESSION_INVALID')
-  const payload = await context.uniIdCommon.checkDelegationToken(credential)
-  if (payload.errCode || payload.uid !== context.authInfo.uid || payload.ucsDelegation?.kind === 'user')
+  const payload = verifyDelegationToken(context, credential)
+  if (!payload || payload.uid !== context.authInfo.uid || payload.ucsDelegation?.kind === 'user')
     fail('代管凭证已失效，请重新进入', 'TENANT_SESSION_INVALID')
   const scope = scopeFrom(payload, payload.ucsDelegation, context.getUniversalClientInfo().appId)
   if (scope.tenant.type !== 'enterprise' || !scope.sessionId || scope.isAdmin)
@@ -100,10 +114,10 @@ async function verifyDelegation(context, credential) {
 }
 
 async function signDelegation(context, scope) {
-  const result = checked(await context.uniIdCommon.createDelegationToken({
+  const result = signDelegationToken(context, {
     uid: scope.uid, scope: claimsFor(scope, context.getUniversalClientInfo().appId),
     expiresAt: context.platformTokenExpires
-  }))
+  })
   return { delegationToken: result.token, tokenExpired: result.tokenExpired }
 }
 

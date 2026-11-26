@@ -5,21 +5,14 @@ const {
   userCollection
 } = require('../../common/constants')
 const { updateFields } = require('./record-metadata')
+const { checkLoginToken } = require('./login-token')
 
 async function logout () {
   const {
     deviceId
   } = this.getUniversalClientInfo()
   const uniIdToken = this.getUniversalUniIdToken()
-  const payload = await this.uniIdCommon.checkToken(
-    uniIdToken,
-    {
-      autoRefresh: false
-    }
-  )
-  if (payload.errCode) {
-    throw payload
-  }
+  const payload = await checkLoginToken(this, uniIdToken)
   const uid = payload.uid
 
   // 删除token

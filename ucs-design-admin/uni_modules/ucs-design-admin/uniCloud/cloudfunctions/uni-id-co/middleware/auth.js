@@ -1,13 +1,13 @@
 const { readDoc, ownerOf, fail } = require('../module/admin/tenant-scope')
 const { TENANTS, PLATFORM_TENANT_ID } = require('../lib/utils/platform-tenant')
+const { checkLoginToken } = require('../lib/utils/login-token')
 
 module.exports = async function () {
   if (this.authInfo) { // 多次执行auth时如果第一次成功后续不再执行
     return
   }
   const token = this.getUniversalUniIdToken()
-  const initial = await this.uniIdCommon.checkToken(token, { autoRefresh: false })
-  if (initial.errCode) throw initial
+  const initial = await checkLoginToken(this, token)
   if (initial.ucsAdmin) this.issueAdminScope = true
   const threshold = this.config?.tokenExpiresThreshold
   const payload = threshold > 0 && initial.exp * 1000 - Date.now() < threshold * 1000

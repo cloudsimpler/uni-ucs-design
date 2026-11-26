@@ -4,6 +4,7 @@ const { PLATFORM_TENANT_ID, TENANTS } = require('../../lib/utils/platform-tenant
 const { tenantRights } = require('./tenant-catalog')
 const { enterpriseScope, fail, ownerOf, platformActor, readDoc, resolveTenantScope } = require('./tenant-scope')
 const { claimsFor, needsRenewal } = require('./admin-token')
+const { signDelegationToken, verifyDelegationToken } = require('./delegation-token')
 
 const USER_DELEGATION_PERMISSION = 'ENTER_USER_DELEGATION'
 const canEnter = scope => !scope?.userDelegationId &&
@@ -68,12 +69,11 @@ async function recordUserDelegation(context, session, operation) {
 const expiresBy = context => Math.min(context.platformTokenExpires, context.tenantDelegationExpires ?? Infinity)
 
 async function signUserDelegation(context, session) {
-  const credential = await context.uniIdCommon.createDelegationToken({
+  const credential = signDelegationToken(context, {
     uid: context.loginAdminScope.uid,
     scope: session,
     expiresAt: expiresBy(context)
   })
-  if (credential.errCode) throw credential
   return { userDelegationToken: credential.token, tokenExpired: credential.tokenExpired }
 }
 
@@ -106,10 +106,9 @@ async function enterUserManagement({ uid } = {}) {
 
 async function verifyUserDelegation(context, token) {
   if (typeof token !== 'string' || !token) expired()
-  const payload = await context.uniIdCommon.checkDelegationToken(token)
+  const payload = verifyDelegationToken(context, token)
   const session = payload?.ucsDelegation
-  if (payload?.errCode || payload?.uid !== context.loginAdminScope.uid ||
-    !(payload.exp * 1000 > Date.now()) || session?.kind !== 'user' || session.version !== 2 ||
+  if (!payload || payload.uid !== context.loginAdminScope.uid || session?.kind !== 'user' || session.version !== 2 ||
     session.appid !== context.getUniversalClientInfo().appId ||
     !session._id || !session.target_user_id || !session.tenant_id ||
     session.authorization?.tenant?._id !== session.tenant_id || session.authorization.appId !== session.appid ||

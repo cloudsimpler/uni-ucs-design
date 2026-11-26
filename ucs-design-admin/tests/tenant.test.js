@@ -7,7 +7,7 @@ const { createRequire } = require('node:module')
 const root = path.resolve(__dirname, '../uni_modules/ucs-design-admin/uniCloud/cloudfunctions/uni-id-co')
 const { resolveTenantScope, resolveEntryTenant, resolveEntryTenantInfo, scopedDatabase, enterpriseScope } = require(path.join(root, 'module/admin/tenant-scope'))
 const { tenantRights } = require(path.join(root, 'module/admin/tenant-catalog'))
-const { authenticateAdmin, verifyDelegation, installAdminTokenIssuer } = require(path.join(root, 'module/admin/admin-token'))
+const { authenticateAdmin, signDelegation, verifyDelegation, installAdminTokenIssuer } = require(path.join(root, 'module/admin/admin-token'))
 const methods = require(path.join(root, 'module/admin/tenant-methods'))
 const { registerRootWithApp } = require(path.join(root, 'lib/utils/register-root'))
 const { migrateTenantRecords } = require(path.join(root, 'lib/utils/tenant-migration'))
@@ -161,7 +161,7 @@ test('登录复用签发所需的授权数据，只清理本租户已绑定角�
   })
 
   const token = await issue({ uid: user._id })
-  assert.deepEqual(token.ucsAdmin.permissions, ['read-active'])
+  assert.deepEqual(JSON.parse(Buffer.from(token.ucsAdmin, 'base64url')).permissions, ['read-active'])
   assert.deepEqual(reads.sort(), ['ucsdb-admin-menus', 'ucsdb-product-packages', 'uni-id-permissions', 'uni-id-roles'].sort())
   const [bound] = (await roles.doc('bound').get()).data
   assert.deepEqual(bound.menu_ids, ['active'])
@@ -410,21 +410,16 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
       getUniversalClientInfo: () => ({ appId }),
       getUniversalUniIdToken: () => 'token-' + uid,
       getParams: () => [{}, sessionId], platformTokenExpires: expiry * 1000,
-      config: { tokenExpiresThreshold: 3 * 86400 }, response: {}, issueAdminScope: true,
+      config: { tokenExpiresThreshold: 3 * 86400, tokenExpiresIn: 7 * 86400, tokenSecret: 'test-tenant-delegation-key' },
+      response: {}, issueAdminScope: true,
       uniIdCommon: {
         setInterceptor(_name, issuer) { this.issuer = issuer },
         async checkToken(token) { return credentials.get(token) || { errCode: 'INVALID' } },
-        async checkDelegationToken(token) { return credentials.get(token) || { errCode: 'INVALID' } },
         async refreshToken({ token }) {
           const { uid } = credentials.get(token)
           const fresh = 'renewed-' + ++sequence
           credentials.set(fresh, { ...await this.issuer({ uid, role: [], permission: [] }), exp: expiry })
           return { token: fresh, tokenExpired: expiry * 1000 }
-        },
-        async createDelegationToken({ uid, scope }) {
-          const token = 'delegation-' + ++sequence
-          credentials.set(token, { uid, exp: expiry, ucsDelegation: structuredClone(scope) })
-          return { token, tokenExpired: expiry * 1000 }
         }
       }
     }
@@ -653,12 +648,13 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   assert.equal(await productRemark(), '')
   assert.deepEqual((await scope()).permissions, ['READ_UNI_ID_USERS', 'CREATE_UNI_ID_USERS'])
   assert.deepEqual((await scope()).menuIds, ['system_users'])
-  const originalDelegation = credentials.get(session.delegationToken)
-  credentials.set(session.delegationToken, { ...originalDelegation, exp: Math.floor(Date.now() / 1000) + 3600 })
+  const originalDelegation = await verifyDelegation(operator, session.delegationToken)
+  const expiringDelegation = await signDelegation({ ...operator, platformTokenExpires: Date.now() + 3600000 }, originalDelegation.scope)
+  const cappedDelegation = await signDelegation({ ...operator, config: { ...operator.config, tokenExpiresIn: 60 } }, originalDelegation.scope)
+  assert.ok(cappedDelegation.tokenExpired <= Date.now() + 60000)
   const renewal = actor('operator')
-  assert.deepEqual((await authenticateAdmin(renewal, session.delegationToken)).permissions, currentPermissions)
+  assert.deepEqual((await authenticateAdmin(renewal, expiringDelegation.delegationToken)).permissions, currentPermissions)
   assert.ok(renewal.response.newDelegation.delegationToken)
-  credentials.set(session.delegationToken, originalDelegation)
   assert.equal((await run('exitTenantManagement', 'operator', { delegationToken: session.delegationToken })).errCode, 0)
   assert.equal((await scope()).tenantId, a)
   const second = await run('enterTenantManagement', 'operator', { _id: a })
@@ -801,7 +797,7 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   }), { errCode: 'TENANT_INVALID' })
 })
 
-test('签名用户代管限制租户和权限，绑定操作者与父会话并按时到期', async () => {
+test('签名用户代管限制租户和权限，绑定操作者与父会话并按时到期', async t => {
   const db = memoryDatabase()
   global.uniCloud = { database: () => db }
   const {
@@ -810,19 +806,17 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
   const tokenLibrary = { exports: {} }
   const tokenSource = fs.readFileSync(path.resolve(__dirname,
     '../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common/index.js'), 'utf8')
-  let timeOffset = 0
-  class TokenClock extends Date {
-    static now() { return Date.now() + timeOffset }
-  }
   vm.runInNewContext(tokenSource, {
-    module: tokenLibrary, Buffer, Date: TokenClock,
+    module: tokenLibrary, Buffer, Date,
     require: name => name === 'uni-config-center' ? () => ({ hasFile: () => false }) : require(name),
     uniCloud: { database: () => db, initI18n: () => ({ locale: 'zh-Hans', t: key => key }) }
   })
-  const uniIdCommon = tokenLibrary.exports.createInstance({
+  const config = { tokenSecret: 'test-user-delegation-key', tokenExpiresIn: 604800, tokenExpiresThreshold: 259200 }
+  const tokenOptions = {
     clientInfo: { appId: 'test', platform: 'web', locale: 'zh-Hans' },
-    config: { tokenSecret: 'test-user-delegation-key', tokenExpiresIn: 604800 }
-  })
+    config
+  }
+  const uniIdCommon = tokenLibrary.exports.createInstance(tokenOptions)
   const read = 'READ_UNI_ID_USERS'
   const update = 'UPDATE_UNI_ID_USERS'
   await db.collection('ucsdb-admin-menus').add({ menu_id: 'system_users', menu_type: 1, feature_scope: 'product', enable: true })
@@ -846,7 +840,7 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
     await roles.add({ _id: id, role_id, tenant_id: tenant._id, menu_ids: ['system_users'], permission })
   }
   for (const user of [
-    { _id: 'operator', tenant_id: tenant._id, role: ['operator'] },
+    { _id: 'operator', tenant_id: tenant._id, role: ['operator'], nickname: '测试员𠮷🙂' },
     { _id: 'target', tenant_id: tenant._id, role: ['target'] },
     { _id: 'manager', tenant_id: tenant._id, role: ['admin'] },
     { _id: 'unassigned', tenant_id: tenant._id, role: [] },
@@ -860,14 +854,52 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
     return {
       loginAdminScope: scope, adminScope: scope,
       authInfo: { uid }, uniIdCommon,
-      config: { tokenExpiresThreshold: 259200 },
+      config,
       platformTokenExpires: Date.now() + 3600000, getUniversalClientInfo: () => ({ appId: 'test' })
     }
   }
   const operator = await context('operator')
+  const login = {
+    ...operator, response: {}, issueAdminScope: true,
+    getUniversalUniIdToken: () => loginToken.token
+  }
+  installAdminTokenIssuer(login)
+  const loginToken = await uniIdCommon.createToken({ uid: 'operator', role: ['operator'], permission: [read] })
+  assert.equal(loginToken.errCode, 0)
+  const webPayload = token => JSON.parse(atob(token.split('.')[1]))
+  const loginPayload = webPayload(loginToken.token)
+  assert.equal(loginPayload.uid, 'operator')
+  assert.equal(typeof loginPayload.ucsAdmin, 'string')
+  const loginScope = await authenticateAdmin(login)
+  assert.equal(loginScope.tenant.name, '企业甲')
+  assert.equal(loginScope.name, '测试员𠮷🙂')
+  assert.deepEqual(loginScope.permissions, operator.adminScope.permissions)
+  assert.equal(login.response.newToken, undefined)
+  await assert.rejects(authenticateAdmin({
+    ...login, getUniversalClientInfo: () => ({ appId: 'other-app' })
+  }), { errCode: 'uni-id-check-token-failed' })
+
+  const loginClock = t.mock.method(Date, 'now', () => (loginPayload.exp - 60) * 1000)
+  try {
+    const scope = await authenticateAdmin(login)
+    assert.equal(scope.name, '测试员𠮷🙂')
+    const renewedPayload = webPayload(login.response.newToken.token)
+    assert.equal(renewedPayload.uid, 'operator')
+    assert.ok(renewedPayload.exp > loginPayload.exp)
+  } finally {
+    loginClock.mock.restore()
+  }
+
+  const legacyIssuer = tokenLibrary.exports.createInstance(tokenOptions)
+  legacyIssuer.setInterceptor('customToken', claims => ({ ...claims, ucsDelegation: { version: 1 } }))
+  const legacyCredential = await legacyIssuer.createToken({ uid: 'operator', role: [], permission: [] })
+  assert.equal(legacyCredential.errCode, 0)
+  await assert.rejects(authenticateAdmin({ ...login, getUniversalUniIdToken: () => legacyCredential.token }),
+    { errCode: 'uni-id-check-token-failed' })
+
   await assert.rejects(enterUserManagement.call({
     ...operator,
-    uniIdCommon: { createDelegationToken: () => assert.fail('未分配角色的用户不应签发代管令牌') }
+    config: {}
   }, { uid: 'unassigned' }), {
     errCode: 'USER_DELEGATION_FORBIDDEN',
     errMsg: '该用户尚未分配角色，请先分配角色后再进入代管'
@@ -971,9 +1003,9 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
   const renewedParent = { ...nested, tenantDelegationExpires: Date.now() + 2700000 }
   const nestedRenewal = (await resolveUserDelegation(renewedParent, nestedToken)).renewal
   assert.equal(nestedRenewal.tokenExpired, Math.floor(renewedParent.tenantDelegationExpires / 1000) * 1000)
-  timeOffset = 1801000
+  const clock = t.mock.method(Date, 'now', () => nestedEntry.tokenExpired)
   await assert.rejects(resolveUserDelegation(nested, nestedToken), { errCode: 'USER_DELEGATION_INVALID' })
-  timeOffset = 0
+  clock.mock.restore()
   await db.collection('uni-id-permissions').where({ permission_id: USER_DELEGATION_PERMISSION }).remove()
   assert.deepEqual([...(await resolveUserDelegation(nested, nestedToken)).scope.permissions].sort(), [read, update].sort())
   await assert.rejects(resolveUserDelegation(renewedParent, nestedToken), { errCode: 'USER_DELEGATION_INVALID' })
