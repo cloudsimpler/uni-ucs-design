@@ -15,13 +15,15 @@ const { migrateTenantRecords } = require(path.join(root, 'lib/utils/tenant-migra
 function memoryDatabase() {
   const tables = new Map()
   let sequence = 0
+  const removeField = Symbol('removeField')
   const command = {
     and: operands => row => operands.every(filter => matches(row, filter)),
     or: operands => row => operands.some(filter => matches(row, filter)),
     exists: exists => value => exists === (value !== undefined),
     in: values => value => Array.isArray(value) ? value.some(entry => values.includes(entry)) : values.includes(value),
     neq: expected => value => value !== expected,
-    inc: amount => ({ increment: amount })
+    inc: amount => ({ increment: amount }),
+    remove: () => removeField
   }
   function matches(row, filter) {
     return typeof filter === 'function' ? filter(row) : Object.entries(filter).every(([key, value]) => {
@@ -59,7 +61,8 @@ function memoryDatabase() {
           const rows = selected()
           for (const row of rows) {
             for (const [key, value] of Object.entries(patch)) {
-              row[key] = value?.increment ? (row[key] || 0) + value.increment : structuredClone(value)
+              if (value === removeField) delete row[key]
+              else row[key] = value?.increment ? (row[key] || 0) + value.increment : structuredClone(value)
             }
           }
           return { updated: rows.length }
@@ -231,10 +234,11 @@ test('系统用户操作按令牌授权，旧角色授权不拦截操作', async
   await logs.add({ _id: 'own-logout', tenant_id: 'tenant-a', user_id: 'target', type: 'logout' })
   await logs.add({ _id: 'other-tenant-login', tenant_id: 'tenant-b', user_id: 'target', type: 'login' })
   await logs.add({ _id: 'delegation-log', tenant_id: 'tenant-a', user_id: 'target', type: 'user-delegation' })
-  const logViewer = adminWith([...permissions, 'READ_UNI_ID_LOG'])
+  const logViewer = adminWith(['READ_UNI_ID_USERS'])
   const profile = await logViewer.detail({ uid: 'target', view: 'profile' })
   assert.equal(Object.hasOwn(profile, 'logs'), false)
   const logView = await logViewer.detail({ uid: 'target', view: 'logs' })
+  assert.equal(logView.logsAllowed, true)
   assert.equal(Object.hasOwn(logView, 'data'), false)
   assert.deepEqual(logView.logs.map(row => row._id), ['own-login', 'own-logout'])
   assert.deepEqual(logView.pagination, { current: 1, size: 20, count: 2 })
@@ -244,8 +248,8 @@ test('系统用户操作按令牌授权，旧角色授权不拦截操作', async
   const outOfRange = await logViewer.detail({ uid: 'target', view: 'logs', current: 3, size: 1 })
   assert.deepEqual(outOfRange, secondPage)
   await assert.rejects(logViewer.detail({ uid: 'target', view: 'logs', size: 101 }), { errCode: 'USER_ADMIN_INVALID' })
-  assert.deepEqual(await admin.detail({ uid: 'target', view: 'logs' }),
-    { errCode: 0, logsAllowed: false, logs: [], logsError: '', pagination: { current: 1, size: 20, count: 0 } })
+  await assert.rejects(adminWith(['READ_UNI_ID_LOG']).detail({ uid: 'target', view: 'logs' }),
+    { errCode: 'USER_ADMIN_FORBIDDEN' })
   const target = await admin.getUser('target')
   const setUserStatus = require(path.join(root, 'module/admin/set-user-status'))
   const changeStatus = (claims, uid, status) => setUserStatus.call({
@@ -308,7 +312,7 @@ test('普通角色管理员可以维护含有旧授权的角色，新增授权�
   const tenant = { _id: 'tenant-a', type: 'enterprise' }
   const roles = db.collection('uni-id-roles')
   for (const menu_id of ['editable', 'restricted']) {
-    await db.collection('ucsdb-admin-menus').add({ menu_id, menu_type: 1 })
+    await db.collection('ucsdb-admin-menus').add({ menu_id, menu_type: 1, feature_scope: 'product' })
     await db.collection('uni-id-permissions').add({ menu_id, permission_id: `READ_${menu_id}` })
   }
   const role = { _id: 'target-role', tenant_id: tenant._id, role_id: 'target', role_name: '旧名称', menu_ids: ['restricted', 'deleted-page'], permission: ['READ_restricted', 'DELETED_PERMISSION'] }
@@ -436,7 +440,7 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   await users.add({ _id: 'operator', nickname: '运营', role: ['ops'], account_type: 0, tenant_id: '00000' })
   await roles.add({ role_id: 'ops', tenant_id: '00000', menu_ids: ['platform_tenants'], permission: [tenantRights.enter] })
   await menus.add({ menu_id: 'platform', name: '租户运营', menu_type: 0, enable: true })
-  await menus.add({ menu_id: 'platform_product_packages', name: '产品包管理', parent_id: 'platform', menu_type: 1, enable: true, url: '/platform/package' })
+  await menus.add({ menu_id: 'platform_product_packages', name: '产品包管理', parent_id: 'platform', menu_type: 1, feature_scope: 'platform', enable: true, url: '/platform/package' })
   assert.equal((await run('installTenantManagement', 'root')).changed, true)
   assert.equal((await run('installTenantManagement', 'root')).changed, false)
   assert.equal((await menus.where({ menu_id: 'platform_tenants' }).get()).data.length, 1)
@@ -446,10 +450,10 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   assert.equal(menuManagement.parent_id, 'platform')
   assert.equal(menuManagement.url, '/uni_modules/ucs-design-admin/pages/platform/menu/menu')
   await menus.add({ menu_id: 'system', menu_type: 0, enable: true })
-  await menus.add({ menu_id: 'custom_ops', menu_type: 0, enable: true, feature_scope: 'platform' })
-  await menus.add({ menu_id: 'custom_ops_sub', parent_id: 'custom_ops', menu_type: 0, feature_scope: 'inherit' })
-  await menus.add({ menu_id: 'custom_report', parent_id: 'custom_ops_sub', menu_type: 1, url: '/ops/report' })
-  await menus.add({ menu_id: 'system_users', parent_id: 'system', menu_type: 1, enable: true, url: '/system/user' })
+  await menus.add({ menu_id: 'custom_ops', name: '自定义目录', menu_type: 0, enable: true })
+  await menus.add({ menu_id: 'custom_ops_sub', parent_id: 'custom_ops', menu_type: 0 })
+  await menus.add({ menu_id: 'custom_report', parent_id: 'custom_ops_sub', menu_type: 1, feature_scope: 'platform', url: '/ops/report' })
+  await menus.add({ menu_id: 'system_users', parent_id: 'system', menu_type: 1, feature_scope: 'product', enable: true, url: '/system/user' })
   await permissions.add({ menu_id: 'system_users', permission_id: 'READ_UNI_ID_USERS' })
   await permissions.add({ menu_id: 'system_users', permission_id: 'CREATE_UNI_ID_USERS' })
   const { id: pkg } = await run('saveProductPackage', 'root', {
@@ -745,10 +749,48 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   await rootMenus.update({ _id: legacyDirectory._id, name: '历史目录', parent_id: '' })
   assert.equal((await menuTable.doc(legacyReport._id).get()).data[0].feature_scope, 'platform')
 
-  const { id: productPage } = await rootMenus.create({
-    menu_id: 'new_page', name: '新页面', menu_type: 1, url: '/new-page', parent_id: 'custom_ops'
-  })
+  const newPage = { menu_id: 'new_page', name: '新页面', menu_type: 1, url: '/new-page', parent_id: 'custom_ops', client_type: ['pc'] }
+  for (const feature_scope of [undefined, 'inherit']) {
+    await assert.rejects(rootMenus.create({ ...newPage, feature_scope }), { errMsg: '请选择有效的功能归属' })
+  }
+  const { id: productPage } = await rootMenus.create({ ...newPage, feature_scope: 'product' })
+  await assert.rejects(rootMenus.create({ ...newPage, feature_scope: 'product', client_type: [] }),
+    { errMsg: '请选择有效的显示端：PC 或 App' })
   assert.equal((await menuTable.doc(productPage).get()).data[0].feature_scope, 'product')
+  await rootMenus.update({ _id: productPage, menu_type: 0, url: '' })
+  const [convertedDirectory] = (await menuTable.doc(productPage).get()).data
+  assert.equal(Object.hasOwn(convertedDirectory, 'feature_scope'), false)
+  assert.equal(Object.hasOwn(convertedDirectory, 'client_type'), false)
+  await rootMenus.create({ ...newPage, menu_id: 'custom_ops_public', feature_scope: 'builtin', url: '/public' })
+  const parent = menuEditorRows.find(row => row.menu_id === 'custom_ops')
+  await menuTable.doc(parent._id).update({ client_type: ['pc'] })
+  await rootMenus.create({
+    ...newPage, menu_id: 'custom_ops_public_app', feature_scope: 'builtin', client_type: ['app'], url: '', app_url: '/public-app'
+  })
+  await menuTable.add({ ...newPage, menu_id: 'custom_ops_legacy', feature_scope: 'inherit', url: '/legacy' })
+  const rowsWithBuiltin = (await rootMenus.list({ includePermissions: false })).data
+  const { visibleTree } = require(path.join(root, 'module/admin/menu-admin'))
+  const regular = { isAdmin: false, menuIds: [] }
+  const visible = visibleTree(rowsWithBuiltin, regular)
+  assert.deepEqual(visible.map(row => row.menu_id), ['custom_ops'])
+  assert.deepEqual(visible[0].children.map(row => row.menu_id), ['custom_ops_public'])
+  assert.deepEqual(visibleTree(rowsWithBuiltin, regular, 'app')[0].children.map(row => row.menu_id), ['custom_ops_public_app'])
+  await rootMenus.update({ _id: parent._id, enable: false })
+  assert.equal(Object.hasOwn((await menuTable.doc(parent._id).get()).data[0], 'client_type'), false)
+  const { data: afterDisabling } = await rootMenus.current({ client_type: 'app' })
+  assert.equal(afterDisabling.some(row => row.menu_id === 'custom_ops'), false)
+  assert.deepEqual(visibleTree(rowsWithBuiltin, { ...regular, sessionId: 'delegated' }), visible)
+  assert.deepEqual(visibleTree(rowsWithBuiltin, { ...regular, userDelegationId: 'delegated' }), visible)
+  assert.equal(visibleTree(rowsWithBuiltin, { ...regular, isAdmin: true })
+    .find(row => row.menu_id === 'custom_ops').children.some(row => row.menu_id === 'custom_ops_legacy'), false)
+  const { createAccessAdmin } = require(path.join(root, 'module/admin/access-admin'))
+  const rootAccess = createAccessAdmin({ db: platformDictionary.adminDb, uid: 'root', appId: 'test' })
+  const roleOptions = await rootAccess.getRoleAuthorization()
+  assert.equal(roleOptions.menus.some(row => row.menu_id === 'custom_ops_public'), false)
+  await assert.rejects(rootAccess.saveRole({ role_id: 'builtin_test', role_name: '内置页面测试', menu_ids: ['custom_ops_public'] }),
+    { errMsg: '所选页面不存在或不可分配，请刷新后重新选择' })
+  await assert.rejects(run('saveProductPackage', 'root', { name: '内置页面测试', menu_ids: ['custom_ops_public'] }),
+    { errCode: 'TENANT_INVALID' })
   const tenantPage = menuEditorRows.find(row => row.menu_id === 'platform_tenants')
   await rootMenus.update({ _id: tenantPage._id, feature_scope: 'product' })
   const changedPackage = await run('saveProductPackage', 'root', { name: '按页面归属选配', menu_ids: ['platform_tenants'] })
@@ -953,7 +995,7 @@ test('应用归属登录租户，版本访问受所属应用限制', async () =>
   await db.collection('ucsdb-app-list').add({ appid: appId, name: '历史平台应用' })
   const permissions = ['CREATE_UCSDB_APP_LIST', 'READ_UCSDB_APP_VERSIONS', 'CREATE_UCSDB_APP_VERSIONS', 'DELETE_UCSDB_APP_LIST',
     'PUBLISH_UCSDB_APP_VERSIONS']
-  await db.collection('ucsdb-admin-menus').add({ menu_id: 'system_apps', menu_type: 1, enable: true })
+  await db.collection('ucsdb-admin-menus').add({ menu_id: 'system_apps', menu_type: 1, feature_scope: 'product', enable: true })
   for (const permission_id of permissions)
     await db.collection('uni-id-permissions').add({ menu_id: 'system_apps', permission_id })
   const { id: packageId } = await db.collection('ucsdb-product-packages')

@@ -9,9 +9,6 @@
     "enable": true,
     "create_date": 1602662469396,
     "menu_type": 0,
-    "client_type": [
-      "pc"
-    ],
     "app_url": "",
     "app_icon": ""
   },
@@ -59,9 +56,6 @@
     "enable": true,
     "create_date": 1602662469396,
     "menu_type": 0,
-    "client_type": [
-      "pc"
-    ],
     "app_url": "",
     "app_icon": ""
   },
@@ -171,9 +165,6 @@
     "url": "",
     "icon": "OfficeBuilding",
     "sort": 3,
-    "client_type": [
-      "pc"
-    ],
     "enable": true
   },
   {

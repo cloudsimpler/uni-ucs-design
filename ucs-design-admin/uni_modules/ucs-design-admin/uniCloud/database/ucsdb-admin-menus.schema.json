@@ -1,7 +1,7 @@
 {
 	"bsonType": "object",
 	"description": "菜单表",
-	"required": ["name", "menu_id", "menu_type", "client_type"],
+	"required": ["name", "menu_id", "menu_type"],
 	"permission": {
 		"read": true,
 		"create": false,
@@ -26,8 +26,8 @@
 		},
 		"feature_scope": {
 			"bsonType": "string",
-		"description": "页面功能归属，product 产品功能，platform 平台功能，inherit 兼容历史记录",
-			"enum": ["inherit", "product", "platform"]
+			"description": "页面功能归属，product 产品功能，platform 平台功能，builtin 内置功能。目录省略此字段。",
+			"enum": ["product", "platform", "builtin"]
 		},
 		"_id": {
 			"description": "存储文档 ID，系统自动生成"
@@ -68,7 +68,7 @@
 		"client_type": {
 			"bsonType": "array",
 			"title": "显示端",
-			"description": "菜单显示端，至少选择一个；子菜单显示端必须包含在父目录内",
+			"description": "页面显示端，至少选择一个。目录按可见的下级页面显示。",
 			"minItems": 1,
 			"maxItems": 2,
 			"uniqueItems": true,

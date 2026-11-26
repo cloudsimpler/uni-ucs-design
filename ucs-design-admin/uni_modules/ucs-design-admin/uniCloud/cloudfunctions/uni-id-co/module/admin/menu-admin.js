@@ -1,7 +1,6 @@
 const { actorName, createFields, updateFields } = require('../../lib/utils/record-metadata');
 const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant');
 const { classifyPages, isPageScope } = require('./menu-scope');
-const { defaultPlatformPageIds } = require('./tenant-catalog');
 const fail = (errMsg, errCode = 'MENU_ADMIN_INVALID') => {
 	throw { errCode, errMsg };
 };
@@ -40,7 +39,7 @@ function visibleTree(rows, auth, clientType = 'pc') {
 	}
 	const visit = (parent, seen = new Set()) =>
 		(children.get(parent) || []).flatMap((row) => {
-			if (seen.has(row.menu_id) || row.enable === false || !clientsFor(row).includes(clientType)) return [];
+			if (seen.has(row.menu_id) || row.enable === false) return [];
 			const url = clientType === 'app' ? row.app_url : row.url;
 			let branch = [];
 			if (row.menu_type === MENU_TYPE.DIRECTORY) {
@@ -48,7 +47,8 @@ function visibleTree(rows, auth, clientType = 'pc') {
 				branch = visit(row.menu_id, new Set([...seen, row.menu_id]));
 				if (!branch.length) return [];
 			} else if (row.menu_type === MENU_TYPE.PAGE) {
-				if (!auth.isAdmin && !auth.menuIds?.includes(row.menu_id)) return [];
+				if (!isPageScope(row.feature_scope) || !clientsFor(row).includes(clientType)) return [];
+				if (row.feature_scope !== 'builtin' && !auth.isAdmin && !auth.menuIds?.includes(row.menu_id)) return [];
 				if (!url || children.has(row.menu_id)) return [];
 			} else return [];
 			return [
@@ -57,7 +57,7 @@ function visibleTree(rows, auth, clientType = 'pc') {
 					menu_id: row.menu_id,
 					menu_type: row.menu_type,
 					name: row.name,
-					client_type: clientsFor(row),
+					...(row.menu_type === MENU_TYPE.PAGE ? { client_type: clientsFor(row) } : {}),
 					icon: clientType === 'app' ? row.app_icon || '' : row.icon,
 					url,
 					children: branch
@@ -123,7 +123,6 @@ function createMenuAdmin({ db, uid, appId }) {
 			icon: '',
 			app_url: '',
 			app_icon: '',
-			client_type: ['pc'],
 			sort: 0,
 			enable: true,
 			...old
@@ -146,28 +145,23 @@ function createMenuAdmin({ db, uid, appId }) {
 		if (!value.name) fail('请输入菜单名称');
 		if (![MENU_TYPE.DIRECTORY, MENU_TYPE.PAGE].includes(value.menu_type)) fail('请选择菜单类型：0 目录、1 页面');
 		if (value.menu_type === MENU_TYPE.PAGE) {
-			if (params.feature_scope != null && params.feature_scope !== 'inherit' && !isPageScope(params.feature_scope))
-				fail('请选择有效的功能归属');
-			if (isPageScope(params.feature_scope)) value.feature_scope = params.feature_scope;
-			else if (old?.menu_type === MENU_TYPE.PAGE)
-				value.feature_scope = classifyPages(rows).platform.has(old.menu_id) ? 'platform' : 'product';
-			else value.feature_scope = defaultPlatformPageIds.has(value.menu_id) ? 'platform' : 'product';
-		} else if (old?.menu_type === MENU_TYPE.PAGE) {
-			value.feature_scope = 'inherit';
+			const scope = params.feature_scope === undefined && old?.menu_type === MENU_TYPE.PAGE
+				? old.feature_scope : params.feature_scope;
+			if (!isPageScope(scope)) fail('请选择有效的功能归属');
+			value.feature_scope = scope;
 		} else {
 			delete value.feature_scope;
+			delete value.client_type;
 		}
-		if (
-			!Array.isArray(value.client_type) ||
-			!value.client_type.length ||
-			value.client_type.length > 2 ||
-			value.client_type.some((client) => !['pc', 'app'].includes(client))
-		)
-			fail('请选择有效的显示端：PC 或 App');
-		value.client_type = [...new Set(value.client_type)];
 		if (value.menu_type === MENU_TYPE.DIRECTORY && (value.url || value.app_url))
 			fail('目录不能配置页面路径，请清空路径');
 		if (value.menu_type === MENU_TYPE.PAGE) {
+			const clients = params.client_type === undefined && old?.menu_type === MENU_TYPE.PAGE
+				? clientsFor(old) : params.client_type;
+			if (!Array.isArray(clients) || !clients.length || clients.length > 2 ||
+				clients.some(client => !['pc', 'app'].includes(client)))
+				fail('请选择有效的显示端：PC 或 App');
+			value.client_type = [...new Set(clients)];
 			if (value.client_type.includes('pc') && !value.url) fail('PC 页面必须配置页面路径');
 			if (value.client_type.includes('app') && !value.app_url) fail('App 页面必须配置页面路径');
 			if (rows.some((row) => row.parent_id === value.menu_id)) fail('请先处理下级菜单，再将目录设为页面');
@@ -201,15 +195,6 @@ function createMenuAdmin({ db, uid, appId }) {
 			parent = row.parent_id || '';
 		}
 		if (ancestors.some((row) => row.menu_type !== MENU_TYPE.DIRECTORY)) fail('上级菜单必须是已设置类型的目录');
-		if (ancestors.some((row) => value.client_type.some((client) => !clientsFor(row).includes(client))))
-			fail('子菜单的显示端必须包含在上级目录的显示端内');
-		if (
-			rows.some(
-				(row) =>
-					row.parent_id === value.menu_id && clientsFor(row).some((client) => !value.client_type.includes(client))
-			)
-		)
-			fail('请先调整下级菜单的显示端，再取消目录的显示端');
 		return Object.fromEntries(fields.filter((key) => Object.hasOwn(value, key)).map((key) => [key, value[key]]));
 	};
 	const find = (rows, id) => {
@@ -263,13 +248,6 @@ function createMenuAdmin({ db, uid, appId }) {
 					includePermissions ? all('uni-id-permissions', {}, { permission_id: true, permission_name: true, menu_id: true }) : []
 				]);
 			}
-			const legacyPages = rows.some(row => row.menu_type === MENU_TYPE.PAGE && !isPageScope(row.feature_scope));
-			if (legacyPages) {
-				const { platform } = classifyPages(lazy ? await all(table) : rows);
-				rows = rows.map(row => row.menu_type === MENU_TYPE.PAGE && !isPageScope(row.feature_scope)
-					? { ...row, feature_scope: platform.has(row.menu_id) ? 'platform' : 'product' }
-					: row);
-			}
 			return {
 				errCode: 0,
 				data: sortMenus(rows),
@@ -315,18 +293,10 @@ function createMenuAdmin({ db, uid, appId }) {
 			const rows = await all(table);
 			const old = find(rows, params._id);
 			const value = await validate(params, rows, old);
-			if (old.menu_type === MENU_TYPE.DIRECTORY && value.parent_id !== (old.parent_id || '')) {
-				const before = classifyPages(rows).platform;
-				const after = classifyPages(rows.map(row => row === old ? { ...row, parent_id: value.parent_id } : row)).platform;
-				// Keep legacy pages in their current product packages when moving a directory.
-				for (const row of rows) {
-					if (row.menu_type !== MENU_TYPE.PAGE || isPageScope(row.feature_scope) ||
-						before.has(row.menu_id) === after.has(row.menu_id)) continue;
-					const storedScope = row.feature_scope === undefined ? db.command.exists(false) : row.feature_scope;
-					await db.collection(table).where({ _id: row._id, feature_scope: storedScope })
-						.update({ feature_scope: before.has(row.menu_id) ? 'platform' : 'product', ...updateFields(auth) });
-				}
-			}
+			if (value.menu_type === MENU_TYPE.DIRECTORY && Object.hasOwn(old, 'feature_scope'))
+				value.feature_scope = db.command.remove();
+			if (value.menu_type === MENU_TYPE.DIRECTORY && Object.hasOwn(old, 'client_type'))
+				value.client_type = db.command.remove();
 			const result = await db.collection(table).doc(old._id).update({ ...value, ...updateFields(auth) });
 			if (result.updated === 0) {
 				// Some database adapters report zero modified rows for an unchanged form.

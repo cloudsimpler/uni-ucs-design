@@ -126,12 +126,6 @@
     "sort": 4
   },
   {
-    "menu_id": "system_users",
-    "permission_id": "READ_UNI_ID_LOG",
-    "permission_name": "查看登录日志",
-    "sort": 5
-  },
-  {
     "menu_id": "system_apps",
     "permission_id": "READ_UCSDB_APP_LIST",
     "permission_name": "查看应用",

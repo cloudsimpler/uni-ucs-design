@@ -3,6 +3,9 @@ const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant');
 const { readByIds, readDoc } = require('./tenant-scope');
 const catalog = require('./permission-catalog');
 const MENU_TYPE = require('./menu-types');
+const { isPageScope } = require('./menu-scope');
+const isAssignablePage = menu => menu.menu_type === MENU_TYPE.PAGE &&
+	isPageScope(menu.feature_scope) && menu.feature_scope !== 'builtin';
 const tables = { permission: 'uni-id-permissions', role: 'uni-id-roles' };
 const suffixes = { permission: 'UNI_ID_PERMISSIONS', role: 'UNI_ID_ROLES' };
 const text = (value, label, max, required = false) => {
@@ -106,10 +109,10 @@ function createAccessAdmin(context) {
 					readByIds(db, 'ucsdb-admin-menus', 'menu_id', [...value.menu_ids, ...oldMenus]),
 					readByIds(db, 'uni-id-permissions', 'permission_id', [...value.permission, ...oldPermissions])
 				]);
-				const pages = new Set(menus.filter(menu => menu.menu_type === MENU_TYPE.PAGE).map(menu => menu.menu_id));
+				const pages = new Set(menus.filter(isAssignablePage).map(menu => menu.menu_id));
 				const available = new Set(permissions.map(row => row.permission_id));
 				if (value.permission.some(id => !available.has(id) && !oldPermissions.has(id))) fail('所选权限已被删除，请刷新后重新选择');
-				if (value.menu_ids.some(id => !pages.has(id) && !oldMenus.has(id))) fail('所选页面不存在或已改为目录，请刷新后重新选择');
+				if (value.menu_ids.some(id => !pages.has(id) && !oldMenus.has(id))) fail('所选页面不存在或不可分配，请刷新后重新选择');
 				const nextPermissions = new Set(value.permission.filter(id => available.has(id)));
 				const nextMenus = new Set(value.menu_ids.filter(id => pages.has(id)));
 				grantableMenus(auth, permissions.filter(item => nextPermissions.has(item.permission_id) &&
@@ -173,6 +176,9 @@ function createAccessAdmin(context) {
 			requireRead(auth, suffixes.role);
 			const [menus, permissions] = await Promise.all([all('ucsdb-admin-menus'), all('uni-id-permissions')]);
 			const enterprise = auth.tenant?.type === 'enterprise';
+			const unavailablePages = new Set(menus
+				.filter(row => row.menu_type === MENU_TYPE.PAGE && !isAssignablePage(row))
+				.map(row => row.menu_id));
 			const visible = new Set(auth.menuIds);
 			const byId = new Map(menus.map(row => [row.menu_id, row]));
 			if (enterprise) for (const id of auth.menuIds) {
@@ -184,8 +190,9 @@ function createAccessAdmin(context) {
 			}
 			return {
 				errCode: 0,
-				menus: enterprise ? menus.filter(row => visible.has(row.menu_id)) : menus,
-				permissions: enterprise ? permissions.filter(row => auth.permissions.includes(row.permission_id)) : permissions,
+				menus: menus.filter(row => !unavailablePages.has(row.menu_id) && (!enterprise || visible.has(row.menu_id))),
+				permissions: permissions.filter(row => !unavailablePages.has(row.menu_id) &&
+					(!enterprise || auth.permissions.includes(row.permission_id))),
 				auth: { ...capabilities(auth, suffixes.role), isAdmin: auth.isAdmin,
 					isPlatform: auth.tenantId === PLATFORM_TENANT_ID, packageAdministrator: auth.packageAdministrator === true, permission: auth.permissions, menu_ids: auth.menuIds }
 			};

@@ -76,7 +76,7 @@
 				</el-table-column>
 				<el-table-column label="显示端" width="140" align="center">
 					<template #default="{ row }">
-						<div class="client-tags">
+						<div v-if="row.menu_type === MENU_TYPE.PAGE" class="client-tags">
 							<el-tag
 								v-for="client in menuClients(row)"
 								:key="client"
@@ -229,7 +229,7 @@
 					<text class="hint">唯一标识，创建后不可修改。</text>
 				</div>
 			</el-form-item>
-			<el-form-item label="显示端" prop="client_type">
+			<el-form-item v-if="form.menu_type === MENU_TYPE.PAGE" label="显示端" prop="client_type">
 				<el-checkbox-group v-model="form.client_type">
 					<el-checkbox v-for="item in MENU_CLIENT_OPTIONS" :key="item.value" :value="item.value">
 						{{ item.text }}
@@ -240,6 +240,7 @@
 				<el-radio-group v-model="form.feature_scope">
 					<el-radio-button value="product">产品功能</el-radio-button>
 					<el-radio-button value="platform">平台功能</el-radio-button>
+					<el-radio-button value="builtin">内置功能</el-radio-button>
 				</el-radio-group>
 			</el-form-item>
 			<el-form-item label="上级菜单" prop="parent_id">
@@ -257,7 +258,7 @@
 					:render-after-expand="false"
 				/>
 			</el-form-item>
-			<el-form-item v-if="form.client_type.includes('pc')" label="PC端图标" prop="icon">
+			<el-form-item v-if="isDirectory(form) || form.client_type.includes('pc')" label="PC端图标" prop="icon">
 				<el-select v-model="form.icon" placeholder="选择图标" filterable clearable @visible-change="showIconOptions">
 					<template #prefix>
 						<el-icon v-if="icons[form.icon]"><component :is="icons[form.icon]" /></el-icon>
@@ -277,25 +278,11 @@
 				required
 			>
 				<div class="field">
-					<el-select
-						v-model="form.url"
-						placeholder="请选择或输入页面路径"
-						filterable
-						allow-create
-						default-first-option
-						clearable
-					>
-						<el-option
-							v-for="page in pageOptions"
-							:key="page.path"
-							:value="page.path"
-							:label="`${page.title}（${page.path}）`"
-						/>
-					</el-select>
-					<text class="hint">选择已注册页面或填写以 / 开头的站内路径。</text>
+					<el-input v-model="form.url" placeholder="请输入页面路径" maxlength="500" clearable />
+					<text class="hint">请输入以 / 开头的站内路径。</text>
 				</div>
 			</el-form-item>
-			<el-form-item v-if="form.client_type.includes('app')" label="App端图标">
+			<el-form-item v-if="isDirectory(form) || form.client_type.includes('app')" label="App端图标">
 				<div class="field">
 					<div class="app-icon-upload">
 						<el-upload
@@ -390,7 +377,6 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import AdminIcon from '../../../components/ucs-admin-icon/ucs-admin-icon.vue';
 import { availableIcons as icons, loadIcons } from '../../../common/icons.js';
 import { Plus, Refresh, Search, Loading } from '@element-plus/icons-vue';
-import pagesJson from '@/pages.json';
 import store from '../../../common/store.js';
 import {
 	MENU_TYPE,
@@ -435,7 +421,7 @@ const emptyForm = () => ({
 	name: '',
 	menu_id: '',
 	menu_type: MENU_TYPE.DIRECTORY,
-	feature_scope: 'product',
+	feature_scope: '',
 	parent_id: '',
 	icon: '',
 	url: '',
@@ -533,23 +519,13 @@ const parentOptions = computed(() => {
 				invalidAncestor ||
 				disabled.has(row.menu_id) ||
 				row.parentError ||
-				!isDirectory(row) ||
-				form.client_type.some((client) => !menuClients(row).includes(client)),
+				!isDirectory(row),
 			children: visit(row.children, invalidAncestor || Boolean(row.parentError) || !isDirectory(row))
 		}));
 	return [{ menu_id: '', name: '顶级菜单', children: visit(tree.value) }];
 });
-const pageOptions = [
-	{ path: '/', title: '首页' },
-	...pagesJson.pages.map((page) => ({ path: '/' + page.path, title: page.style?.navigationBarTitleText || page.path })),
-	...(pagesJson.subPackages || []).flatMap((group) =>
-		group.pages.map((page) => ({
-			path: '/' + group.root + '/' + page.path,
-			title: page.style?.navigationBarTitleText || page.path
-		}))
-	)
-].filter((page) => !page.path.includes('/pages/login/'));
 const rules = {
+	feature_scope: [{ required: true, type: 'enum', enum: ['product', 'platform', 'builtin'], message: '请选择功能归属', trigger: 'change' }],
 	client_type: [{ type: 'array', required: true, min: 1, message: '至少选择一个显示端', trigger: 'change' }],
 	app_url: [
 		{
@@ -576,10 +552,10 @@ const rules = {
 			validator: (_rule, value, callback) =>
 				callback(
 					form.menu_type === MENU_TYPE.PAGE && form.client_type.includes('pc') && !value?.trim()
-						? new Error('请选择或输入页面路径')
+						? new Error('请输入页面路径')
 						: undefined
 				),
-			trigger: 'change'
+			trigger: 'blur'
 		}
 	],
 	name: [{ required: true, whitespace: true, message: '请输入菜单名称', trigger: 'blur' }],
@@ -639,14 +615,14 @@ async function openEditor(row, parent = '') {
 		row
 			? {
 					...row,
-					feature_scope: row.menu_type === MENU_TYPE.PAGE && row.feature_scope === 'platform' ? 'platform' : 'product',
-					client_type: [...menuClients(row)],
+					feature_scope: row.menu_type === MENU_TYPE.PAGE ? row.feature_scope || '' : '',
+					client_type: row.menu_type === MENU_TYPE.PAGE ? [...menuClients(row)] : ['pc'],
 					menu_type: MENU_TYPE_OPTIONS.some((item) => item.value === row.menu_type) ? row.menu_type : null,
 					enable: row.enable !== false
 			  }
 			: {
 					parent_id: parent,
-					client_type: [...menuClients(rows.value.find((item) => item.menu_id === parent) || {})],
+
 					sort: Math.min(
 						999999,
 						Math.max(
@@ -700,7 +676,10 @@ async function save() {
 	saveError.value = '';
 	try {
 		const payload = Object.fromEntries(Object.keys(emptyForm()).map((key) => [key, form[key]]));
-		if (form.menu_type !== MENU_TYPE.PAGE) delete payload.feature_scope;
+		if (isDirectory(form)) {
+			delete payload.feature_scope;
+			delete payload.client_type;
+		}
 		check(await (editing.value ? api.updateMenu(payload) : api.createMenu(payload)));
 		editorVisible.value = false;
 		ElMessage.success(editing.value ? '菜单已更新' : '菜单已创建');

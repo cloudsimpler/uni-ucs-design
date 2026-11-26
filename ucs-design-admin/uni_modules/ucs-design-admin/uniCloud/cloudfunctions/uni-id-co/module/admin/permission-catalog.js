@@ -26,6 +26,5 @@ module.exports = [
 	),
 	{ menu_id: 'system_customers', permission_id: 'UPDATE_CUSTOMER_STATUS', permission_name: '禁用/恢复社区用户', sort: 3 },
 	{ menu_id: 'system_customers', permission_id: 'READ_CUSTOMER_LOG', permission_name: '查看社区用户登录日志', sort: 4 },
-	{ menu_id: 'system_users', permission_id: 'READ_UNI_ID_LOG', permission_name: '查看登录日志', sort: 5 },
 	{ menu_id: 'system_users', permission_id: USER_DELEGATION_PERMISSION, permission_name: '用户代管', sort: 8 },
 ];
