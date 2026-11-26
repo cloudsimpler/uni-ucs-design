@@ -225,7 +225,7 @@
 			</el-form-item>
 			<el-form-item label="菜单标识" prop="menu_id">
 				<div class="field">
-					<el-input v-model="form.menu_id" :disabled="editing" placeholder="如 system_user" maxlength="100" />
+					<el-input v-model="form.menu_id" :disabled="editing" placeholder="如 system_users" maxlength="100" />
 					<text class="hint">唯一标识，创建后不可修改。</text>
 				</div>
 			</el-form-item>

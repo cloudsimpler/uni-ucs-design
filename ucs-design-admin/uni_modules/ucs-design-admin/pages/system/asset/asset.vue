@@ -367,7 +367,7 @@ async function downloadFile(row) {
  }
 }
 function hasAssetMenu(menus) {
- return menus.some(item => item.menu_id === 'system_asset' || hasAssetMenu(item.children || []));
+ return menus.some(item => item.menu_id === 'system_assets' || hasAssetMenu(item.children || []));
 }
 function selectAsset(id, checked) {
  if (busy.value || loading.value) return;

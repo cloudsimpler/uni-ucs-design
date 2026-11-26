@@ -2,7 +2,7 @@ const { accessContext, fail } = require('./admin-access');
 const { createFields, updateFields } = require('../../lib/utils/record-metadata');
 const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant');
 const table = 'ucsdb-app-list';
-const suffix = 'OPENDB_APP_LIST';
+const suffix = 'UCSDB_APP_LIST';
 const fields = ['appid', 'name', 'app_type', 'icon_url', 'description'];
 const publicApp = (row, tenantNo) => ({
 	...Object.fromEntries(['_id', ...fields, 'create_date'].map((key) => [key, row[key]])),
@@ -71,7 +71,7 @@ function createAppAdmin({ db, referenceDb = db, uid, appId }) {
 				data: rows
 					.map(row => publicApp(row, auth.tenant.tenant_no))
 					.sort((a, b) => (b.create_date || 0) - (a.create_date || 0) || a.appid.localeCompare(b.appid)),
-				auth: { ...ctx.capabilities(auth, suffix), versions: ctx.can(auth, 'READ_OPENDB_APP_VERSIONS') },
+				auth: { ...ctx.capabilities(auth, suffix), versions: ctx.can(auth, 'READ_UCSDB_APP_VERSIONS') },
 				currentAppId: appId
 			};
 		},

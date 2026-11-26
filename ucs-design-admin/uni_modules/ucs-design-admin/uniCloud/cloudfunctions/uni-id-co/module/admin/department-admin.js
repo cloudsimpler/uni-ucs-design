@@ -1,7 +1,7 @@
 const { accessContext, fail } = require('./admin-access');
 const { hasManagementIdentity } = require('./account-types');
 const { createFields, updateFields } = require('../../lib/utils/record-metadata');
-const TABLE = 'ucsdb-department', SUFFIX = 'OPENDB_DEPARTMENT';
+const TABLE = 'ucsdb-department', SUFFIX = 'UCSDB_DEPARTMENT';
 const one = result => Array.isArray(result.data) ? result.data[0] : result.data;
 function effectiveEnabled(rows, id) {
  const byId = new Map(rows.map(row => [row._id, row])), seen = new Set();
@@ -19,15 +19,15 @@ function createDepartmentAdmin({ db, uid, appId }) {
  return {
   async install() {
    const auth = await ctx.actor(); if (!auth.isAdmin) fail('仅超级管理员可安装部门管理');
-   if (!one(await db.collection('ucsdb-admin-menus').where({ menu_id: 'system_management' }).limit(1).get())) fail('请先建立系统管理目录');
+   if (!one(await db.collection('ucsdb-admin-menus').where({ menu_id: 'system' }).limit(1).get())) fail('请先建立系统管理目录');
    let changed = false;
    const ensure = async (table, key, data) => {
     const query = () => db.collection(table).where({ [key]: data[key] }).limit(1).get();
     if (one(await query())) return;
     try { await db.collection(table).add({ ...data, ...createFields(auth) }); changed = true; } catch (e) { if (!one(await query())) throw e; }
    };
-   for (const row of require('./permission-catalog').filter(row => row.menu_id === 'system_department')) await ensure('uni-id-permissions', 'permission_id', row);
-   await ensure('ucsdb-admin-menus', 'menu_id', { menu_id: 'system_department', name: '部门管理', icon: 'OfficeBuilding', url: '/uni_modules/ucs-design-admin/pages/system/department/department', parent_id: 'system_management', sort: 23, menu_type: 1, feature_scope: 'product', client_type: ['pc'], enable: true, app_url: '', app_icon: '' });
+   for (const row of require('./permission-catalog').filter(row => row.menu_id === 'system_departments')) await ensure('uni-id-permissions', 'permission_id', row);
+   await ensure('ucsdb-admin-menus', 'menu_id', { menu_id: 'system_departments', name: '部门管理', icon: 'OfficeBuilding', url: '/uni_modules/ucs-design-admin/pages/system/department/department', parent_id: 'system', sort: 23, menu_type: 1, feature_scope: 'product', client_type: ['pc'], enable: true, app_url: '', app_icon: '' });
    return { errCode: 0, changed };
   },
   async list() {

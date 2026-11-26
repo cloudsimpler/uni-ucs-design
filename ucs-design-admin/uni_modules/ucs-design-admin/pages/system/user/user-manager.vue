@@ -1018,6 +1018,10 @@ const copyResetCredentials = () => {
 };
 async function enterUserDelegation(row) {
 	if (!canDelegateRow(row) || saving.value || preparing.value) return;
+	if (!row.role?.length) {
+		ElMessage.warning('该用户尚未分配角色，请先分配角色后再进入代管');
+		return;
+	}
 	try {
 		await ElMessageBox.confirm(`以“${accountDisplayName(row)}”的身份进入代管？`, '进入代管', {
 			type: 'warning', confirmButtonText: '进入代管', cancelButtonText: '取消'

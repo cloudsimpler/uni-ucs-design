@@ -9,7 +9,6 @@
 		<el-tabs v-model="loginMode" class="login-tabs" stretch>
             <el-tab-pane label="账号密码" name="password" :disabled="loginBusy" />
             <el-tab-pane label="手机验证码" name="mobile" :disabled="loginBusy" />
-            <el-tab-pane label="邮箱验证码" name="email" :disabled="loginBusy" />
         </el-tabs>
         <el-form v-show="loginMode === 'password'" :model="entryForm" label-position="top" hide-required-asterisk @submit.prevent="handleSubmit" ref="formRef">
 			<el-form-item prop="username" label="账号" :rules="[{required:true,message:'请输入账号',trigger:'blur'}]">
@@ -21,8 +20,8 @@
 				<el-input type="password" show-password v-model="entryForm.password" :prefix-icon="Lock" size="large" placeholder="请输入密码"
 					name="password" autocomplete="current-password" :disabled="isSubmitting" />
 			</el-form-item>
-			<el-form-item v-if="!loginTenant" prop="tenant_no" label="租户号" :rules="[{ required: true, pattern: /^\d{5}$/, message: '请输入五位数字租户号' }]">
-				<el-input v-model.trim="entryForm.tenant_no" name="tenant_no" size="large" placeholder="请输入租户号" maxlength="5" inputmode="numeric" :disabled="isSubmitting" />
+			<el-form-item v-if="!loginTenant" prop="tenant_no" label="租户号" :rules="[{ required: true, pattern: /^\d{5}$/, message: '请输入租户号' }]">
+				<el-input v-model.trim="entryForm.tenant_no" :prefix-icon="OfficeBuilding" name="tenant_no" size="large" placeholder="请输入租户号" maxlength="5" inputmode="numeric" :disabled="isSubmitting" />
 			</el-form-item>
 			<div class="form-options">
 				<el-checkbox v-model="rememberAccount" :disabled="isSubmitting" @change="onRememberChange">记住账号</el-checkbox>
@@ -32,12 +31,9 @@
 				<span>{{ isSubmitting ? '正在登录…' : '登录' }}</span>
 			</el-button>
 		</el-form>
-		<div v-for="channel in ['mobile', 'email']" :key="channel" :style="{ display: loginMode === channel ? '' : 'none' }">
-            <el-form v-if="!loginTenant" label-position="top">
-                <el-form-item label="租户号"><el-input v-model.trim="entryForm.tenant_no" size="large" placeholder="请输入租户号" maxlength="5" inputmode="numeric" :disabled="loginBusy" /></el-form-item>
-            </el-form>
-            <account-contact inline :tenant-no="entryForm.tenant_no" :initial-channel="channel" :active="loginMode === channel"
-                @login="finishLogin" @busy-change="contactBusy[channel] = $event" @loading-change="contactLoading[channel] = $event" />
+		<div v-show="loginMode === 'mobile'">
+            <account-contact inline v-model:tenant-no="entryForm.tenant_no" :tenant-locked="Boolean(loginTenant)" :active="loginMode === 'mobile'"
+                @login="finishLogin" @busy-change="contactBusy = $event" @loading-change="contactLoading.mobile = $event" />
         </div>
 		<div class="account-support">
 			<template v-if="isAdmin && (!loginTenant || loginTenant.tenant_no === '00000')"><span>首次使用系统？</span><el-button link type="primary" @click="registeredAdmin">注册管理员</el-button></template>
@@ -64,7 +60,7 @@ import 'element-plus/es/components/input/style/css.mjs';
 import 'element-plus/es/components/loading/style/css.mjs';
 import 'element-plus/es/components/message/style/css.mjs';
 
-	import { User, Lock } from '@element-plus/icons-vue';
+	import { User, Lock, OfficeBuilding } from '@element-plus/icons-vue';
 	const uniIdCo = uniCloud.importObject("uni-id-co", {
 		customUI: true
 	});
@@ -83,11 +79,11 @@ import 'element-plus/es/components/message/style/css.mjs';
 	const loginTenant = ref(null);
 	const checkingTenant = ref(isTenantNo(props.routeOptions.tenant_no));
 	const loginMode = ref('password');
-    const contactBusy = reactive({ mobile: false, email: false });
-    const contactLoading = reactive({ mobile: false, email: false, dialog: false });
+    const contactBusy = ref(false);
+    const contactLoading = reactive({ mobile: false, dialog: false });
     const navigating = ref(false);
     const fullscreenLoading = computed(() => isSubmitting.value || navigating.value || Object.values(contactLoading).some(Boolean));
-    const loginBusy = computed(() => isSubmitting.value || contactBusy.mobile || contactBusy.email);
+    const loginBusy = computed(() => isSubmitting.value || contactBusy.value);
     const formRef = ref(null);
 	const contactRef = ref(null);
 	const finishLogin = (result) => {

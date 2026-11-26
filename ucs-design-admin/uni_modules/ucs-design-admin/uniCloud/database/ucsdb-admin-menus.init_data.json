@@ -16,7 +16,7 @@
     "app_icon": ""
   },
   {
-    "menu_id": "index",
+    "menu_id": "home_index",
     "feature_scope": "product",
     "name": "主页面",
     "icon": "HomeFilled",
@@ -33,7 +33,7 @@
     "app_icon": ""
   },
   {
-    "menu_id": "test",
+    "menu_id": "home_test",
     "feature_scope": "product",
     "name": "测试页面",
     "icon": "Monitor",
@@ -50,7 +50,7 @@
     "app_icon": ""
   },
   {
-    "menu_id": "system_management",
+    "menu_id": "system",
     "name": "系统管理",
     "icon": "Setting",
     "url": "",
@@ -66,13 +66,13 @@
     "app_icon": ""
   },
   {
-    "menu_id": "system_user",
+    "menu_id": "system_users",
     "feature_scope": "product",
     "name": "系统用户",
     "icon": "User",
     "url": "/uni_modules/ucs-design-admin/pages/system/user/user",
     "sort": 21,
-    "parent_id": "system_management",
+    "parent_id": "system",
     "enable": true,
     "create_date": 1602662469398,
     "menu_type": 1,
@@ -83,13 +83,13 @@
     "app_icon": ""
   },
   {
-    "menu_id": "system_customer",
+    "menu_id": "system_customers",
     "feature_scope": "product",
     "name": "社区用户",
     "icon": "Avatar",
     "url": "/uni_modules/ucs-design-admin/pages/system/customer/customer",
     "sort": 22,
-    "parent_id": "system_management",
+    "parent_id": "system",
     "enable": true,
     "menu_type": 1,
     "client_type": [
@@ -99,12 +99,12 @@
     "app_icon": ""
   },
   {
-    "menu_id": "system_department",
+    "menu_id": "system_departments",
     "feature_scope": "product",
     "name": "部门管理",
     "icon": "OfficeBuilding",
     "url": "/uni_modules/ucs-design-admin/pages/system/department/department",
-    "parent_id": "system_management",
+    "parent_id": "system",
     "sort": 23,
     "menu_type": 1,
     "client_type": [
@@ -115,13 +115,13 @@
     "app_icon": ""
   },
   {
-    "menu_id": "system_role",
+    "menu_id": "system_roles",
     "feature_scope": "product",
     "name": "角色管理",
     "icon": "UserFilled",
     "url": "/uni_modules/ucs-design-admin/pages/system/role/role",
     "sort": 24,
-    "parent_id": "system_management",
+    "parent_id": "system",
     "enable": true,
     "create_date": 1602662469397,
     "menu_type": 1,
@@ -132,13 +132,13 @@
     "app_icon": ""
   },
   {
-    "menu_id": "system_app",
+    "menu_id": "system_apps",
     "feature_scope": "product",
     "name": "应用管理",
     "icon": "Grid",
     "url": "/uni_modules/ucs-design-admin/pages/system/app/app",
     "sort": 25,
-    "parent_id": "system_management",
+    "parent_id": "system",
     "enable": true,
     "menu_type": 1,
     "client_type": [
@@ -148,13 +148,13 @@
     "app_icon": ""
   },
   {
-    "menu_id": "system_asset",
+    "menu_id": "system_assets",
     "feature_scope": "product",
     "name": "素材管理",
     "icon": "Folder",
     "url": "/uni_modules/ucs-design-admin/pages/system/asset/asset",
     "sort": 26,
-    "parent_id": "system_management",
+    "parent_id": "system",
     "enable": true,
     "menu_type": 1,
     "client_type": [
@@ -164,7 +164,7 @@
     "app_icon": ""
   },
   {
-    "menu_id": "tenant_operations",
+    "menu_id": "platform",
     "name": "系统运维",
     "menu_type": 0,
     "parent_id": "",
@@ -177,11 +177,11 @@
     "enable": true
   },
   {
-    "menu_id": "platform_tenant",
+    "menu_id": "platform_tenants",
     "feature_scope": "platform",
     "name": "租户管理",
     "menu_type": 1,
-    "parent_id": "tenant_operations",
+    "parent_id": "platform",
     "url": "/uni_modules/ucs-design-admin/pages/platform/tenant/tenant",
     "icon": "OfficeBuilding",
     "sort": 1,
@@ -191,11 +191,11 @@
     "enable": true
   },
   {
-    "menu_id": "platform_product_package",
+    "menu_id": "platform_product_packages",
     "feature_scope": "platform",
     "name": "租户产品包",
     "menu_type": 1,
-    "parent_id": "tenant_operations",
+    "parent_id": "platform",
     "url": "/uni_modules/ucs-design-admin/pages/platform/package/package",
     "icon": "Box",
     "sort": 2,
@@ -205,13 +205,13 @@
     "enable": true
   },
   {
-    "menu_id": "platform_menu",
+    "menu_id": "platform_menus",
     "feature_scope": "platform",
     "name": "菜单管理",
     "icon": "Menu",
     "url": "/uni_modules/ucs-design-admin/pages/platform/menu/menu",
     "sort": 3,
-    "parent_id": "tenant_operations",
+    "parent_id": "platform",
     "enable": true,
     "create_date": 1602662469396,
     "menu_type": 1,
@@ -222,12 +222,12 @@
     "app_icon": ""
   },
   {
-    "menu_id": "platform_dictionary",
+    "menu_id": "platform_dictionaries",
     "feature_scope": "platform",
     "name": "系统字典",
     "icon": "Collection",
     "url": "/uni_modules/ucs-design-admin/pages/platform/dictionary/dictionary",
-    "parent_id": "tenant_operations",
+    "parent_id": "platform",
     "sort": 4,
     "menu_type": 1,
     "client_type": [

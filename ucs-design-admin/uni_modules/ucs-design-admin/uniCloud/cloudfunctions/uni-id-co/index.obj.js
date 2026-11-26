@@ -24,7 +24,7 @@ const tenantMethods = require('./module/admin/tenant-methods')
 const { enterUserManagement, exitUserManagement, resolveUserDelegation, recordUserDelegation } = require('./module/admin/user-delegation')
 const dictionaryMethods = require('./module/admin/dictionary-methods')
 const dictionaryManagementMethods = Object.keys(dictionaryMethods).filter(method => method !== 'getDictionaryOptions')
-const managementLogin = new Set(['adminLogin', 'adminLoginBySms', 'adminLoginByEmailCode', 'adminCompleteAccountLogin', 'registerAdmin'])
+const managementLogin = new Set(['adminLogin', 'adminLoginBySms', 'adminCompleteAccountLogin', 'registerAdmin'])
 const directLoginAppMethods = new Set([
   ...Object.keys(require('./module/admin/app-methods')),
   ...Object.keys(require('./module/admin/version-methods'))
@@ -38,7 +38,7 @@ const platformOnlyMethods = new Set([
 ])
 const appAuthorizationMethods = new Set(['authorizeAppLogin', 'removeAuthorizedApp', 'setAuthorizedApp'])
 const tenantEntries = new Set([
-  'adminLogin', 'adminLoginBySms', 'adminLoginByEmailCode', 'adminCompleteAccountLogin',
+  'adminLogin', 'adminLoginBySms', 'adminCompleteAccountLogin',
   'adminBeginAccountRecovery', 'adminCompleteAccountRecovery', 'login', 'loginBySms',
   'loginByEmailCode', 'completeAccountLogin', 'beginAccountRecovery', 'completeAccountRecovery',
   'resetPwdBySms', 'resetPwdByEmail', 'registerUser', 'registerUserByEmail', 'getLoginTenant'
@@ -152,7 +152,6 @@ module.exports = {
   // Management entry; the existing unprefixed login/recovery methods serve client accounts.
   adminLogin: login,
   adminLoginBySms: loginBySms,
-  adminLoginByEmailCode: require('./module/login/login-by-email-code'),
   adminCompleteAccountLogin: require('./lib/utils/account-selection').completeAccountLogin,
   adminBeginAccountRecovery: require('./lib/utils/contact-auth').beginAccountRecovery,
   adminCompleteAccountRecovery: require('./lib/utils/account-selection').completeAccountRecovery,

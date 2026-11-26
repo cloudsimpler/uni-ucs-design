@@ -82,6 +82,7 @@ async function enterUserManagement({ uid } = {}) {
   if (typeof uid !== 'string' || !uid || uid.length > 100) forbidden('请选择有效的系统用户')
   const db = uniCloud.database()
   const target = await effectiveScope(this, db, uid)
+  if (!target.role.length) forbidden('该用户尚未分配角色，请先分配角色后再进入代管')
   const { appId } = this.getUniversalClientInfo()
   const session = {
     kind: 'user',

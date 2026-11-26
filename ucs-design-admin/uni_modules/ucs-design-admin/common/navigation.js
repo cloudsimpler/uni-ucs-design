@@ -21,13 +21,13 @@ export function loadNavigation(force = false) {
                 (row.menu_id === id && (name === undefined || row.name === name)) || containsMenu(row.children, id, name));
             let changed = false;
             if (!result.errCode && result.isAdmin) {
-                const operations = result.data.find(row => row.menu_id === 'tenant_operations');
+                const operations = result.data.find(row => row.menu_id === 'platform');
                 const installs = [
-                    [!containsMenu(result.data, 'platform_tenant') || operations?.name === '租户运营' ||
-                        containsMenu(result.data, 'platform_product_package', '产品包管理') ||
-                        !containsMenu(result.data, 'platform_menu'), 'installTenantManagement'],
-                    [!containsMenu(result.data, 'platform_dictionary'), 'installDictionaryManagement'],
-                    [!containsMenu(result.data, 'system_department'), 'installDepartmentManagement']
+                    [!containsMenu(result.data, 'platform_tenants') || operations?.name === '租户运营' ||
+                        containsMenu(result.data, 'platform_product_packages', '产品包管理') ||
+                        !containsMenu(result.data, 'platform_menus'), 'installTenantManagement'],
+                    [!containsMenu(result.data, 'platform_dictionaries'), 'installDictionaryManagement'],
+                    [!containsMenu(result.data, 'system_departments'), 'installDepartmentManagement']
                 ];
                 for (const [needed, method] of installs) {
                     if (!needed) continue;

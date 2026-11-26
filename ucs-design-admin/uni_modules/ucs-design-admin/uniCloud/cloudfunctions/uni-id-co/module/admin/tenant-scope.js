@@ -102,7 +102,7 @@ async function enterpriseScope(db, actor, tenant, sessionId, grants) {
 }
 
 async function resolveEntryTenantInfo(db, tenantNo = PLATFORM_TENANT_ID) {
-  if (typeof tenantNo !== 'string' || !/^\d{5}$/.test(tenantNo)) fail('请输入五位数字租户号', 'TENANT_INVALID')
+  if (typeof tenantNo !== 'string' || !/^\d{5}$/.test(tenantNo)) fail('请输入租户号', 'TENANT_INVALID')
   if (tenantNo === PLATFORM_TENANT_ID) return platformTenant
   const tenant = first(await db.collection(TENANTS).where({ tenant_no: tenantNo }).limit(1).get())
   if (!tenant || tenant.type !== 'enterprise' || !tenant.enabled || !tenantPackageIds(tenant).length) fail('租户不可用或未分配产品包')

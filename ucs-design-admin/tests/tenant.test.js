@@ -272,7 +272,15 @@ test('系统用户操作按令牌授权，旧角色授权不拦截操作', async
   await admin.validateChange({ uid: 'target', role: [] }, target)
   await assert.rejects(adminWith(['CREATE_UNI_ID_USERS']).validateChange({ nickname: '新用户', gender: 1, role: ['old'] }),
     { errMsg: '绑定角色需要编辑系统用户权限' })
-  await assert.rejects(admin.validateChange({ uid: 'target', password: 'NewPassword123' }, target), { errCode: 'USER_ADMIN_FORBIDDEN' })
+  const editor = adminWith(['UPDATE_UNI_ID_USERS'])
+  assert.equal((await editor.authorize('resetPassword')).resetPassword, true)
+  await editor.validateChange({ uid: 'target', password: 'NewPassword123' }, target)
+  await editor.validateChange({ uid: 'target', nickname: '新名称', password: 'NewPassword123' }, target)
+  await assert.rejects(editor.validateChange({ uid: 'tenant-admin', password: 'NewPassword123' },
+    await admin.getUser('tenant-admin')), { errCode: 'USER_ADMIN_FORBIDDEN' })
+  const legacyPasswordAdmin = adminWith(['READ_UNI_ID_USERS', 'RESET_PASSWORD_UNI_ID_USERS'])
+  assert.equal((await legacyPasswordAdmin.authorize()).resetPassword, false)
+  await assert.rejects(legacyPasswordAdmin.authorize('resetPassword'), { errCode: 'USER_ADMIN_FORBIDDEN' })
   await admin.validateChange({ uid: 'target', role: ['old'] }, { ...target, role: [] })
   await assert.rejects(admin.validateChange({ uid: 'target', role: ['admin'] }, target), { errCode: 'USER_ADMIN_FORBIDDEN' })
   await assert.rejects(admin.removeAccount({ uid: 'foreign' }), { errCode: 'USER_ADMIN_NOT_FOUND' })
@@ -426,40 +434,40 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   }
   await users.add({ _id: 'root', nickname: '平台管理员', role: ['admin'], account_type: 0, tenant_id: '00000' })
   await users.add({ _id: 'operator', nickname: '运营', role: ['ops'], account_type: 0, tenant_id: '00000' })
-  await roles.add({ role_id: 'ops', tenant_id: '00000', menu_ids: ['platform_tenant'], permission: [tenantRights.enter] })
-  await menus.add({ menu_id: 'tenant_operations', name: '租户运营', menu_type: 0, enable: true })
-  await menus.add({ menu_id: 'platform_product_package', name: '产品包管理', parent_id: 'tenant_operations', menu_type: 1, enable: true, url: '/platform/package' })
+  await roles.add({ role_id: 'ops', tenant_id: '00000', menu_ids: ['platform_tenants'], permission: [tenantRights.enter] })
+  await menus.add({ menu_id: 'platform', name: '租户运营', menu_type: 0, enable: true })
+  await menus.add({ menu_id: 'platform_product_packages', name: '产品包管理', parent_id: 'platform', menu_type: 1, enable: true, url: '/platform/package' })
   assert.equal((await run('installTenantManagement', 'root')).changed, true)
   assert.equal((await run('installTenantManagement', 'root')).changed, false)
-  assert.equal((await menus.where({ menu_id: 'platform_tenant' }).get()).data.length, 1)
-  assert.equal((await menus.where({ menu_id: 'tenant_operations' }).get()).data[0].name, '系统运维')
-  assert.equal((await menus.where({ menu_id: 'platform_product_package' }).get()).data[0].name, '租户产品包')
-  const [menuManagement] = (await menus.where({ menu_id: 'platform_menu' }).get()).data
-  assert.equal(menuManagement.parent_id, 'tenant_operations')
+  assert.equal((await menus.where({ menu_id: 'platform_tenants' }).get()).data.length, 1)
+  assert.equal((await menus.where({ menu_id: 'platform' }).get()).data[0].name, '系统运维')
+  assert.equal((await menus.where({ menu_id: 'platform_product_packages' }).get()).data[0].name, '租户产品包')
+  const [menuManagement] = (await menus.where({ menu_id: 'platform_menus' }).get()).data
+  assert.equal(menuManagement.parent_id, 'platform')
   assert.equal(menuManagement.url, '/uni_modules/ucs-design-admin/pages/platform/menu/menu')
   await menus.add({ menu_id: 'system', menu_type: 0, enable: true })
   await menus.add({ menu_id: 'custom_ops', menu_type: 0, enable: true, feature_scope: 'platform' })
   await menus.add({ menu_id: 'custom_ops_sub', parent_id: 'custom_ops', menu_type: 0, feature_scope: 'inherit' })
   await menus.add({ menu_id: 'custom_report', parent_id: 'custom_ops_sub', menu_type: 1, url: '/ops/report' })
-  await menus.add({ menu_id: 'system_user', parent_id: 'system', menu_type: 1, enable: true, url: '/system/user' })
-  await permissions.add({ menu_id: 'system_user', permission_id: 'READ_UNI_ID_USERS' })
-  await permissions.add({ menu_id: 'system_user', permission_id: 'CREATE_UNI_ID_USERS' })
+  await menus.add({ menu_id: 'system_users', parent_id: 'system', menu_type: 1, enable: true, url: '/system/user' })
+  await permissions.add({ menu_id: 'system_users', permission_id: 'READ_UNI_ID_USERS' })
+  await permissions.add({ menu_id: 'system_users', permission_id: 'CREATE_UNI_ID_USERS' })
   const { id: pkg } = await run('saveProductPackage', 'root', {
-    name: '系统人员', remark: '  用于人员管理  ', menu_ids: ['system_user']
+    name: '系统人员', remark: '  用于人员管理  ', menu_ids: ['system_users']
   })
   const packageData = await run('listProductPackages', 'root')
   assert.equal(packageData.auth.delete, true)
   assert.equal(Object.hasOwn(packageData, 'menus'), false)
   assert.deepEqual(packageData.pagination, { current: 1, size: 20, count: 1 })
   const packageAuthorization = await run('getProductPackageAuthorization', 'root')
-  assert.deepEqual(packageAuthorization.menus.map(row => row.menu_id).sort(), ['system', 'system_user'])
+  assert.deepEqual(packageAuthorization.menus.map(row => row.menu_id).sort(), ['system', 'system_users'])
   assert.equal(Object.hasOwn(packageAuthorization, 'permissions'), false)
   const savedPackage = packageData.data.find(row => row._id === pkg)
-  assert.deepEqual(savedPackage.menu_ids, ['system_user'])
+  assert.deepEqual(savedPackage.menu_ids, ['system_users'])
   assert.equal(Object.hasOwn(savedPackage, 'permission_ids'), false)
   await assert.rejects(run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['system'] }), { errCode: 'TENANT_INVALID' })
-  const fullMenuIds = ['platform_tenant', 'platform_product_package', 'platform_menu', 'platform_dictionary']
-  await assert.rejects(run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['platform_tenant'] }), { errCode: 'TENANT_INVALID' })
+  const fullMenuIds = ['platform_tenants', 'platform_product_packages', 'platform_menus', 'platform_dictionaries']
+  await assert.rejects(run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['platform_tenants'] }), { errCode: 'TENANT_INVALID' })
   await assert.rejects(run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['custom_report'] }), { errCode: 'TENANT_INVALID' })
   const dictionaryMethods = require(path.join(root, 'module/admin/dictionary-methods'))
   const dictionaryContext = scope => ({
@@ -470,14 +478,14 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   const platformDictionary = dictionaryContext(await resolveTenantScope(db, 'root', 'test'))
   assert.equal((await dictionaryMethods.installDictionaryManagement.call(platformDictionary)).changed, true)
   assert.equal((await dictionaryMethods.installDictionaryManagement.call(platformDictionary)).changed, false)
-  const [dictionaryMenu] = (await menus.where({ menu_id: 'platform_dictionary' }).get()).data
-  assert.equal(dictionaryMenu.parent_id, 'tenant_operations')
+  const [dictionaryMenu] = (await menus.where({ menu_id: 'platform_dictionaries' }).get()).data
+  assert.equal(dictionaryMenu.parent_id, 'platform')
   assert.equal(dictionaryMenu.name, '系统字典')
   assert.equal(dictionaryMenu.url, '/uni_modules/ucs-design-admin/pages/platform/dictionary/dictionary')
   const [dictionaryPermission] = (await permissions.where({ permission_id: 'READ_UCSDB_DICT' }).get()).data
   assert.equal(dictionaryPermission.permission_name, '查看系统字典')
-  assert.equal(dictionaryPermission.menu_id, 'platform_dictionary')
-  await assert.rejects(run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['platform_dictionary'] }), { errCode: 'TENANT_INVALID' })
+  assert.equal(dictionaryPermission.menu_id, 'platform_dictionaries')
+  await assert.rejects(run('saveProductPackage', 'root', { _id: pkg, menu_ids: ['platform_dictionaries'] }), { errCode: 'TENANT_INVALID' })
   const { id: operationsPackage } = await db.collection('ucsdb-product-packages').add({
     name: '历史运营菜单', menu_ids: fullMenuIds
   })
@@ -492,7 +500,7 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   const { id: a } = await run('createTenant', 'root', { tenant_no: '00001', name: '企业甲' })
   const { id: b } = await run('createTenant', 'root', { tenant_no: '00002', name: '企业乙' })
   const { id: addOn } = await run('saveProductPackage', 'root', {
-    name: '增值包', menu_ids: ['system_user']
+    name: '增值包', menu_ids: ['system_users']
   })
   const page = await run('listTenants', 'root', { tenant_no: '0000', name: '企业', current: 2, size: 1 })
   assert.deepEqual(page.pagination, { current: 2, size: 1, count: 2 })
@@ -627,11 +635,11 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   assert.deepEqual((await resolveTenantScope(db, 'a-admin', 'test')).permissions, ['READ_UNI_ID_USERS', 'CREATE_UNI_ID_USERS'])
   await assert.rejects(run('listTenants', 'a-admin'), { errCode: 'TENANT_ACCESS_FORBIDDEN' })
   await run('saveProductPackage', 'root', { _id: pkg, menu_ids: [] })
-  await db.collection('uni-id-permissions').add({ menu_id: 'system_user', permission_id: 'EXPORT_UNI_ID_USERS' })
+  await db.collection('uni-id-permissions').add({ menu_id: 'system_users', permission_id: 'EXPORT_UNI_ID_USERS' })
   const currentPermissions = ['READ_UNI_ID_USERS', 'CREATE_UNI_ID_USERS', 'EXPORT_UNI_ID_USERS']
   assert.deepEqual((await resolveTenantScope(db, 'a-admin', 'test')).permissions, currentPermissions)
   await db.collection('uni-id-roles').add({
-    tenant_id: a, role_id: 'reader', menu_ids: ['system_user'], permission: ['READ_UNI_ID_USERS']
+    tenant_id: a, role_id: 'reader', menu_ids: ['system_users'], permission: ['READ_UNI_ID_USERS']
   })
   await db.collection('uni-id-users').add({ _id: 'a-reader', tenant_id: a, account_type: 0, role: ['reader'] })
   assert.deepEqual((await resolveTenantScope(db, 'a-reader', 'test')).permissions, ['READ_UNI_ID_USERS'])
@@ -640,7 +648,7 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   await run('saveProductPackage', 'root', { _id: pkg, name: '系统人员·更新', remark: '' })
   assert.equal(await productRemark(), '')
   assert.deepEqual((await scope()).permissions, ['READ_UNI_ID_USERS', 'CREATE_UNI_ID_USERS'])
-  assert.deepEqual((await scope()).menuIds, ['system_user'])
+  assert.deepEqual((await scope()).menuIds, ['system_users'])
   const originalDelegation = credentials.get(session.delegationToken)
   credentials.set(session.delegationToken, { ...originalDelegation, exp: Math.floor(Date.now() / 1000) + 3600 })
   const renewal = actor('operator')
@@ -680,11 +688,11 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     db: scopedDatabase(db, scope), uid: 'root', appId: 'test'
   }).current()).data
   assert.deepEqual(await menusFor(operationsScope), [])
-  const sidebar = await menusFor({ ...operationsScope, menuIds: ['system_user', ...fullMenuIds] })
+  const sidebar = await menusFor({ ...operationsScope, menuIds: ['system_users', ...fullMenuIds] })
   assert.deepEqual(sidebar.map(directory => directory.menu_id), ['system'])
-  assert.deepEqual(sidebar[0].children.map(page => page.menu_id), ['system_user'])
+  assert.deepEqual(sidebar[0].children.map(page => page.menu_id), ['system_users'])
   const platformSidebar = await menusFor(rootActor.loginAdminScope)
-  assert.deepEqual(platformSidebar.find(directory => directory.menu_id === 'tenant_operations')
+  assert.deepEqual(platformSidebar.find(directory => directory.menu_id === 'platform')
     .children.map(page => page.menu_id).sort(), [...fullMenuIds].sort())
   const fromDelegation = await methods.listTenants.call(rootActor, { tenant_no: '00002' })
   assert.deepEqual(fromDelegation.data.map(row => row._id), [b])
@@ -741,13 +749,13 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     menu_id: 'new_page', name: '新页面', menu_type: 1, url: '/new-page', parent_id: 'custom_ops'
   })
   assert.equal((await menuTable.doc(productPage).get()).data[0].feature_scope, 'product')
-  const tenantPage = menuEditorRows.find(row => row.menu_id === 'platform_tenant')
+  const tenantPage = menuEditorRows.find(row => row.menu_id === 'platform_tenants')
   await rootMenus.update({ _id: tenantPage._id, feature_scope: 'product' })
-  const changedPackage = await run('saveProductPackage', 'root', { name: '按页面归属选配', menu_ids: ['platform_tenant'] })
+  const changedPackage = await run('saveProductPackage', 'root', { name: '按页面归属选配', menu_ids: ['platform_tenants'] })
   assert.equal(changedPackage.errCode, 0)
   await rootMenus.update({ _id: tenantPage._id, feature_scope: 'platform' })
   await assert.rejects(run('saveProductPackage', 'root', {
-    _id: changedPackage.id, menu_ids: ['platform_tenant']
+    _id: changedPackage.id, menu_ids: ['platform_tenants']
   }), { errCode: 'TENANT_INVALID' })
 })
 
@@ -775,12 +783,12 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
   })
   const read = 'READ_UNI_ID_USERS'
   const update = 'UPDATE_UNI_ID_USERS'
-  await db.collection('ucsdb-admin-menus').add({ menu_id: 'system_user', menu_type: 1, feature_scope: 'product', enable: true })
+  await db.collection('ucsdb-admin-menus').add({ menu_id: 'system_users', menu_type: 1, feature_scope: 'product', enable: true })
   for (const permission_id of [read, update, USER_DELEGATION_PERMISSION]) {
-    await db.collection('uni-id-permissions').add({ menu_id: 'system_user', permission_id })
+    await db.collection('uni-id-permissions').add({ menu_id: 'system_users', permission_id })
   }
   const { id: packageId } = await db.collection('ucsdb-product-packages').add({
-    menu_ids: ['system_user']
+    menu_ids: ['system_users']
   })
   const tenant = { _id: 'tenant-a', tenant_no: '00001', name: '企业甲', type: 'enterprise', enabled: true, product_package_ids: [packageId] }
   await db.collection('ucsdb-tenants').add(tenant)
@@ -793,12 +801,13 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
     ['role-target', 'target', [read, update]],
     ['role-manager', 'admin', []]
   ]) {
-    await roles.add({ _id: id, role_id, tenant_id: tenant._id, menu_ids: ['system_user'], permission })
+    await roles.add({ _id: id, role_id, tenant_id: tenant._id, menu_ids: ['system_users'], permission })
   }
   for (const user of [
     { _id: 'operator', tenant_id: tenant._id, role: ['operator'] },
     { _id: 'target', tenant_id: tenant._id, role: ['target'] },
     { _id: 'manager', tenant_id: tenant._id, role: ['admin'] },
+    { _id: 'unassigned', tenant_id: tenant._id, role: [] },
     { _id: 'other', tenant_id: 'tenant-b' },
     { _id: 'disabled', tenant_id: tenant._id, status: 1 },
     { _id: 'community', tenant_id: tenant._id, account_type: 1 },
@@ -814,6 +823,14 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
     }
   }
   const operator = await context('operator')
+  await assert.rejects(enterUserManagement.call({
+    ...operator,
+    uniIdCommon: { createDelegationToken: () => assert.fail('未分配角色的用户不应签发代管令牌') }
+  }, { uid: 'unassigned' }), {
+    errCode: 'USER_DELEGATION_FORBIDDEN',
+    errMsg: '该用户尚未分配角色，请先分配角色后再进入代管'
+  })
+  assert.equal((await db.collection('uni-id-log').where({ target_user_id: 'unassigned' }).count()).total, 0)
   for (const uid of ['operator', 'other', 'disabled', 'community']) {
     await assert.rejects(enterUserManagement.call(operator, { uid }),
       error => ['USER_DELEGATION_FORBIDDEN', 'TENANT_ACCESS_FORBIDDEN'].includes(error.errCode))
@@ -853,7 +870,7 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
   }
   assert.equal(active.scope.uid, 'target')
   assert.equal(active.scope.isAdmin, false)
-  assert.deepEqual([...active.scope.menuIds], ['system_user'])
+  assert.deepEqual([...active.scope.menuIds], ['system_users'])
   assert.deepEqual([...active.scope.permissions], [read])
   assert.match(active.session._id, /^[a-f0-9]{48}$/)
   assert.equal(active.session._id, userDelegationId)
@@ -934,25 +951,26 @@ test('应用归属登录租户，版本访问受所属应用限制', async () =>
   const createVersionAdmin = require(path.join(root, 'module/admin/version-admin')).createVersionAdmin
   const appId = 'platform-app'
   await db.collection('ucsdb-app-list').add({ appid: appId, name: '历史平台应用' })
-  const permissions = ['CREATE_OPENDB_APP_LIST', 'READ_OPENDB_APP_VERSIONS', 'CREATE_OPENDB_APP_VERSIONS', 'DELETE_OPENDB_APP_LIST']
-  await db.collection('ucsdb-admin-menus').add({ menu_id: 'system_app', menu_type: 1, enable: true })
+  const permissions = ['CREATE_UCSDB_APP_LIST', 'READ_UCSDB_APP_VERSIONS', 'CREATE_UCSDB_APP_VERSIONS', 'DELETE_UCSDB_APP_LIST',
+    'PUBLISH_UCSDB_APP_VERSIONS']
+  await db.collection('ucsdb-admin-menus').add({ menu_id: 'system_apps', menu_type: 1, enable: true })
   for (const permission_id of permissions)
-    await db.collection('uni-id-permissions').add({ menu_id: 'system_app', permission_id })
+    await db.collection('uni-id-permissions').add({ menu_id: 'system_apps', permission_id })
   const { id: packageId } = await db.collection('ucsdb-product-packages')
-    .add({ menu_ids: ['system_app'] })
+    .add({ menu_ids: ['system_apps'] })
   const entry = async (tenantId, tenantNo) => {
     const tenant = { _id: tenantId, tenant_no: tenantNo, type: 'enterprise', enabled: true, product_package_ids: [packageId] }
     const actor = { uid: tenantId, name: tenantNo, user: {}, tenantAdmin: true }
     const scope = await enterpriseScope(db, actor, tenant)
-    assert.ok(scope.permissions.includes('CREATE_OPENDB_APP_LIST'))
-    assert.deepEqual((await enterpriseScope(db, actor, tenant, 'delegated')).menuIds, ['system_app'])
+    assert.ok(scope.permissions.includes('CREATE_UCSDB_APP_LIST'))
+    assert.deepEqual((await enterpriseScope(db, actor, tenant, 'delegated')).menuIds, ['system_apps'])
     return { uid: tenantId, appId, db: scopedDatabase(db, scope) }
   }
   const a = await entry('enterprise-a', '00001')
   const b = await entry('enterprise-b', '00002')
   const aApps = createAppAdmin({ ...a, referenceDb: db })
   const bApps = createAppAdmin({ ...b, referenceDb: db })
-  const saved = await aApps.save({ appid: 'enterprise-app', name: '企业应用', tenant_id: 'enterprise-b' })
+  const saved = await aApps.save({ appid: 'enterprise-app', name: '企业应用', app_type: 1, tenant_id: 'enterprise-b' })
   const [app] = (await aApps.list()).data
   assert.equal(app.tenant_id, a.uid)
   assert.equal(app.tenant_no, '00001')
@@ -967,6 +985,14 @@ test('应用归属登录租户，版本访问受所属应用限制', async () =>
   await aVersions.save(version)
   const [stored] = (await db.collection('ucsdb-app-versions').where({ appid: app.appid }).get()).data
   assert.equal(stored.tenant_id, undefined)
+  for (const platform of ['Android', 'iOS', 'Harmony']) {
+    const { id } = await aVersions.save({
+      ...version, platform: [platform], type: 'wgt', min_uni_version: '1.0.0',
+      url: 'cloud://test/app-packages/update.wgt', url_source: 'upload'
+    })
+    await aVersions.publish({ appid: app.appid, _id: id, published: true })
+    assert.equal((await db.collection('ucsdb-app-versions').doc(id).get()).data[0].stable_publish, true)
+  }
   await assert.rejects(bVersions.list({ appid: app.appid }), { errMsg: '应用不存在或已被删除' })
   await assert.rejects(aApps.remove({ _id: saved.id }), { errMsg: '应用存在版本记录，不能删除' })
 })

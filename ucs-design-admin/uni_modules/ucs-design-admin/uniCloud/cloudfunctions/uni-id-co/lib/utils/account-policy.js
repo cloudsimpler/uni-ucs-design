@@ -2,7 +2,7 @@ const { accountTypeOf } = require('../../module/admin/account-types')
 const { isMatchUserApp } = require('../../common/utils')
 // The invoked server method fixes the account scope; neither AppID nor request fields choose it.
 const adminMethods = new Set([
-  'registerAdmin', 'adminLogin', 'adminLoginBySms', 'adminLoginByEmailCode',
+  'registerAdmin', 'adminLogin', 'adminLoginBySms',
   'adminCompleteAccountLogin', 'adminBeginAccountRecovery', 'adminCompleteAccountRecovery'
 ])
 const accountEntry = context => adminMethods.has(context.getMethodName()) ? 'admin' : 'client'

@@ -1,8 +1,8 @@
-const DIRECTORY = 'tenant_operations'
-const TENANT_MENU = 'platform_tenant'
-const PACKAGE_MENU = 'platform_product_package'
-const MENU_MANAGEMENT = 'platform_menu'
-const DICTIONARY = 'platform_dictionary'
+const DIRECTORY = 'platform'
+const TENANT_MENU = 'platform_tenants'
+const PACKAGE_MENU = 'platform_product_packages'
+const MENU_MANAGEMENT = 'platform_menus'
+const DICTIONARY = 'platform_dictionaries'
 const legacyMenuNames = { [DIRECTORY]: '租户运营', [PACKAGE_MENU]: '产品包管理' }
 
 const defaultPlatformPageIds = new Set([TENANT_MENU, PACKAGE_MENU, MENU_MANAGEMENT, DICTIONARY])

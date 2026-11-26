@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { ElAvatar, ElBreadcrumb, ElBreadcrumbItem, ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElIcon, ElTooltip } from 'element-plus';
+import { ElAvatar, ElBreadcrumb, ElBreadcrumbItem, ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElIcon, ElMessage, ElTooltip } from 'element-plus';
 import UcsAdminDelegation from '../components/ucs-admin-delegation/ucs-admin-delegation.vue';
 import 'element-plus/es/components/avatar/style/css.mjs';
 import 'element-plus/es/components/breadcrumb/style/css.mjs';
@@ -149,6 +149,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 		if (command !== 'logout' || isLoggingOut.value || store.delegation) return;
 		isLoggingOut.value = true;
 		try {
+			uni.showLoading({ title: '正在退出…', mask: true });
 			const currentPages = getCurrentPages();
 			const route = currentPages[currentPages.length - 1]?.route || pagesJson.pages[0].path;
 			if (!getLoginTenantNo()) {
@@ -160,14 +161,17 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 				}
 			}
 			const returnUrl = getLoginRedirectUrl(route);
-			const uniIdCo = uniCloud.importObject('uni-id-co', { errorOptions: { type: 'toast' } });
+			const uniIdCo = uniCloud.importObject('uni-id-co', { customUI: true });
 			await withSessionHandling(() => uniIdCo.logout());
 			setDelegation(null);
 			store.isLogin = false;
 			uni.reLaunch({ url: returnUrl });
 		} catch (error) {
+			const { kind, message } = describeRequestError(error, '退出登录失败，请重试');
+			if (kind !== 'session') ElMessage.error(message);
 			console.error('退出登录失败', error);
 		} finally {
+			uni.hideLoading();
 			isLoggingOut.value = false;
 		}
 	};

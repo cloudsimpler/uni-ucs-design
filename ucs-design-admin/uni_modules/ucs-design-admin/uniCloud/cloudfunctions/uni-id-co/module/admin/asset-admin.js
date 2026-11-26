@@ -20,8 +20,8 @@ function createAssetAdmin({ db, uid, appId, storage }) {
  const ctx = accessContext({ db, uid, appId });
  const authorize = async action => {
   const auth = await ctx.actor();
-  if (action === 'read') ctx.requireRead(auth, 'OPENDB_ASSETS');
-  else ctx.requirePermission(auth, `${action.toUpperCase()}_OPENDB_ASSETS`);
+  if (action === 'read') ctx.requireRead(auth, 'UCSDB_ASSETS');
+  else ctx.requirePermission(auth, `${action.toUpperCase()}_UCSDB_ASSETS`);
   return auth;
  };
  const find = async (table, id) => {
@@ -49,7 +49,7 @@ function createAssetAdmin({ db, uid, appId, storage }) {
    const auth = await ctx.actor();
    if (!auth.isAdmin) fail('仅超级管理员可安装素材菜单', 'ADMIN_ACCESS_FORBIDDEN');
    const menus = db.collection('ucsdb-admin-menus');
-   const parent = one(await menus.where({ menu_id: 'system_management' }).limit(1).get());
+   const parent = one(await menus.where({ menu_id: 'system' }).limit(1).get());
    if (!parent || parent.menu_type !== 0) fail('请先建立系统管理目录');
    let changed = false;
    const insertMissing = async (table, key, record) => {
@@ -60,11 +60,11 @@ function createAssetAdmin({ db, uid, appId, storage }) {
      if (!one(await db.collection(table).where({ [key]: record[key] }).limit(1).get())) throw error;
     }
    };
-   for (const permission of require('./permission-catalog').filter(item => item.menu_id === 'system_asset')) {
+   for (const permission of require('./permission-catalog').filter(item => item.menu_id === 'system_assets')) {
     await insertMissing('uni-id-permissions', 'permission_id', { ...permission });
    }
    await insertMissing('ucsdb-admin-menus', 'menu_id', {
-    menu_id: 'system_asset', name: '素材管理', parent_id: 'system_management', menu_type: 1, feature_scope: 'product',
+    menu_id: 'system_assets', name: '素材管理', parent_id: 'system', menu_type: 1, feature_scope: 'product',
     client_type: ['pc'], url: '/uni_modules/ucs-design-admin/pages/system/asset/asset', icon: 'Folder',
     app_url: '', app_icon: '', sort: 26, enable: true
    });
@@ -93,7 +93,7 @@ function createAssetAdmin({ db, uid, appId, storage }) {
     .limit(creatorIds.length).get()).data : [];
    const creatorNames = new Map(creators.map(user => [user._id, actorName(user)]));
    for (const row of data) row.create_name ||= creatorNames.get(row.create_id) || '';
-   return { errCode: 0, data, total, page, pageSize, auth: ctx.capabilities(auth, 'OPENDB_ASSETS') };
+   return { errCode: 0, data, total, page, pageSize, auth: ctx.capabilities(auth, 'UCSDB_ASSETS') };
   },
   async references({ _id, page = 1, pageSize = 20 } = {}) {
    await authorize('read'); await find(ASSETS, _id);

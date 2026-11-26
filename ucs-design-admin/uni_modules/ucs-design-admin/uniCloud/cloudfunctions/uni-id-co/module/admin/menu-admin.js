@@ -9,7 +9,7 @@ const table = 'ucsdb-admin-menus';
 const MENU_TYPE = require('./menu-types');
 const { accountTypeOf, hasManagementIdentity, hasAccountType } = require('./account-types');
 const actions = ['read', 'create', 'update', 'delete'];
-const permissionFor = (action) => `${action.toUpperCase()}_OPENDB_ADMIN_MENUS`;
+const permissionFor = (action) => `${action.toUpperCase()}_UCSDB_ADMIN_MENUS`;
 const sortMenus = (rows) => rows.sort((a, b) => (a.sort || 0) - (b.sort || 0) || a.menu_id.localeCompare(b.menu_id));
 // Existing menus predate terminal configuration and belong to PC only.
 const clientsFor = (row) =>

@@ -1,313 +1,307 @@
 [
   {
-    "menu_id": "system_customer",
+    "menu_id": "system_customers",
     "permission_id": "UPDATE_CUSTOMER_STATUS",
     "permission_name": "禁用/恢复社区用户",
     "sort": 3
   },
   {
-    "menu_id": "system_customer",
+    "menu_id": "system_customers",
     "permission_id": "READ_CUSTOMER_LOG",
     "permission_name": "查看社区用户登录日志",
     "sort": 4
   },
   {
-    "menu_id": "system_customer",
+    "menu_id": "system_customers",
     "permission_id": "READ_UNI_ID_CUSTOMERS",
     "permission_name": "查看社区用户",
     "sort": 1
   },
   {
-    "menu_id": "system_customer",
+    "menu_id": "system_customers",
     "permission_id": "UPDATE_UNI_ID_CUSTOMERS",
     "permission_name": "编辑社区用户",
     "sort": 2
   },
   {
-    "menu_id": "system_user",
+    "menu_id": "system_users",
     "permission_id": "DELETE_UNI_ID_USERS",
     "permission_name": "删除系统用户",
     "sort": 7
   },
   {
-    "menu_id": "system_user",
+    "menu_id": "system_users",
     "permission_id": "ENTER_USER_DELEGATION",
     "permission_name": "用户代管",
     "sort": 8
   },
   {
-    "menu_id": "system_user",
+    "menu_id": "system_users",
     "permission_id": "READ_UNI_ID_USERS",
     "permission_name": "查看系统用户",
     "sort": 1
   },
   {
-    "menu_id": "system_user",
+    "menu_id": "system_users",
     "permission_id": "CREATE_UNI_ID_USERS",
     "permission_name": "新增系统用户",
     "sort": 2
   },
   {
-    "menu_id": "system_user",
+    "menu_id": "system_users",
     "permission_id": "UPDATE_UNI_ID_USERS",
     "permission_name": "编辑系统用户",
     "sort": 3
   },
   {
-    "menu_id": "system_role",
+    "menu_id": "system_roles",
     "permission_id": "READ_UNI_ID_ROLES",
     "permission_name": "查看角色",
     "sort": 1
   },
   {
-    "menu_id": "system_role",
+    "menu_id": "system_roles",
     "permission_id": "CREATE_UNI_ID_ROLES",
     "permission_name": "新增角色",
     "sort": 2
   },
   {
-    "menu_id": "system_role",
+    "menu_id": "system_roles",
     "permission_id": "UPDATE_UNI_ID_ROLES",
     "permission_name": "编辑角色",
     "sort": 3
   },
   {
-    "menu_id": "system_role",
+    "menu_id": "system_roles",
     "permission_id": "DELETE_UNI_ID_ROLES",
     "permission_name": "删除角色",
     "sort": 4
   },
   {
-    "menu_id": "platform_menu",
+    "menu_id": "platform_menus",
     "permission_id": "READ_UNI_ID_PERMISSIONS",
     "permission_name": "查看权限",
     "sort": 5
   },
   {
-    "menu_id": "platform_menu",
+    "menu_id": "platform_menus",
     "permission_id": "CREATE_UNI_ID_PERMISSIONS",
     "permission_name": "新增权限",
     "sort": 6
   },
   {
-    "menu_id": "platform_menu",
+    "menu_id": "platform_menus",
     "permission_id": "UPDATE_UNI_ID_PERMISSIONS",
     "permission_name": "编辑权限",
     "sort": 7
   },
   {
-    "menu_id": "platform_menu",
+    "menu_id": "platform_menus",
     "permission_id": "DELETE_UNI_ID_PERMISSIONS",
     "permission_name": "删除权限",
     "sort": 8
   },
   {
-    "menu_id": "platform_menu",
-    "permission_id": "READ_OPENDB_ADMIN_MENUS",
+    "menu_id": "platform_menus",
+    "permission_id": "READ_UCSDB_ADMIN_MENUS",
     "permission_name": "查看菜单",
     "sort": 1
   },
   {
-    "menu_id": "platform_menu",
-    "permission_id": "CREATE_OPENDB_ADMIN_MENUS",
+    "menu_id": "platform_menus",
+    "permission_id": "CREATE_UCSDB_ADMIN_MENUS",
     "permission_name": "新增菜单",
     "sort": 2
   },
   {
-    "menu_id": "platform_menu",
-    "permission_id": "UPDATE_OPENDB_ADMIN_MENUS",
+    "menu_id": "platform_menus",
+    "permission_id": "UPDATE_UCSDB_ADMIN_MENUS",
     "permission_name": "编辑菜单",
     "sort": 3
   },
   {
-    "menu_id": "platform_menu",
-    "permission_id": "DELETE_OPENDB_ADMIN_MENUS",
+    "menu_id": "platform_menus",
+    "permission_id": "DELETE_UCSDB_ADMIN_MENUS",
     "permission_name": "删除菜单",
     "sort": 4
   },
   {
-    "menu_id": "system_user",
-    "permission_id": "RESET_PASSWORD_UNI_ID_USERS",
-    "permission_name": "重置系统用户密码",
-    "sort": 4
-  },
-  {
-    "menu_id": "system_user",
+    "menu_id": "system_users",
     "permission_id": "READ_UNI_ID_LOG",
     "permission_name": "查看登录日志",
     "sort": 5
   },
   {
-    "menu_id": "system_app",
-    "permission_id": "READ_OPENDB_APP_LIST",
+    "menu_id": "system_apps",
+    "permission_id": "READ_UCSDB_APP_LIST",
     "permission_name": "查看应用",
     "sort": 1
   },
   {
-    "menu_id": "system_app",
-    "permission_id": "CREATE_OPENDB_APP_LIST",
+    "menu_id": "system_apps",
+    "permission_id": "CREATE_UCSDB_APP_LIST",
     "permission_name": "新增应用",
     "sort": 2
   },
   {
-    "menu_id": "system_app",
-    "permission_id": "UPDATE_OPENDB_APP_LIST",
+    "menu_id": "system_apps",
+    "permission_id": "UPDATE_UCSDB_APP_LIST",
     "permission_name": "编辑应用",
     "sort": 3
   },
   {
-    "menu_id": "system_app",
-    "permission_id": "DELETE_OPENDB_APP_LIST",
+    "menu_id": "system_apps",
+    "permission_id": "DELETE_UCSDB_APP_LIST",
     "permission_name": "删除应用",
     "sort": 4
   },
   {
-    "permission_id": "READ_OPENDB_APP_VERSIONS",
+    "permission_id": "READ_UCSDB_APP_VERSIONS",
     "permission_name": "查看应用版本",
-    "menu_id": "system_app",
+    "menu_id": "system_apps",
     "sort": 5
   },
   {
-    "permission_id": "CREATE_OPENDB_APP_VERSIONS",
+    "permission_id": "CREATE_UCSDB_APP_VERSIONS",
     "permission_name": "新增应用版本",
-    "menu_id": "system_app",
+    "menu_id": "system_apps",
     "sort": 6
   },
   {
-    "permission_id": "UPDATE_OPENDB_APP_VERSIONS",
+    "permission_id": "UPDATE_UCSDB_APP_VERSIONS",
     "permission_name": "编辑应用版本",
-    "menu_id": "system_app",
+    "menu_id": "system_apps",
     "sort": 7
   },
   {
-    "permission_id": "DELETE_OPENDB_APP_VERSIONS",
+    "permission_id": "DELETE_UCSDB_APP_VERSIONS",
     "permission_name": "删除应用版本",
-    "menu_id": "system_app",
+    "menu_id": "system_apps",
     "sort": 8
   },
   {
-    "permission_id": "PUBLISH_OPENDB_APP_VERSIONS",
+    "permission_id": "PUBLISH_UCSDB_APP_VERSIONS",
     "permission_name": "发布/下线应用版本",
-    "menu_id": "system_app",
+    "menu_id": "system_apps",
     "sort": 9
   },
   {
-    "permission_id": "READ_OPENDB_ASSETS",
+    "permission_id": "READ_UCSDB_ASSETS",
     "permission_name": "查看素材",
-    "menu_id": "system_asset",
+    "menu_id": "system_assets",
     "sort": 1
   },
   {
-    "permission_id": "CREATE_OPENDB_ASSETS",
+    "permission_id": "CREATE_UCSDB_ASSETS",
     "permission_name": "新增素材",
-    "menu_id": "system_asset",
+    "menu_id": "system_assets",
     "sort": 2
   },
   {
-    "permission_id": "UPDATE_OPENDB_ASSETS",
+    "permission_id": "UPDATE_UCSDB_ASSETS",
     "permission_name": "编辑素材",
-    "menu_id": "system_asset",
+    "menu_id": "system_assets",
     "sort": 3
   },
   {
-    "permission_id": "DELETE_OPENDB_ASSETS",
+    "permission_id": "DELETE_UCSDB_ASSETS",
     "permission_name": "删除素材",
-    "menu_id": "system_asset",
+    "menu_id": "system_assets",
     "sort": 4
   },
   {
-    "menu_id": "platform_dictionary",
+    "menu_id": "platform_dictionaries",
     "permission_id": "READ_UCSDB_DICT",
     "permission_name": "查看系统字典",
     "sort": 1
   },
   {
-    "menu_id": "platform_dictionary",
+    "menu_id": "platform_dictionaries",
     "permission_id": "CREATE_UCSDB_DICT",
     "permission_name": "新增系统字典",
     "sort": 2
   },
   {
-    "menu_id": "platform_dictionary",
+    "menu_id": "platform_dictionaries",
     "permission_id": "UPDATE_UCSDB_DICT",
     "permission_name": "编辑系统字典",
     "sort": 3
   },
-  {"permission_id":"DELETE_UCSDB_DICT","permission_name":"删除系统字典","menu_id":"platform_dictionary","sort":4},
+  {"permission_id":"DELETE_UCSDB_DICT","permission_name":"删除系统字典","menu_id":"platform_dictionaries","sort":4},
 {
-  "menu_id": "system_department",
-  "permission_id": "READ_OPENDB_DEPARTMENT",
+  "menu_id": "system_departments",
+  "permission_id": "READ_UCSDB_DEPARTMENT",
   "permission_name": "查看部门",
   "sort": 1
 },
 {
-  "menu_id": "system_department",
-  "permission_id": "CREATE_OPENDB_DEPARTMENT",
+  "menu_id": "system_departments",
+  "permission_id": "CREATE_UCSDB_DEPARTMENT",
   "permission_name": "新增部门",
   "sort": 2
 },
 {
-  "menu_id": "system_department",
-  "permission_id": "UPDATE_OPENDB_DEPARTMENT",
+  "menu_id": "system_departments",
+  "permission_id": "UPDATE_UCSDB_DEPARTMENT",
   "permission_name": "编辑部门",
   "sort": 3
 },
 {
-  "menu_id": "system_department",
-  "permission_id": "DELETE_OPENDB_DEPARTMENT",
+  "menu_id": "system_departments",
+  "permission_id": "DELETE_UCSDB_DEPARTMENT",
   "permission_name": "删除部门",
   "sort": 4
 },
   {
-    "menu_id": "platform_tenant",
+    "menu_id": "platform_tenants",
     "permission_id": "READ_UCSDB_TENANTS",
     "permission_name": "查看租户",
     "sort": 1
   },
   {
-    "menu_id": "platform_tenant",
+    "menu_id": "platform_tenants",
     "permission_id": "CREATE_UCSDB_TENANTS",
     "permission_name": "开通租户",
     "sort": 2
   },
   {
-    "menu_id": "platform_tenant",
+    "menu_id": "platform_tenants",
     "permission_id": "ASSIGN_UCSDB_TENANT_PACKAGE",
     "permission_name": "分配产品包",
     "sort": 3
   },
   {
-    "menu_id": "platform_tenant",
+    "menu_id": "platform_tenants",
     "permission_id": "UPDATE_UCSDB_TENANT_STATUS",
     "permission_name": "启停租户",
     "sort": 4
   },
   {
-    "menu_id": "platform_tenant",
+    "menu_id": "platform_tenants",
     "permission_id": "ENTER_UCSDB_TENANT_MANAGEMENT",
     "permission_name": "进入代管",
     "sort": 5
   },
   {
-    "menu_id": "platform_product_package",
+    "menu_id": "platform_product_packages",
     "permission_id": "READ_UCSDB_PRODUCT_PACKAGES",
     "permission_name": "查看产品包",
     "sort": 6
   },
   {
-    "menu_id": "platform_product_package",
+    "menu_id": "platform_product_packages",
     "permission_id": "CREATE_UCSDB_PRODUCT_PACKAGES",
     "permission_name": "新增产品包",
     "sort": 7
   },
   {
-    "menu_id": "platform_product_package",
+    "menu_id": "platform_product_packages",
     "permission_id": "UPDATE_UCSDB_PRODUCT_PACKAGES",
     "permission_name": "编辑产品包",
     "sort": 8
   },
   {
-    "menu_id": "platform_product_package",
+    "menu_id": "platform_product_packages",
     "permission_id": "DELETE_UCSDB_PRODUCT_PACKAGES",
     "permission_name": "删除产品包",
     "sort": 9

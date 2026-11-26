@@ -2,7 +2,7 @@ const { accessContext, fail } = require('./admin-access');
 const { createHash } = require('crypto');
 const { withAppTransaction } = require('./app-admin');
 const table = 'ucsdb-app-versions';
-const suffix = 'OPENDB_APP_VERSIONS';
+const suffix = 'UCSDB_APP_VERSIONS';
 const urlSource = (row) =>
 	row.url_source || (/\/app-packages\/\d+-[a-z0-9]+\.(apk|wgt)(?:\?|$)/i.test(row.url || '') ? 'upload' : 'manual');
 const versionPattern = /^\d{1,8}(\.\d{1,8}){0,3}$/;
@@ -41,7 +41,7 @@ function createVersionAdmin({ db, versionDb = db, uid, appId }) {
 		if (!data.length) fail('版本不存在或不属于此应用');
 		return data[0];
 	};
-	const validate = (params, application) => {
+	const validate = (params) => {
 		const value = {};
 		for (const [key, max] of Object.entries({
 			version: 40,
@@ -75,8 +75,6 @@ function createVersionAdmin({ db, versionDb = db, uid, appId }) {
 			value[key] = params[key] || false;
 		}
 		if (value.type === 'wgt') {
-			if (value.platform[0] === 'Harmony' || (application.app_type === 1 && value.platform[0] === 'Android'))
-				fail('此应用平台暂不支持 WGT 资源包');
 			normalizeVersion(value.min_uni_version);
 		} else {
 			value.min_uni_version = '';
@@ -129,10 +127,7 @@ function createVersionAdmin({ db, versionDb = db, uid, appId }) {
 			const application = await app(params.appid);
 			const old = params._id ? await find(params.appid, params._id) : null;
 			if (old?.stable_publish) fail('请先下线版本再编辑');
-			const value = validate(
-				{ ...params, url_source: params.url_source ?? (old ? urlSource(old) : undefined) },
-				application
-			);
+			const value = validate({ ...params, url_source: params.url_source ?? (old ? urlSource(old) : undefined) });
 			if (old && urlSource(old) === 'upload' && value.url_source !== 'upload')
 				fail('上传生成的下载地址请通过更换安装包更新');
 			if (
@@ -175,11 +170,11 @@ function createVersionAdmin({ db, versionDb = db, uid, appId }) {
 		},
 		async publish(params = {}) {
 			const auth = await authorize('PUBLISH');
-			const application = await app(params.appid);
+			await app(params.appid);
 			const old = await find(params.appid, params._id);
 			if (typeof params.published !== 'boolean') fail('发布状态不正确');
 			if (params.published) {
-				const value = validate(old, application);
+				const value = validate(old);
 				const rows = await checkDuplicate(params.appid, value, old._id);
 				if (
 					rows.some(

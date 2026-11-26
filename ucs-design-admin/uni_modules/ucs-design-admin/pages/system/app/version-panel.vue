@@ -186,9 +186,8 @@
 				<div class="version-field">
 					<el-radio-group v-model="form.type" :disabled="busy || !!form._id" @change="changePackage">
 						<el-radio value="native_app">原生安装包</el-radio>
-						<el-radio value="wgt" :disabled="!supportsWgt">WGT 资源包</el-radio>
+						<el-radio value="wgt">WGT 资源包</el-radio>
 					</el-radio-group>
-					<span v-if="!supportsWgt" class="hint">当前应用平台暂不提供 WGT 更新。</span>
 				</div>
 			</el-form-item>
 			<el-form-item label="版本号" prop="version">
@@ -224,7 +223,7 @@
 						:on-error="uploadFailed"
 					>
 						<el-button type="primary" plain :loading="uploading" :disabled="busy">
-							{{ uploading ? '上传中' : form.url ? '更换安装包' : '上传安装包' }}
+							{{ uploading ? '上传中' : (form.url ? '更换' : '上传') + (form.type === 'wgt' ? ' WGT 资源包' : '安装包') }}
 						</el-button>
 					</el-upload>
 					<el-progress v-if="uploading" :percentage="progress" style="width: 100%" />
@@ -340,9 +339,6 @@ const empty = () => ({
 });
 const form = reactive(empty());
 const packageUrl = ref('');
-const supportsWgt = computed(
-	() => form.platform !== 'Harmony' && !(props.app.app_type === 1 && form.platform === 'Android')
-);
 const canUpload = computed(() => form.type === 'wgt' || form.platform === 'Android');
 const urlLabel = computed(() => (canUpload.value ? '下载链接' : '应用商店链接'));
 const required = (message) => [{ required: true, whitespace: true, message, trigger: 'blur' }];
@@ -437,7 +433,6 @@ async function edit(row) {
 	}
 }
 function changePackage() {
-	if (!supportsWgt.value) form.type = 'native_app';
 	form.url = '';
 	packageUrl.value = '';
 	form.url_source = 'manual';

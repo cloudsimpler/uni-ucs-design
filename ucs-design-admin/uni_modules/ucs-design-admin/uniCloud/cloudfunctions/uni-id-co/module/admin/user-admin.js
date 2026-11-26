@@ -80,10 +80,10 @@ function createUserAdmin({ db, uid, appId, accountType = ACCOUNT_TYPE.EMPLOYEE }
       create: isAdmin || permissions.includes(`CREATE_${suffix}`),
       update: isAdmin || permissions.includes(`UPDATE_${suffix}`),
       delete: isAdmin || permissions.includes(`DELETE_${suffix}`),
-      readLogs: isAdmin || permissions.includes(customer ? 'READ_CUSTOMER_LOG' : 'READ_UNI_ID_LOG'),
-      resetPassword: isAdmin || permissions.includes(`RESET_PASSWORD_${suffix}`) }
+      readLogs: isAdmin || permissions.includes(customer ? 'READ_CUSTOMER_LOG' : 'READ_UNI_ID_LOG') }
+    auth.resetPassword = !customer && auth.update
     if (customer) {
-      auth.create = auth.delete = auth.resetPassword = false
+      auth.create = auth.delete = false
       auth.status = isAdmin || permissions.includes('UPDATE_CUSTOMER_STATUS')
     }
     auth.delegate = !customer && Boolean(canEnter(scope))
