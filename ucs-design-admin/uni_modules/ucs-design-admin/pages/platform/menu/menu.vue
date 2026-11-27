@@ -670,6 +670,10 @@ async function changed() {
 	store.menuVersion++;
 	await load();
 }
+function applyMenuUpdate(menu) {
+	rows.value = rows.value.map((row) => row._id === menu._id ? menu : row);
+	store.menuVersion++;
+}
 async function save() {
 	if (saving.value || iconUploading.value || editorLoading.value || !editorReady.value || !(await formRef.value.validate().catch(() => false))) return;
 	saving.value = true;
@@ -680,10 +684,15 @@ async function save() {
 			delete payload.feature_scope;
 			delete payload.client_type;
 		}
-		check(await (editing.value ? api.updateMenu(payload) : api.createMenu(payload)));
+		const isEdit = editing.value;
+		const result = check(await (isEdit ? api.updateMenu(payload) : api.createMenu(payload)));
 		editorVisible.value = false;
-		ElMessage.success(editing.value ? '菜单已更新' : '菜单已创建');
-		await changed();
+		ElMessage.success(isEdit ? '菜单已更新' : '菜单已创建');
+		if (isEdit) {
+			applyMenuUpdate(result.data);
+		} else {
+			await changed();
+		}
 	} catch (e) {
 		saveError.value = message(e);
 	} finally {
@@ -700,9 +709,9 @@ async function setEnabled(row, enable) {
 				cancelButtonText: '取消',
 				type: 'warning'
 			});
-		check(await api.updateMenu({ _id: row._id, enable }));
+		const result = check(await api.updateMenu({ _id: row._id, enable }));
+		applyMenuUpdate(result.data);
 		ElMessage.success(enable ? '菜单已启用' : '菜单已停用');
-		await changed();
 	} catch (e) {
 		if (e !== 'cancel' && e !== 'close') ElMessage.error(message(e));
 	} finally {

@@ -742,7 +742,10 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   const legacyReport = menuEditorRows.find(row => row.menu_id === 'custom_report')
   assert.equal(legacyReport.feature_scope, 'platform')
   const legacyDirectory = menuEditorRows.find(row => row.menu_id === 'custom_ops_sub')
-  await rootMenus.update({ _id: legacyDirectory._id, name: '历史目录', parent_id: '' })
+  const { data: savedDirectory } = await rootMenus.update({ _id: legacyDirectory._id, name: ' 历史目录 ', parent_id: '' })
+  assert.equal(savedDirectory._id, legacyDirectory._id)
+  assert.equal(savedDirectory.name, '历史目录')
+  assert.equal(savedDirectory.parent_id, '')
   assert.equal((await menuTable.doc(legacyReport._id).get()).data[0].feature_scope, 'platform')
 
   const newPage = { menu_id: 'new_page', name: '新页面', menu_type: 1, url: '/new-page', parent_id: 'custom_ops', client_type: ['pc'] }
@@ -753,7 +756,10 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   await assert.rejects(rootMenus.create({ ...newPage, feature_scope: 'product', client_type: [] }),
     { errMsg: '请选择有效的显示端：PC 或 App' })
   assert.equal((await menuTable.doc(productPage).get()).data[0].feature_scope, 'product')
-  await rootMenus.update({ _id: productPage, menu_type: 0, url: '' })
+  const { data: savedConversion } = await rootMenus.update({ _id: productPage, menu_type: 0, url: '' })
+  assert.equal(savedConversion.menu_type, 0)
+  assert.equal(Object.hasOwn(savedConversion, 'feature_scope'), false)
+  assert.equal(Object.hasOwn(savedConversion, 'client_type'), false)
   const [convertedDirectory] = (await menuTable.doc(productPage).get()).data
   assert.equal(Object.hasOwn(convertedDirectory, 'feature_scope'), false)
   assert.equal(Object.hasOwn(convertedDirectory, 'client_type'), false)

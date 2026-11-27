@@ -14,4 +14,8 @@ let store = reactive({
 	breadcrumbMenu: []
 });
 
+export function currentDelegationId() {
+	return store.delegation?.userDelegationId || store.delegation?.sessionId || '';
+}
+
 export default store;

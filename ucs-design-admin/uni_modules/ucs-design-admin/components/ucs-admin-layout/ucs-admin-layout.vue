@@ -57,7 +57,7 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 
 	import { nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
 	import { onShow } from '@dcloudio/uni-app';
-	import store from '../../common/store.js';
+	import store, { currentDelegationId } from '../../common/store.js';
 	import pagesJson from '@/pages.json';
 	import { loadNavigation, normalizeMenuRoute, allowedMenuRoutes } from '../../common/navigation.js';
 	import { describeRequestError } from '../../common/session-errors.js';
@@ -66,7 +66,7 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 	let accessRequestId = 0;
 	async function checkPageAccess(force = false, preserveAllowedPage = false) {
 		const id = ++accessRequestId;
-		// 窗口重新显示时复查权限，但不要卸载已授权页面和其中打开的弹窗。
+		// 同一会话内复查权限时保留已授权页面，避免表格和弹窗重新挂载。
 		const keepContent = preserveAllowedPage && pageAllowed.value && !accessLoading.value;
 		if (!keepContent) {
 			accessLoading.value = true;
@@ -94,7 +94,13 @@ import 'element-plus/es/components/skeleton/style/css.mjs';
 			if (id === accessRequestId) accessLoading.value = false;
 		}
 	}
-	watch(() => [store.isLogin, store.menuVersion], () => checkPageAccess(), { immediate: true });
+	watch(
+		[() => store.isLogin, currentDelegationId, () => store.menuVersion],
+		([isLogin, delegationId], [wasLoggedIn, previousDelegationId] = []) => {
+			checkPageAccess(false, isLogin && wasLoggedIn && delegationId === previousDelegationId);
+		},
+		{ immediate: true }
+	);
 	onShow(() => checkPageAccess(false, true));
 	onBeforeUnmount(() => { accessRequestId++; });
 

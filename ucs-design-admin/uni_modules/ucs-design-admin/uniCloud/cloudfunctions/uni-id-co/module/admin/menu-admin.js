@@ -293,17 +293,18 @@ function createMenuAdmin({ db, uid, appId }) {
 			const rows = await all(table);
 			const old = find(rows, params._id);
 			const value = await validate(params, rows, old);
+			const update = { ...value, ...updateFields(auth) };
 			if (value.menu_type === MENU_TYPE.DIRECTORY && Object.hasOwn(old, 'feature_scope'))
-				value.feature_scope = db.command.remove();
+				update.feature_scope = db.command.remove();
 			if (value.menu_type === MENU_TYPE.DIRECTORY && Object.hasOwn(old, 'client_type'))
-				value.client_type = db.command.remove();
-			const result = await db.collection(table).doc(old._id).update({ ...value, ...updateFields(auth) });
+				update.client_type = db.command.remove();
+			const result = await db.collection(table).doc(old._id).update(update);
 			if (result.updated === 0) {
 				// Some database adapters report zero modified rows for an unchanged form.
 				const { data } = await db.collection(table).doc(old._id).get();
 				if (!(Array.isArray(data) ? data[0] : data)) fail('菜单已被删除，请刷新列表');
 			}
-			return { errCode: 0 };
+			return { errCode: 0, data: { _id: old._id, ...value } };
 		},
 		async remove(params = {}) {
 			await authorize('delete');

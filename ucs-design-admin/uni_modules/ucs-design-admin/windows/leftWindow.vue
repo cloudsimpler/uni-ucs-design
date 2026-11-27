@@ -7,7 +7,7 @@
 			<div v-else-if="loadError" class="sidebar-state" role="alert">
 				<el-icon class="state-icon"><Warning /></el-icon>
 				<text v-if="!store.isCollapsed" class="state-description">{{ loadError }}</text>
-				<el-button text type="primary" size="small" @click="getCurrentMenus">重试</el-button>
+				<el-button text type="primary" size="small" @click="getCurrentMenus()">重试</el-button>
 			</div>
 			<el-menu
 				v-else-if="menus.length"
@@ -51,7 +51,7 @@ import { getCurrentInstance, nextTick, onBeforeMount, onMounted, onBeforeUnmount
 import { FolderOpened, Monitor, Warning } from '@element-plus/icons-vue';
 import pagesJson from '@/pages.json';
 import manifestJson from '@/manifest.json';
-import store from '../common/store.js';
+import store, { currentDelegationId } from '../common/store.js';
 import { sidebarWidth, syncSidebarWidth } from '../common/window-layout.js';
 import leftWindowMenu from './leftWindowMenu.vue';
 import { MENU_TYPE } from '../common/menu.js';
@@ -104,9 +104,9 @@ watch(
 	() => syncRoute(),
 	{ flush: 'post' }
 );
-const getCurrentMenus = async () => {
+const getCurrentMenus = async (preserveMenus = false) => {
 	const id = ++requestId;
-	loading.value = true;
+	loading.value = loading.value || !preserveMenus || !menus.value.length;
 	loadError.value = '';
 	try {
 		const result = await loadNavigation();
@@ -139,10 +139,10 @@ const onMenuItemClick = (key) => {
 	});
 };
 watch(
-	() => store.isLogin,
-	(isLogin) => {
+	[() => store.isLogin, currentDelegationId, () => store.menuVersion],
+	([isLogin, delegationId], [wasLoggedIn, previousDelegationId] = []) => {
 		if (isLogin) {
-			getCurrentMenus();
+			getCurrentMenus(wasLoggedIn && delegationId === previousDelegationId);
 		} else {
 			requestId++;
 			menus.value = [];
@@ -159,12 +159,6 @@ watch(
 watch(
 	() => store.isCollapsed,
 	() => syncRoute()
-);
-watch(
-	() => store.menuVersion,
-	() => {
-		if (store.isLogin) getCurrentMenus();
-	}
 );
 onMounted(() => {
 	syncSidebarWidth();
