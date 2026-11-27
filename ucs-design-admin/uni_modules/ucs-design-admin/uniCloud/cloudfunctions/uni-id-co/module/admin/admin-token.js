@@ -1,6 +1,6 @@
 const { PLATFORM_TENANT_ID, TENANTS } = require('../../lib/utils/platform-tenant')
 const { checkLoginToken } = require('../../lib/utils/login-token')
-const { readDoc, resolveTenantScope, enterpriseScope, platformActor, fail } = require('./tenant-scope')
+const { readDoc, resolveTenantScope, enterpriseScope, platformActor, fail, tenantExpiry, assertTenantUnexpired } = require('./tenant-scope')
 const { tenantRights } = require('./tenant-catalog')
 const { cleanLoginRoleGrants } = require('./login-role-grants')
 const { signDelegationToken, verifyDelegationToken } = require('./delegation-token')
@@ -8,7 +8,7 @@ const { signDelegationToken, verifyDelegationToken } = require('./delegation-tok
 function claimsFor(scope, appId) {
   const { _id, name, tenant_no, type } = scope.tenant
   return {
-    version: 1, appId, tenant: { _id, name, tenant_no, type }, sessionId: scope.sessionId,
+    version: 1, appId, tenant: { _id, name, tenant_no, type, expires_at: scope.tenant.expires_at ?? null }, sessionId: scope.sessionId,
     name: scope.name, role: scope.role, apps: scope.apps, isAdmin: scope.isAdmin,
     permissions: scope.permissions, menuIds: scope.menuIds,
     packageAdministrator: Boolean(scope.packageAdministrator),
@@ -34,6 +34,13 @@ function decodeAdminClaims(claims) {
   } catch {
     fail('后台权限快照无效，请重新登录', 'uni-id-check-token-failed')
   }
+}
+
+function adminScopeFromToken(context, payload) {
+  if (payload.ucsAdmin === undefined) return
+  const scope = scopeFrom(payload, decodeAdminClaims(payload.ucsAdmin), context.getUniversalClientInfo().appId)
+  assertTenantUnexpired(scope.tenant)
+  return scope
 }
 
 function installAdminTokenIssuer(context) {
@@ -67,18 +74,25 @@ async function authenticateAdmin(context, credential) {
   const appId = context.getUniversalClientInfo().appId
   const token = context.getUniversalUniIdToken()
   let payload = await checkLoginToken(context, token)
-  let baseScope = payload.ucsAdmin === undefined
-    ? undefined : scopeFrom(payload, decodeAdminClaims(payload.ucsAdmin), appId)
+  let baseScope = adminScopeFromToken(context, payload)
   if (typeof payload.ucsAdmin !== 'string' || needsRenewal(context, payload)) {
-    context.issueAdminScope = true
-    const renewal = checked(await context.uniIdCommon.refreshToken({ token }))
-    payload = await checkLoginToken(context, renewal.token)
-    baseScope = scopeFrom(payload, decodeAdminClaims(payload.ucsAdmin), appId)
-    context.response.newToken = { token: renewal.token, tokenExpired: renewal.tokenExpired }
+    try {
+      context.issueAdminScope = true
+      const renewal = checked(await context.uniIdCommon.refreshToken({ token }))
+      const renewedPayload = await checkLoginToken(context, renewal.token)
+      baseScope = adminScopeFromToken(context, renewedPayload)
+      if (!baseScope) fail('后台权限快照无效，请重新登录', 'uni-id-check-token-failed')
+      payload = renewedPayload
+      context.response.newToken = { token: renewal.token, tokenExpired: renewal.tokenExpired }
+    } catch (error) {
+      // An earlier date prevents renewal while the existing snapshot is still valid.
+      if (error.errCode !== 'TENANT_EXPIRED' || !baseScope) throw error
+      assertTenantUnexpired(baseScope.tenant)
+    }
   }
   context.authInfo = payload
   context.entryTenantId = baseScope.tenantId
-  context.platformTokenExpires = payload.exp * 1000
+  context.platformTokenExpires = Math.min(payload.exp * 1000, tenantExpiry(baseScope.tenant))
   context.loginAdminScope = baseScope
   context.adminScope = baseScope
   if (credential !== undefined) {
@@ -87,16 +101,23 @@ async function authenticateAdmin(context, credential) {
     const delegated = await verifyDelegation(context, credential)
     context.adminScope = delegated.scope
     context.tenantDelegationExpires = delegated.payload.exp * 1000
-    if (needsRenewal(context, delegated.payload) && context.platformTokenExpires >= context.tenantDelegationExpires + 1000) {
+    if (needsRenewal(context, delegated.payload) &&
+      Math.min(context.platformTokenExpires, tenantExpiry(delegated.scope.tenant)) >= context.tenantDelegationExpires + 1000) {
       const db = uniCloud.database()
       const actor = await platformActor(db, payload.uid, appId)
       if (actor.tenantId !== PLATFORM_TENANT_ID || !(actor.isAdmin || actor.permissions.includes(tenantRights.enter)))
         fail('没有代管权限', 'TENANT_SESSION_INVALID')
       const tenant = await readDoc(db, TENANTS, delegated.scope.tenantId)
       if (!tenant) fail('企业租户不存在', 'TENANT_SESSION_INVALID')
-      context.adminScope = await enterpriseScope(db, actor, tenant, delegated.scope.sessionId)
-      context.response.newDelegation = await signDelegation(context, context.adminScope)
-      context.tenantDelegationExpires = context.response.newDelegation.tokenExpired
+      if (tenantExpiry(tenant) >= context.tenantDelegationExpires + 1000) {
+        const renewedScope = await enterpriseScope(db, actor, tenant, delegated.scope.sessionId)
+        const renewal = await signDelegation(context, renewedScope)
+        if (renewal.tokenExpired > context.tenantDelegationExpires) {
+          context.adminScope = renewedScope
+          context.response.newDelegation = renewal
+          context.tenantDelegationExpires = renewal.tokenExpired
+        }
+      }
     }
   }
   return context.adminScope
@@ -116,9 +137,9 @@ async function verifyDelegation(context, credential) {
 async function signDelegation(context, scope) {
   const result = signDelegationToken(context, {
     uid: scope.uid, scope: claimsFor(scope, context.getUniversalClientInfo().appId),
-    expiresAt: context.platformTokenExpires
+    expiresAt: Math.min(context.platformTokenExpires, tenantExpiry(scope.tenant))
   })
   return { delegationToken: result.token, tokenExpired: result.tokenExpired }
 }
 
-module.exports = { claimsFor, installAdminTokenIssuer, authenticateAdmin, needsRenewal, signDelegation, verifyDelegation }
+module.exports = { claimsFor, installAdminTokenIssuer, adminScopeFromToken, authenticateAdmin, needsRenewal, signDelegation, verifyDelegation }

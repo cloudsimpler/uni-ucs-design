@@ -14,6 +14,11 @@ const fail = (errMsg, errCode = 'TENANT_ACCESS_FORBIDDEN') => { throw { errCode,
 const first = result => Array.isArray(result.data) ? result.data[0] : result.data
 const readDoc = async (db, name, id) => first(await db.collection(name).doc(id).get())
 const ownerOf = row => row.tenant_id ?? PLATFORM_TENANT_ID
+const tenantExpiry = tenant => tenant?.type === 'enterprise' && Number.isFinite(tenant.expires_at)
+  ? tenant.expires_at : Infinity
+function assertTenantUnexpired(tenant) {
+  if (tenantExpiry(tenant) <= Date.now()) fail('企业租户使用有效期已到期，请联系平台管理员', 'TENANT_EXPIRED')
+}
 
 function tenantWhere(db, tenantId) {
   return tenantId === PLATFORM_TENANT_ID
@@ -49,6 +54,7 @@ async function resolveTenantScope(db, uid, appId, { user, tenant, packageGrants,
   }
   if (!tenant || tenant.type !== 'enterprise' || !tenant.enabled || !tenantPackageIds(tenant).length)
     fail('企业租户未启用或尚未分配产品包')
+  assertTenantUnexpired(tenant)
   const grants = packageGrants ?? await enterprisePackageGrants(db, tenant)
   if (cleanGrants) await cleanGrants(actor.roleRows, grants)
   return enterpriseScope(db, actor, tenant, undefined, grants)
@@ -71,6 +77,7 @@ async function enterprisePackageGrants(db, tenant) {
   const packageIds = tenantPackageIds(tenant)
   if (tenant.type !== 'enterprise' || !tenant.enabled || !packageIds.length)
     fail('企业租户未启用或尚未分配产品包')
+  assertTenantUnexpired(tenant)
   const products = await readByIds(db, PACKAGES, '_id', packageIds)
   if (products.length !== new Set(packageIds).size) fail('企业租户的产品包已失效')
   const menus = await readMenuCatalog(db)
@@ -101,14 +108,48 @@ async function enterpriseScope(db, actor, tenant, sessionId, grants) {
   }
 }
 
-async function resolveEntryTenantInfo(db, tenantNo = PLATFORM_TENANT_ID) {
+async function findEntryTenant(db, tenantNo) {
   if (typeof tenantNo !== 'string' || !/^\d{5}$/.test(tenantNo)) fail('请输入租户号', 'TENANT_INVALID')
   if (tenantNo === PLATFORM_TENANT_ID) return platformTenant
   const tenant = first(await db.collection(TENANTS).where({ tenant_no: tenantNo }).limit(1).get())
+  if (tenant?.type === 'enterprise') return tenant
+}
+
+function tenantBrand(tenant) {
+  return { system_name: tenant?.system_name || '', system_logo: tenant?.system_logo || '' }
+}
+
+async function resolveEntryTenantInfo(db, tenantNo = PLATFORM_TENANT_ID) {
+  const tenant = await findEntryTenant(db, tenantNo)
+  if (tenant?.type === 'platform') return tenant
+  await assertTenantCanEnter(db, tenant)
+  return tenant
+}
+
+async function assertTenantCanEnter(db, tenant) {
   if (!tenant || tenant.type !== 'enterprise' || !tenant.enabled || !tenantPackageIds(tenant).length) fail('租户不可用或未分配产品包')
+  assertTenantUnexpired(tenant)
   const ids = [...new Set(tenantPackageIds(tenant))]
   if ((await readByIds(db, PACKAGES, '_id', ids)).length !== ids.length) fail('租户的产品包已失效')
-  return tenant
+}
+
+async function getLoginTenantInfo(db, tenantNo = PLATFORM_TENANT_ID) {
+  const tenant = await findEntryTenant(db, tenantNo)
+  if (!tenant) fail('租户不存在', 'TENANT_INVALID')
+  const { tenant_no, name } = tenant
+  if (tenant.type === 'platform') return { tenant_no, name, login_status: 'available', ...tenantBrand() }
+  let login_status = 'available'
+  if (!tenant.enabled) login_status = 'disabled'
+  else if (tenantExpiry(tenant) <= Date.now()) login_status = 'expired'
+  else {
+    try {
+      await assertTenantCanEnter(db, tenant)
+    } catch (error) {
+      if (error.errCode !== 'TENANT_ACCESS_FORBIDDEN' && error.errCode !== 'TENANT_EXPIRED') throw error
+      login_status = error.errCode === 'TENANT_EXPIRED' ? 'expired' : 'unavailable'
+    }
+  }
+  return { tenant_no, name, login_status, ...tenantBrand(tenant) }
 }
 
 async function resolveEntryTenant(db, tenantNo) {
@@ -191,4 +232,4 @@ function scopedDatabase(db, scope) {
   }
 }
 
-module.exports = { fail, readDoc, ownerOf, tenantWhere, platformActor, tenantPackageIds, readByIds, enterprisePackageGrants, enterpriseScope, resolveEntryTenant, resolveEntryTenantInfo, resolveTenantScope, scopedDatabase }
+module.exports = { fail, readDoc, ownerOf, tenantWhere, platformActor, tenantPackageIds, readByIds, enterprisePackageGrants, enterpriseScope, resolveEntryTenant, resolveEntryTenantInfo, resolveTenantScope, scopedDatabase, tenantExpiry, assertTenantUnexpired, getLoginTenantInfo, tenantBrand }

@@ -2,7 +2,7 @@ const { randomBytes } = require('crypto')
 const { createFields } = require('../../lib/utils/record-metadata')
 const { PLATFORM_TENANT_ID, TENANTS } = require('../../lib/utils/platform-tenant')
 const { tenantRights } = require('./tenant-catalog')
-const { enterpriseScope, fail, ownerOf, platformActor, readDoc, resolveTenantScope } = require('./tenant-scope')
+const { enterpriseScope, fail, ownerOf, platformActor, readDoc, resolveTenantScope, tenantExpiry } = require('./tenant-scope')
 const { claimsFor, needsRenewal } = require('./admin-token')
 const { signDelegationToken, verifyDelegationToken } = require('./delegation-token')
 
@@ -72,7 +72,7 @@ async function signUserDelegation(context, session) {
   const credential = signDelegationToken(context, {
     uid: context.loginAdminScope.uid,
     scope: session,
-    expiresAt: expiresBy(context)
+    expiresAt: Math.min(expiresBy(context), tenantExpiry(session.authorization.tenant))
   })
   return { userDelegationToken: credential.token, tokenExpired: credential.tokenExpired }
 }
@@ -125,20 +125,20 @@ async function resolveUserDelegation(context, token) {
   let authorization = session.authorization
   let renewal
   const tokenExpired = payload.exp * 1000
-  if (needsRenewal(context, payload) && expiresBy(context) >= tokenExpired + 1000) {
-    let target
+  if (needsRenewal(context, payload) &&
+    Math.min(expiresBy(context), tenantExpiry(authorization.tenant)) >= tokenExpired + 1000) {
     try {
-      target = await effectiveScope(context, uniCloud.database(), session.target_user_id)
+      const target = await effectiveScope(context, uniCloud.database(), session.target_user_id)
+      if (target.tenantId !== session.tenant_id) expired()
+      const updatedAuthorization = claimsFor(target, session.appid)
+      const credential = await signUserDelegation(context, { ...session, authorization: updatedAuthorization })
+      if (credential.tokenExpired > tokenExpired) {
+        authorization = updatedAuthorization
+        renewal = credential
+      }
     } catch (error) {
       if (['USER_DELEGATION_FORBIDDEN', 'TENANT_ACCESS_FORBIDDEN'].includes(error?.errCode)) expired()
-      throw error
-    }
-    if (target.tenantId !== session.tenant_id) expired()
-    const updatedAuthorization = claimsFor(target, session.appid)
-    const credential = await signUserDelegation(context, { ...session, authorization: updatedAuthorization })
-    if (credential.tokenExpired > tokenExpired) {
-      authorization = updatedAuthorization
-      renewal = credential
+      if (error?.errCode !== 'TENANT_EXPIRED') throw error
     }
   }
   const scope = { ...authorization, uid: session.target_user_id, tenantId: session.tenant_id, userDelegationId: session._id }

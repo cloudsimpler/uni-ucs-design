@@ -1,7 +1,7 @@
 const { randomBytes } = require('crypto')
 const { createFields, updateFields } = require('../../lib/utils/record-metadata')
 const { PLATFORM_TENANT_ID, TENANTS, PACKAGES, platformTenant } = require('../../lib/utils/platform-tenant')
-const { fail, readDoc, readByIds, enterpriseScope, tenantPackageIds } = require('./tenant-scope')
+const { fail, readDoc, readByIds, enterpriseScope, tenantPackageIds, tenantBrand } = require('./tenant-scope')
 const { signDelegation, verifyDelegation } = require('./admin-token')
 const { menus, legacyMenuNames, permissions, tenantRights, packageRights } = require('./tenant-catalog')
 const { classifyPages } = require('./menu-scope')
@@ -10,6 +10,28 @@ const allow = (actor, right) => actor.isAdmin || actor.permissions.includes(righ
 const required = (actor, right) => { if (!allow(actor, right)) fail('没有此项平台操作权限') }
 const duplicate = error => /duplicate|E11000|重复|唯一/i.test([error.message, error.errMsg].join(' '))
 const invalid = message => fail(message, 'TENANT_INVALID')
+function parseExpiry(date) {
+  if (date === null) return null
+  if (typeof date !== 'string' || !/^[1-9]\d{3}-\d{2}-\d{2}$/.test(date)) invalid('到期日期格式不正确')
+  const midnight = Date.parse(`${date}T00:00:00Z`)
+  if (!Number.isFinite(midnight) || new Date(midnight).toISOString().slice(0, 10) !== date)
+    invalid('到期日期无效')
+  // The selected day remains usable until the next midnight in UTC+08:00.
+  return midnight + 16 * 60 * 60 * 1000
+}
+function parseBrand({ system_name, system_logo }) {
+  const brand = {}
+  if (system_name !== undefined) {
+    if (typeof system_name !== 'string' || system_name.trim().length > 50) invalid('系统名称最多输入 50 字')
+    brand.system_name = system_name.trim()
+  }
+  if (system_logo !== undefined) {
+    if (typeof system_logo !== 'string' || system_logo.length > 2048 ||
+      (system_logo && !/^(https:\/\/|cloud:\/\/)[^\s<>]+$/i.test(system_logo))) invalid('请上传有效的系统 Logo')
+    brand.system_logo = system_logo
+  }
+  return brand
+}
 const capabilities = (actor, rights) => Object.fromEntries(Object.entries(rights).map(([key, value]) => [key, allow(actor, value)]))
 const literal = value => new RegExp(value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
 
@@ -99,6 +121,18 @@ async function otherEnterprise(db, id, currentTenantId) {
   return tenant
 }
 
+async function updateTenant(context, { _id, expires_on, system_name, system_logo }) {
+  const { db, actor } = await platform(context)
+  required(actor, tenantRights.status)
+  const tenant = await otherEnterprise(db, _id, context.adminScope.tenantId)
+  const expiresAt = parseExpiry(expires_on)
+  const brand = parseBrand({ system_name, system_logo })
+  await db.collection(TENANTS).doc(tenant._id).update({
+    expires_at: expiresAt === null ? db.command.remove() : expiresAt, ...brand, ...updateFields(actor)
+  })
+  return { errCode: 0, expires_at: expiresAt, ...brand }
+}
+
 async function ensureRecord(db, table, field, row, actor) {
   if ((await db.collection(table).where({ [field]: row[field] }).limit(1).get()).data.length) return false
   try {
@@ -142,14 +176,17 @@ module.exports = {
       : list(db, TENANTS).then(data => ({ data: data.sort((a, b) => a.tenant_no.localeCompare(b.tenant_no)) }))
     return { errCode: 0, auth, ...await tenants, currentTenantId: this.adminScope.tenantId }
   },
-  async createTenant({ tenant_no, name } = {}) {
+  async createTenant({ tenant_no, name, expires_on = null, system_name, system_logo } = {}) {
     const { db, actor } = await platform(this)
     required(actor, tenantRights.create)
     if (typeof tenant_no !== 'string' || !/^\d{5}$/.test(tenant_no) || tenant_no === PLATFORM_TENANT_ID)
       invalid('请输入除 00000 之外的五位数字租户号')
+    const expiresAt = parseExpiry(expires_on)
+    const brand = parseBrand({ system_name, system_logo })
     try {
       const { id } = await db.collection(TENANTS).add({
-        tenant_no, name: nameOf(name), type: 'enterprise', enabled: true, product_package_ids: [], ...createFields(actor)
+        tenant_no, name: nameOf(name), type: 'enterprise', enabled: true, product_package_ids: [],
+        ...(expiresAt === null ? {} : { expires_at: expiresAt }), ...brand, ...createFields(actor)
       })
       return { errCode: 0, id }
     } catch (error) {
@@ -181,6 +218,12 @@ module.exports = {
       enabled, ...updateFields(actor)
     })
     return { errCode: 0 }
+  },
+  async setTenantExpiry({ _id, expires_on } = {}) {
+    return updateTenant(this, { _id, expires_on })
+  },
+  async updateTenant(params = {}) {
+    return updateTenant(this, params)
   },
   async listProductPackages(params = {}) {
     const { db, actor } = await platform(this)
@@ -258,6 +301,7 @@ module.exports = {
   async getTenantContext() {
     const scope = this.adminScope
     const { _id, name, tenant_no, type } = scope.tenant
-    return { errCode: 0, tenant: { _id, name, tenant_no, type }, delegated: Boolean(scope.sessionId) }
+    const brand = type === 'enterprise' ? tenantBrand(await readDoc(uniCloud.database(), TENANTS, _id)) : tenantBrand()
+    return { errCode: 0, tenant: { _id, name, tenant_no, type, ...brand }, delegated: Boolean(scope.sessionId) }
   }
 }

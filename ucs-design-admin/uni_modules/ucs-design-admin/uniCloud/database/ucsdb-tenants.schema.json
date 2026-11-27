@@ -25,6 +25,14 @@
       "description": "租户名称",
       "bsonType": "string"
     },
+    "system_name": {
+      "description": "租户系统名称，留空时使用平台默认名称",
+      "bsonType": "string"
+    },
+    "system_logo": {
+      "description": "租户系统 Logo 的云存储文件 ID，留空时使用平台默认 Logo",
+      "bsonType": "string"
+    },
     "type": {
       "description": "租户类型，platform 为平台租户，enterprise 为企业租户",
       "bsonType": "string",
@@ -36,6 +44,10 @@
     "enabled": {
       "description": "租户是否启用",
       "bsonType": "bool"
+    },
+    "expires_at": {
+      "description": "租户到期时间，含当天，存储北京时间次日零点的毫秒时间戳。未设置表示长期有效。",
+      "bsonType": "timestamp"
     },
     "system_mobile_revision": {
       "description": "系统用户手机号写入版本号，用于串行处理同一租户内的手机号修改",

@@ -1,8 +1,8 @@
 <template>
 	<div class="admin-header">
 		<div class="header-brand" :class="{ 'is-collapsed': store.isCollapsed }" :style="{ width: sidebarWidth }">
-			<image class="brand-logo" src="/uni_modules/ucs-design-admin/static/logo.svg" />
-			<text v-if="!store.isCollapsed" class="brand-name" :title="manifestJson.name">{{ manifestJson.name }}</text>
+			<image class="brand-logo" :src="brandLogo" mode="aspectFit" @error="resetLogo" />
+			<text v-if="!store.isCollapsed" class="brand-name" :title="brandName">{{ brandName }}</text>
 		</div>
 		<div class="header-navigation">
 			<el-button class="header-icon" text :aria-label="store.isCollapsed ? '展开菜单' : '收起菜单'" :aria-expanded="!store.isCollapsed" @click="onCollapsed">
@@ -61,13 +61,28 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 	import { ArrowDown, ArrowRight, Expand, Fold, User, SwitchButton, FullScreen, ScaleToOriginal, Moon, Sunny } from '@element-plus/icons-vue';
 	import pagesJson from '@/pages.json';
-	import manifestJson from '@/manifest.json';
-	import store from '../common/store.js';
-	import { setDelegation } from '../common/tenant-session.js';
+	import store, { currentDelegationId } from '../common/store.js';
+	import { importTenantAdmin, setDelegation } from '../common/tenant-session.js';
+	import { useTenantBrand } from '../common/tenant-brand.js';
 	import { getLoginRedirectUrl, getLoginTenantNo, rememberLoginTenant } from '../common/login-tenant.js';
 	import { sidebarWidth } from '../common/window-layout.js';
 	import { resolveUserAvatars } from '../common/avatar.js';
 	import { withSessionHandling, describeRequestError } from '../common/session-errors.js';
+
+	const brandTenant = ref(null);
+	const { name: brandName, logo: brandLogo, resetLogo } = useTenantBrand(() => brandTenant.value);
+	watch([() => store.isLogin, currentDelegationId], async ([isLogin], _previous, onCleanup) => {
+		brandTenant.value = null;
+		if (!isLogin) return;
+		let active = true;
+		onCleanup(() => { active = false; });
+		try {
+			const result = await importTenantAdmin().getTenantContext();
+			if (active && !result.errCode) brandTenant.value = result.tenant;
+		} catch {
+			// A failed brand lookup does not prevent access to the header.
+		}
+	}, { immediate: true });
 
 	const account = ref({});
 	const accountLoading = ref(false);

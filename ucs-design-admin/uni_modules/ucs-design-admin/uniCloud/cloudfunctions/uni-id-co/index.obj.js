@@ -15,7 +15,7 @@ const {
 } = require('./common/error')
 const middleware = require('./middleware/index')
 const universal = require('./common/universal')
-const { resolveEntryTenantInfo, scopedDatabase, fail } = require('./module/admin/tenant-scope')
+const { getLoginTenantInfo, resolveEntryTenantInfo, scopedDatabase, fail } = require('./module/admin/tenant-scope')
 const { installAdminTokenIssuer, authenticateAdmin } = require('./module/admin/admin-token')
 const { PLATFORM_TENANT_ID } = require('./lib/utils/platform-tenant')
 const adminMethods = require('./module/admin/index')
@@ -41,7 +41,7 @@ const tenantEntries = new Set([
   'adminLogin', 'adminLoginBySms', 'adminCompleteAccountLogin',
   'adminBeginAccountRecovery', 'adminCompleteAccountRecovery', 'login', 'loginBySms',
   'loginByEmailCode', 'completeAccountLogin', 'beginAccountRecovery', 'completeAccountRecovery',
-  'resetPwdBySms', 'resetPwdByEmail', 'registerUser', 'registerUserByEmail', 'getLoginTenant'
+  'resetPwdBySms', 'resetPwdByEmail', 'registerUser', 'registerUserByEmail'
 ])
 
 const {
@@ -139,9 +139,8 @@ module.exports = {
   exitUserManagement,
   getAccountCapabilities: require('./module/account/get-account-capabilities'),
   getAdminRegistrationStatus: require('./module/register/get-admin-registration-status'),
-  getLoginTenant() {
-    const { tenant_no, name } = this.entryTenant
-    return { errCode: 0, tenant_no, name }
+  async getLoginTenant({ tenant_no } = {}) {
+    return { errCode: 0, ...await getLoginTenantInfo(uniCloud.database(), tenant_no) }
   },
   getCurrentUserProfile: require('./module/account/get-current-user-profile'),
   ...require('./module/admin/customer-methods'),

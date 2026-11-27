@@ -2,10 +2,11 @@
 <template>
 	<div class="account-login" v-loading.fullscreen.lock="fullscreenLoading" element-loading-text="正在登录，请稍候…">
 		<div class="form-heading">
-			<h2>{{ loginTenant ? `登录到${loginTenant.name}` : '欢迎登录' }}</h2>
-			<p>{{ checkingTenant ? '正在确认登录租户…' : '选择登录方式，进入管理工作台。' }}</p>
+			<h2>{{ loginTenant ? `登录到${loginTenant.system_name || loginTenant.name}` : '欢迎登录' }}</h2>
+			<p v-if="!blockedMessage">{{ checkingTenant ? '正在确认登录租户…' : '选择登录方式，进入管理工作台。' }}</p>
 		</div>
-		<template v-if="!checkingTenant">
+		<el-alert v-if="blockedMessage" :title="blockedMessage" :description="`租户号 ${loginTenant.tenant_no}`" type="warning" show-icon :closable="false" />
+		<template v-else-if="!checkingTenant">
 		<el-tabs v-model="loginMode" class="login-tabs" stretch>
             <el-tab-pane label="账号密码" name="password" :disabled="loginBusy" />
             <el-tab-pane label="手机验证码" name="mobile" :disabled="loginBusy" />
@@ -42,14 +43,15 @@
 		</template>
 	</div>
 	<!-- 验证码 -->
-	<ucs-admin-captcha scene="login-by-pwd" ref="captchaRef" @change="onCaptchaChange" />
+	<ucs-admin-captcha v-if="!blockedMessage" scene="login-by-pwd" ref="captchaRef" @change="onCaptchaChange" />
 	<!-- 注册管理员 -->
-	<registered-admin-vue ref="registeredRef" @change="onRegisteredAdminChange" />
-	<account-contact ref="contactRef" :tenant-no="entryForm.tenant_no" :tenant-locked="Boolean(loginTenant)" @login="finishLogin" @loading-change="contactLoading.dialog = $event" />
+	<registered-admin-vue v-if="!blockedMessage" ref="registeredRef" @change="onRegisteredAdminChange" />
+	<account-contact v-if="!blockedMessage" ref="contactRef" :tenant-no="entryForm.tenant_no" :tenant-locked="Boolean(loginTenant)" @login="finishLogin" @loading-change="contactLoading.dialog = $event" />
 </template>
 
 <script setup>
-import { ElButton, ElCheckbox, ElForm, ElFormItem, ElInput, ElTabs, ElTabPane, ElMessage, vLoading } from 'element-plus';
+import { ElAlert, ElButton, ElCheckbox, ElForm, ElFormItem, ElInput, ElTabs, ElTabPane, ElMessage, vLoading } from 'element-plus';
+import 'element-plus/es/components/alert/style/css.mjs';
 import 'element-plus/es/components/button/style/css.mjs';
 import 'element-plus/es/components/checkbox/style/css.mjs';
 import 'element-plus/es/components/form/style/css.mjs';
@@ -76,8 +78,15 @@ import 'element-plus/es/components/message/style/css.mjs';
 	} from 'vue';
 
 	const props = defineProps({ routeOptions: { type: Object, required: true } });
+	const emit = defineEmits(['tenant-resolved']);
 	const loginTenant = ref(null);
 	const checkingTenant = ref(isTenantNo(props.routeOptions.tenant_no));
+	const blockedMessages = {
+		disabled: '该租户已停用，请联系平台管理员',
+		expired: '该租户使用有效期已到期，请联系平台管理员',
+		unavailable: '该租户暂不可登录，请联系平台管理员'
+	};
+	const blockedMessage = computed(() => blockedMessages[loginTenant.value?.login_status] || '');
 	const loginMode = ref('password');
     const contactBusy = ref(false);
     const contactLoading = reactive({ mobile: false, dialog: false });
@@ -148,6 +157,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 				if (tenant.errCode === 0 && tenant.tenant_no === e.tenant_no) {
 					entryForm.value.tenant_no = tenant.tenant_no;
 					loginTenant.value = tenant;
+					emit('tenant-resolved', tenant);
 				}
 			} catch {
 				// Unavailable tenant links use the same form as the common login page.
@@ -155,6 +165,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 				checkingTenant.value = false;
 			}
 		}
+		if (blockedMessage.value || (loginTenant.value && loginTenant.value.tenant_no !== '00000')) return;
 		// 查询是否已经有管理员注册了，如果有，则隐藏注册管理员的入口
 		try {
 			const result = await uniCloud.importObject('uni-id-co', { customUI: true }).getAdminRegistrationStatus();
@@ -175,7 +186,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 	 * 账号密码登录
 	 */
 	const handleSubmit = async () => {
-		if (isSubmitting.value) return;
+		if (isSubmitting.value || blockedMessage.value) return;
 		const valid = await formRef.value.validate().catch(() => false);
 		if (valid) {
 			const values = { ...entryForm.value };
@@ -184,7 +195,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 	};
 
 	const getLogin = (form) => {
-		if (isSubmitting.value) return;
+		if (isSubmitting.value || blockedMessage.value) return;
 		isSubmitting.value = true;
 		uniIdCo.adminLogin({
 			username: form.username,

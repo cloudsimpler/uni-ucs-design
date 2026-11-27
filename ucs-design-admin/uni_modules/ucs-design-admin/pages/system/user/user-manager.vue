@@ -316,7 +316,13 @@
 						<el-input v-model.trim="form.mobile" :placeholder="requiresMobile ? '请输入手机号' : '请输入手机号（选填）'" maxlength="11" />
 					</el-form-item>
 					<el-form-item label="头像" class="user-avatar-field">
-						<div class="user-profile-strip">
+						<template v-if="!customer">
+							<ucs-admin-image-upload v-if="editorVisible" v-model="form.avatar" label="头像" directory="user-avatar"
+								fit="cover" :initial-preview="form.avatarPreview" :max-size-mb="null" :disabled="saving || readOnly"
+								@uploading-change="avatarUploading = $event" @error="avatarError = $event" />
+							<text v-if="avatarError" class="user-avatar-error">{{ avatarError }}</text>
+						</template>
+						<div v-else class="user-profile-strip">
 							<el-upload
 								ref="avatarUploadRef"
 								class="user-avatar-uploader"
@@ -544,6 +550,7 @@ import dayjs from 'dayjs';
 import manifest from '@/manifest.json';
 import UserDetail from './user-detail.vue';
 import { uploadAvatarImage, resolveUserAvatars } from '../../../common/avatar.js';
+import UcsAdminImageUpload from '../../../components/ucs-admin-image-upload/ucs-admin-image-upload.vue';
 import store from '@/uni_modules/ucs-design-admin/common/store.js';
 
 const props = defineProps({ developer: Boolean, customer: Boolean });

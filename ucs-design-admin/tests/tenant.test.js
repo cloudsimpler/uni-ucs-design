@@ -5,7 +5,7 @@ const fs = require('node:fs')
 const vm = require('node:vm')
 const { createRequire } = require('node:module')
 const root = path.resolve(__dirname, '../uni_modules/ucs-design-admin/uniCloud/cloudfunctions/uni-id-co')
-const { resolveTenantScope, resolveEntryTenant, resolveEntryTenantInfo, scopedDatabase, enterpriseScope } = require(path.join(root, 'module/admin/tenant-scope'))
+const { resolveTenantScope, resolveEntryTenant, resolveEntryTenantInfo, scopedDatabase, enterpriseScope, getLoginTenantInfo } = require(path.join(root, 'module/admin/tenant-scope'))
 const { tenantRights } = require(path.join(root, 'module/admin/tenant-catalog'))
 const { authenticateAdmin, signDelegation, verifyDelegation, installAdminTokenIssuer } = require(path.join(root, 'module/admin/admin-token'))
 const methods = require(path.join(root, 'module/admin/tenant-methods'))
@@ -393,7 +393,7 @@ test('首次注册同事务建立平台、管理员和实际应用类型', async
   assert.equal(app.tenant_id, '00000')
 })
 
-test('签名权限按租户隔离，新的签发读取最新的产品包', async () => {
+test('签名权限按租户隔离，新的签发读取最新的产品包', async t => {
   const db = memoryDatabase()
   global.uniCloud = { database: () => db }
   const users = db.collection('uni-id-users')
@@ -701,6 +701,7 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   for (const [method, params] of [
     ['assignTenantPackage', { _id: b, product_package_ids: [] }],
     ['setTenantStatus', { _id: b, enabled: false }],
+    ['setTenantExpiry', { _id: b, expires_on: null }],
     ['enterTenantManagement', { _id: b }]
   ]) await assert.rejects(methods[method].call(rootActor, params), { errCode: 'TENANT_CURRENT_FORBIDDEN' })
   assert.equal((await methods.setTenantStatus.call(rootActor, { _id: a, enabled: true })).errCode, 0)
@@ -801,6 +802,62 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   await assert.rejects(run('saveProductPackage', 'root', {
     _id: changedPackage.id, menu_ids: ['platform_tenants']
   }), { errCode: 'TENANT_INVALID' })
+
+  const { id: datedTenant } = await run('createTenant', 'root', {
+    tenant_no: '00019', name: '测试有效期', expires_on: '2030-12-31',
+    system_name: ' 测试管理平台 ', system_logo: 'cloud://test/tenant-logos/old.png'
+  })
+  assert.equal((await getLoginTenantInfo(db, '00019')).login_status, 'unavailable')
+  await run('assignTenantPackage', 'root', { _id: datedTenant, product_package_ids: [pkg] })
+  const expiresAt = Date.parse('2030-12-31T16:00:00Z')
+  const tenantDoc = db.collection('ucsdb-tenants').doc(datedTenant)
+  assert.equal((await tenantDoc.get()).data[0].expires_at, expiresAt)
+  await assert.rejects(run('setTenantExpiry', 'root', { _id: datedTenant, expires_on: '2030-02-30' }),
+    { errCode: 'TENANT_INVALID' })
+  await assert.rejects(run('setTenantExpiry', 'operator', { _id: datedTenant, expires_on: null }),
+    { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+  await assert.rejects(getLoginTenantInfo(db, '99999'), { errCode: 'TENANT_INVALID' })
+  await assert.rejects(getLoginTenantInfo(db, 'wrong'), { errCode: 'TENANT_INVALID' })
+  assert.equal((await getLoginTenantInfo(db, '00000')).system_name, '')
+  await assert.rejects(run('updateTenant', 'root', {
+    _id: datedTenant, expires_on: null, system_logo: 'javascript:invalid'
+  }), { errCode: 'TENANT_INVALID' })
+  let time = expiresAt - 60000
+  const expiryClock = t.mock.method(Date, 'now', () => time)
+  try {
+    const publicBrand = {
+      tenant_no: '00019', name: '测试有效期',
+      system_name: '测试管理平台', system_logo: 'cloud://test/tenant-logos/old.png'
+    }
+    assert.deepEqual(await getLoginTenantInfo(db, '00019'), { ...publicBrand, login_status: 'available' })
+    const active = await run('enterTenantManagement', 'root', { _id: datedTenant })
+    assert.equal(active.tokenExpired, expiresAt)
+    await run('setTenantExpiry', 'root', { _id: datedTenant, expires_on: '2030-12-30' })
+    assert.equal((await verifyDelegation(actor('root'), active.delegationToken)).scope.tenant.expires_at, expiresAt)
+    await assert.rejects(resolveEntryTenant(db, '00019'), { errCode: 'TENANT_EXPIRED' })
+    assert.deepEqual(await getLoginTenantInfo(db, '00019'), { ...publicBrand, login_status: 'expired' })
+    await assert.rejects(run('enterTenantManagement', 'root', { _id: datedTenant }), { errCode: 'TENANT_EXPIRED' })
+    const updatedBrand = await run('updateTenant', 'root', {
+      _id: datedTenant, expires_on: '2030-12-30', system_name: '', system_logo: 'cloud://test/tenant-logos/new.png'
+    })
+    const { scope: adminScope } = await verifyDelegation(actor('root'), active.delegationToken)
+    const { tenant: delegatedBrand } = await methods.getTenantContext.call({ adminScope })
+    assert.equal(delegatedBrand.system_name, updatedBrand.system_name)
+    assert.equal(delegatedBrand.system_logo, updatedBrand.system_logo)
+    time = expiresAt
+    await assert.rejects(verifyDelegation(actor('root'), active.delegationToken), { errCode: 'TENANT_SESSION_INVALID' })
+    await run('setTenantStatus', 'root', { _id: datedTenant, enabled: false })
+    assert.deepEqual(await getLoginTenantInfo(db, '00019'), {
+      ...publicBrand, system_name: '', system_logo: updatedBrand.system_logo, login_status: 'disabled'
+    })
+    await run('setTenantExpiry', 'root', { _id: datedTenant, expires_on: null })
+    assert.equal((await tenantDoc.get()).data[0].enabled, false)
+    assert.equal(Object.hasOwn((await tenantDoc.get()).data[0], 'expires_at'), false)
+    await run('setTenantStatus', 'root', { _id: datedTenant, enabled: true })
+    assert.equal(await resolveEntryTenant(db, '00019'), datedTenant)
+  } finally {
+    expiryClock.mock.restore()
+  }
 })
 
 test('签名用户代管限制租户和权限，绑定操作者与父会话并按时到期', async t => {
@@ -894,6 +951,25 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
     assert.ok(renewedPayload.exp > loginPayload.exp)
   } finally {
     loginClock.mock.restore()
+  }
+
+  const tenantDoc = db.collection('ucsdb-tenants').doc(tenant._id)
+  const signedExpiry = (loginPayload.exp - 30) * 1000
+  await tenantDoc.update({ expires_at: signedExpiry })
+  const limitedToken = await uniIdCommon.createToken({ uid: 'operator', role: ['operator'], permission: [read] })
+  const limitedLogin = { ...login, response: {}, getUniversalUniIdToken: () => limitedToken.token }
+  await tenantDoc.update({ expires_at: signedExpiry - 90000 })
+  let time = signedExpiry - 30000
+  const expiryClock = t.mock.method(Date, 'now', () => time)
+  try {
+    assert.equal((await authenticateAdmin(limitedLogin)).tenant.expires_at, signedExpiry)
+    assert.equal(limitedLogin.response.newToken, undefined)
+    assert.equal(limitedLogin.platformTokenExpires, signedExpiry)
+    time = signedExpiry
+    await assert.rejects(authenticateAdmin(limitedLogin), { errCode: 'TENANT_EXPIRED' })
+  } finally {
+    expiryClock.mock.restore()
+    await tenantDoc.update({ expires_at: db.command.remove() })
   }
 
   const legacyIssuer = tokenLibrary.exports.createInstance(tokenOptions)
@@ -1012,6 +1088,21 @@ test('签名用户代管限制租户和权限，绑定操作者与父会话并�
   const clock = t.mock.method(Date, 'now', () => nestedEntry.tokenExpired)
   await assert.rejects(resolveUserDelegation(nested, nestedToken), { errCode: 'USER_DELEGATION_INVALID' })
   clock.mock.restore()
+  const employeeExpiry = (Math.floor(Date.now() / 1000) + 60) * 1000
+  await tenantDoc.update({ expires_at: employeeExpiry })
+  try {
+    const entry = await enterUserManagement.call(operator, { uid: 'target' })
+    assert.equal(entry.tokenExpired, employeeExpiry)
+    const clock = t.mock.method(Date, 'now', () => employeeExpiry)
+    try {
+      await assert.rejects(resolveUserDelegation(operator, entry.userDelegationToken),
+        { errCode: 'USER_DELEGATION_INVALID' })
+    } finally {
+      clock.mock.restore()
+    }
+  } finally {
+    await tenantDoc.update({ expires_at: db.command.remove() })
+  }
   await db.collection('uni-id-permissions').where({ permission_id: USER_DELEGATION_PERMISSION }).remove()
   assert.deepEqual([...(await resolveUserDelegation(nested, nestedToken)).scope.permissions].sort(), [read, update].sort())
   await assert.rejects(resolveUserDelegation(renewedParent, nestedToken), { errCode: 'USER_DELEGATION_INVALID' })

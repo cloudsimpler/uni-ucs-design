@@ -1,14 +1,14 @@
 import { resolveFileUrls } from './storage.js';
 const imageTypes = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 
-export async function uploadAvatarImage(file, { storage, checkImage, onProgress = () => {} }) {
+export async function uploadAvatarImage(file, { storage, checkImage, onProgress = () => {}, directory = 'user-avatar' }) {
 	const ext = imageTypes[file?.type];
 	if (!ext) throw new Error('请选择 JPG、PNG 或 WebP 图片');
 	if (!file.size) throw new Error('请选择非空图片');
 	await checkImage(file.path);
 	const result = await storage.uploadFile({
 		filePath: file.path,
-		cloudPath: `user-avatar/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`,
+		cloudPath: `${directory}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`,
 		cloudPathAsRealPath: true,
 		fileType: 'image',
 		onUploadProgress: ({ loaded, total }) => onProgress(total ? Math.min(99, Math.round((loaded * 100) / total)) : 0)

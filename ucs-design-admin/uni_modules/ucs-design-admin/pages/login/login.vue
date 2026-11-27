@@ -3,8 +3,8 @@
     <section class="welcome-panel" aria-label="平台介绍">
       <img class="workspace-art" src="/uni_modules/ucs-design-admin/static/login-workspace.webp" alt="" />
       <header class="brand">
-        <img class="brand-logo" src="/uni_modules/ucs-design-admin/static/logo.svg" alt="" />
-        <div><div class="brand-name">{{ manifestJson.name }}</div><p class="brand-caption">管理控制台</p></div>
+        <img class="brand-logo" :src="brandLogo" alt="" @error="resetLogo" />
+        <div><div class="brand-name">{{ brandName }}</div><p class="brand-caption">管理控制台</p></div>
       </header>
       <div class="welcome-copy">
         <h1>让管理更简单<br /><span>让工作更专注</span></h1>
@@ -12,8 +12,10 @@
       </div>
     </section>
     <section class="signin-panel" aria-label="登录管理工作台">
-      <div class="signin-content"><account-login v-if="routeOptions" :route-options="routeOptions" /></div>
-      <footer class="login-footer">© {{ currentYear }} {{ manifestJson.name }}</footer>
+      <div class="signin-content">
+        <account-login v-if="routeOptions" :key="routeOptions.tenant_no" :route-options="routeOptions" @tenant-resolved="loginTenant = $event" />
+      </div>
+      <footer class="login-footer">© {{ currentYear }} {{ brandName }}</footer>
     </section>
   </main>
 </template>
@@ -21,12 +23,14 @@
 <script setup>
 import store from '../../common/store.js';
 import AccountLogin from './accountLogin.vue';
-import manifestJson from '/manifest.json';
 import { ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { getLoginTenantNo } from '../../common/login-tenant.js';
+import { useTenantBrand } from '../../common/tenant-brand.js';
 
 const routeOptions = ref(null);
+const loginTenant = ref(null);
+const { name: brandName, logo: brandLogo, resetLogo } = useTenantBrand(() => loginTenant.value);
 onLoad((options = {}) => {
   // uniIdRouter may open the login page directly when a local token has expired.
   const expires = Number(uni.getStorageSync('uni_id_token_expired'));
@@ -35,6 +39,7 @@ onLoad((options = {}) => {
   store.isLogin = false;
   uni.removeStorageSync('uni_id_token');
   uni.removeStorageSync('uni_id_token_expired');
+  loginTenant.value = null;
   routeOptions.value = { ...options, tenant_no: tenantNo };
 });
 const currentYear = new Date().getFullYear();
@@ -57,7 +62,7 @@ const currentYear = new Date().getFullYear();
 .workspace-art { position: absolute; inset: auto 0 0; width: 100%; height: 86%; object-fit: cover; object-position: center bottom; }
 .welcome-panel::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #edf5ff 0%, rgba(237, 245, 255, .96) 22%, rgba(237, 245, 255, .8) 40%, rgba(237, 245, 255, .15) 68%, rgba(237, 245, 255, 0) 100%); }
 .brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; padding: 44px 10.5% 0; }
-.brand-logo { width: 46px; height: 46px; flex-shrink: 0; }
+.brand-logo { width: 46px; height: 46px; flex-shrink: 0; object-fit: contain; }
 .brand-name { font-size: 22px; font-weight: 600; color: #1e2b40; letter-spacing: .5px; }
 .brand-caption { margin: 4px 0 0; color: #738399; font-size: 13px; letter-spacing: 2px; }
 .welcome-copy { position: relative; z-index: 1; margin: clamp(52px, 11vh, 120px) 10.5% 0; }

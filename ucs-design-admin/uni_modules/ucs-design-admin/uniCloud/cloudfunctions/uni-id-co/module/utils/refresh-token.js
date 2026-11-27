@@ -1,4 +1,6 @@
 const { checkLoginToken } = require('../../lib/utils/login-token')
+const { TENANTS, PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant')
+const { ownerOf, readDoc, assertTenantUnexpired } = require('../admin/tenant-scope')
 
 /**
  * 刷新token
@@ -11,6 +13,10 @@ module.exports = async function () {
   const { data } = await uniCloud.database().collection('uni-id-users').doc(payload.uid).get()
   const user = Array.isArray(data) ? data[0] : data
   if (!user) throw { errCode: 'ACCOUNT_NOT_AVAILABLE', errMsg: '账号不存在' }
+  if (!this.issueAdminScope && ownerOf(user) !== PLATFORM_TENANT_ID) {
+    const tenant = await readDoc(uniCloud.database(), TENANTS, ownerOf(user))
+    assertTenantUnexpired(tenant)
+  }
   // Shared by both entries: refresh the authenticated account, retaining app authorization.
   require('../../lib/utils/account-policy').assertAppAuthorization(this, user)
   require('../../lib/utils/login').checkLoginUserRecord(user)
