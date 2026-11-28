@@ -2,10 +2,12 @@
   <main class="login-page" :class="{ 'is-confirming-tenant': !tenantReady }">
     <div v-if="!tenantReady" class="tenant-loading" role="status">
       <span class="tenant-loading-spinner" aria-hidden="true"></span>
-      <span>正在确认登录租户…</span>
+      <span>正在确认登录系统…</span>
     </div>
     <section v-if="tenantReady" class="welcome-panel" aria-label="平台介绍">
-      <img class="workspace-art" src="/uni_modules/ucs-design-admin/static/login-workspace.webp" alt="" />
+      <div class="workspace-art" :class="{ 'is-loaded': workspaceArtLoaded }" aria-hidden="true">
+        <img src="/uni_modules/ucs-design-admin/static/login-workspace-themed.png" alt="" @load="workspaceArtLoaded = true" />
+      </div>
       <header class="brand">
         <div class="brand-name">{{ brandName }}</div>
         <p class="brand-caption">管理控制台</p>
@@ -35,6 +37,7 @@ import { useTenantTheme } from '../../common/tenant-theme.js';
 
 const routeOptions = ref(null);
 const loginTenant = ref();
+const workspaceArtLoaded = ref(false);
 const tenantReady = computed(() => routeOptions.value !== null && loginTenant.value !== undefined);
 const brandName = computed(() => loginTenant.value?.system_name || manifest.name);
 useTenantTheme(() => !store.isLogin && tenantReady.value ? (loginTenant.value?.theme_color || '') : undefined);
@@ -47,6 +50,7 @@ onLoad((options = {}) => {
   uni.removeStorageSync('uni_id_token');
   uni.removeStorageSync('uni_id_token_expired');
   loginTenant.value = undefined;
+  workspaceArtLoaded.value = false;
   routeOptions.value = { ...options, tenant_no: tenantNo };
 });
 const currentYear = new Date().getFullYear();
@@ -84,9 +88,33 @@ const currentYear = new Date().getFullYear();
   animation: tenant-loading-spin 0.8s linear infinite;
 }
 @keyframes tenant-loading-spin { to { transform: rotate(360deg); } }
-.welcome-panel { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #edf5ff; }
-.workspace-art { position: absolute; inset: auto 0 0; width: 100%; height: 86%; object-fit: cover; object-position: center bottom; }
-.welcome-panel::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #edf5ff 0%, rgba(237, 245, 255, .96) 22%, rgba(237, 245, 255, .8) 40%, rgba(237, 245, 255, .15) 68%, rgba(237, 245, 255, 0) 100%); }
+.welcome-panel {
+  --workspace-surface: color-mix(in srgb, var(--el-color-primary) 10%, white);
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--workspace-surface);
+}
+.workspace-art {
+  position: absolute;
+  inset: auto 0 0;
+  height: 86%;
+  pointer-events: none;
+  visibility: hidden;
+  isolation: isolate;
+  background: var(--el-color-primary);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 74%);
+}
+.workspace-art.is-loaded { visibility: visible; }
+.workspace-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  mix-blend-mode: screen;
+}
 .brand { position: relative; z-index: 1; padding: 44px 10.5% 0; }
 .brand-name { font-size: 22px; font-weight: 600; color: #1e2b40; letter-spacing: .5px; }
 .brand-caption { margin: 4px 0 0; color: #738399; font-size: 13px; letter-spacing: 2px; }
@@ -113,7 +141,7 @@ const currentYear = new Date().getFullYear();
 @media (max-width: 800px) {
   .login-page { display: flex; flex-direction: column; }
   .welcome-panel { flex-shrink: 0; background: var(--el-bg-color); }
-  .workspace-art, .welcome-copy, .welcome-panel::after { display: none; }
+  .workspace-art, .welcome-copy { display: none; }
   .brand { padding: 24px 28px 0; }
   .brand-name { color: var(--el-text-color-primary); font-size: 21px; }
   .brand-caption { font-size: 13px; }
