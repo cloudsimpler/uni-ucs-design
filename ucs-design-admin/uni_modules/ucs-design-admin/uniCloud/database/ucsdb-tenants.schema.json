@@ -33,6 +33,10 @@
       "description": "租户系统 Logo 的云存储文件 ID，留空时使用平台默认 Logo",
       "bsonType": "string"
     },
+    "theme_color": {
+      "description": "租户主题色的十六进制颜色值，留空时使用平台默认主题",
+      "bsonType": "string"
+    },
     "type": {
       "description": "租户类型，platform 为平台租户，enterprise 为企业租户",
       "bsonType": "string",

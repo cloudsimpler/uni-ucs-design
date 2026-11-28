@@ -1,21 +1,25 @@
 <template>
-  <main class="login-page">
-    <section class="welcome-panel" aria-label="平台介绍">
+  <main class="login-page" :class="{ 'is-confirming-tenant': !tenantReady }">
+    <div v-if="!tenantReady" class="tenant-loading" role="status">
+      <span class="tenant-loading-spinner" aria-hidden="true"></span>
+      <span>正在确认登录租户…</span>
+    </div>
+    <section v-if="tenantReady" class="welcome-panel" aria-label="平台介绍">
       <img class="workspace-art" src="/uni_modules/ucs-design-admin/static/login-workspace.webp" alt="" />
       <header class="brand">
-        <img class="brand-logo" :src="brandLogo" alt="" @error="resetLogo" />
-        <div><div class="brand-name">{{ brandName }}</div><p class="brand-caption">管理控制台</p></div>
+        <div class="brand-name">{{ brandName }}</div>
+        <p class="brand-caption">管理控制台</p>
       </header>
       <div class="welcome-copy">
         <h1>让管理更简单<br /><span>让工作更专注</span></h1>
         <p>连接团队与业务，开启高效有序的一天。</p>
       </div>
     </section>
-    <section class="signin-panel" aria-label="登录管理工作台">
+    <section v-show="tenantReady" class="signin-panel" aria-label="登录管理工作台">
       <div class="signin-content">
         <account-login v-if="routeOptions" :key="routeOptions.tenant_no" :route-options="routeOptions" @tenant-resolved="loginTenant = $event" />
       </div>
-      <footer class="login-footer">© {{ currentYear }} {{ brandName }}</footer>
+      <footer v-if="tenantReady" class="login-footer">© {{ currentYear }} {{ brandName }}</footer>
     </section>
   </main>
 </template>
@@ -23,14 +27,17 @@
 <script setup>
 import store from '../../common/store.js';
 import AccountLogin from './accountLogin.vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { getLoginTenantNo } from '../../common/login-tenant.js';
-import { useTenantBrand } from '../../common/tenant-brand.js';
+import manifest from '@/manifest.json';
+import { useTenantTheme } from '../../common/tenant-theme.js';
 
 const routeOptions = ref(null);
-const loginTenant = ref(null);
-const { name: brandName, logo: brandLogo, resetLogo } = useTenantBrand(() => loginTenant.value);
+const loginTenant = ref();
+const tenantReady = computed(() => routeOptions.value !== null && loginTenant.value !== undefined);
+const brandName = computed(() => loginTenant.value?.system_name || manifest.name);
+useTenantTheme(() => !store.isLogin && tenantReady.value ? (loginTenant.value?.theme_color || '') : undefined);
 onLoad((options = {}) => {
   // uniIdRouter may open the login page directly when a local token has expired.
   const expires = Number(uni.getStorageSync('uni_id_token_expired'));
@@ -39,7 +46,7 @@ onLoad((options = {}) => {
   store.isLogin = false;
   uni.removeStorageSync('uni_id_token');
   uni.removeStorageSync('uni_id_token_expired');
-  loginTenant.value = null;
+  loginTenant.value = undefined;
   routeOptions.value = { ...options, tenant_no: tenantNo };
 });
 const currentYear = new Date().getFullYear();
@@ -58,11 +65,29 @@ const currentYear = new Date().getFullYear();
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+.login-page.is-confirming-tenant { display: grid; grid-template-columns: 1fr; place-items: center; }
+.tenant-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--el-text-color-regular);
+  font-size: 14px;
+}
+.tenant-loading-spinner {
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--el-border-color);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: tenant-loading-spin 0.8s linear infinite;
+}
+@keyframes tenant-loading-spin { to { transform: rotate(360deg); } }
 .welcome-panel { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #edf5ff; }
 .workspace-art { position: absolute; inset: auto 0 0; width: 100%; height: 86%; object-fit: cover; object-position: center bottom; }
 .welcome-panel::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #edf5ff 0%, rgba(237, 245, 255, .96) 22%, rgba(237, 245, 255, .8) 40%, rgba(237, 245, 255, .15) 68%, rgba(237, 245, 255, 0) 100%); }
-.brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; padding: 44px 10.5% 0; }
-.brand-logo { width: 46px; height: 46px; flex-shrink: 0; object-fit: contain; }
+.brand { position: relative; z-index: 1; padding: 44px 10.5% 0; }
 .brand-name { font-size: 22px; font-weight: 600; color: #1e2b40; letter-spacing: .5px; }
 .brand-caption { margin: 4px 0 0; color: #738399; font-size: 13px; letter-spacing: 2px; }
 .welcome-copy { position: relative; z-index: 1; margin: clamp(52px, 11vh, 120px) 10.5% 0; }
@@ -75,7 +100,7 @@ const currentYear = new Date().getFullYear();
 .signin-content { width: 100%; max-width: 464px; flex-shrink: 0; }
 .login-footer { flex-shrink: 0; margin-top: auto; padding-top: 24px; text-align: center; color: var(--el-text-color-secondary); font-size: 12px; line-height: 20px; }
 @media (max-width: 1100px) {
-  .brand { padding-left: 8%; padding-right: 8%; gap: 12px; }
+  .brand { padding-left: 8%; padding-right: 8%; }
   .brand-name { font-size: 21px; }
   .welcome-copy { margin-left: 8%; margin-right: 8%; }
   .signin-panel { padding-left: 32px; padding-right: 32px; }
@@ -91,9 +116,11 @@ const currentYear = new Date().getFullYear();
   .workspace-art, .welcome-copy, .welcome-panel::after { display: none; }
   .brand { padding: 24px 28px 0; }
   .brand-name { color: var(--el-text-color-primary); font-size: 21px; }
-  .brand-logo { width: 44px; height: 44px; }
   .brand-caption { font-size: 13px; }
   .signin-panel { flex: 1; padding: 24px 28px 20px; }
 }
-@media (prefers-reduced-motion: reduce) { .login-page :deep(*) { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  .login-page :deep(*) { transition: none !important; }
+  .tenant-loading-spinner { animation: none; }
+}
 </style>

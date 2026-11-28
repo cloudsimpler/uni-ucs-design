@@ -1,7 +1,7 @@
 const { randomBytes } = require('crypto')
 const { createFields, updateFields } = require('../../lib/utils/record-metadata')
 const { PLATFORM_TENANT_ID, TENANTS, PACKAGES, platformTenant } = require('../../lib/utils/platform-tenant')
-const { fail, readDoc, readByIds, enterpriseScope, tenantPackageIds, tenantBrand } = require('./tenant-scope')
+const { fail, readDoc, readByIds, enterpriseScope, tenantPackageIds, tenantBrand, readPlatformTenant } = require('./tenant-scope')
 const { signDelegation, verifyDelegation } = require('./admin-token')
 const { menus, legacyMenuNames, permissions, tenantRights, packageRights } = require('./tenant-catalog')
 const { classifyPages } = require('./menu-scope')
@@ -19,7 +19,7 @@ function parseExpiry(date) {
   // The selected day remains usable until the next midnight in UTC+08:00.
   return midnight + 16 * 60 * 60 * 1000
 }
-function parseBrand({ system_name, system_logo }) {
+function parseBrand({ system_name, system_logo, theme_color }) {
   const brand = {}
   if (system_name !== undefined) {
     if (typeof system_name !== 'string' || system_name.trim().length > 50) invalid('系统名称最多输入 50 字')
@@ -29,6 +29,11 @@ function parseBrand({ system_name, system_logo }) {
     if (typeof system_logo !== 'string' || system_logo.length > 2048 ||
       (system_logo && !/^(https:\/\/|cloud:\/\/)[^\s<>]+$/i.test(system_logo))) invalid('请上传有效的系统 Logo')
     brand.system_logo = system_logo
+  }
+  if (theme_color !== undefined) {
+    if (typeof theme_color !== 'string' || (theme_color !== '' && !/^#[0-9a-f]{6}$/i.test(theme_color)))
+      invalid('主题色必须是六位十六进制颜色值')
+    brand.theme_color = theme_color.toUpperCase()
   }
   return brand
 }
@@ -121,16 +126,24 @@ async function otherEnterprise(db, id, currentTenantId) {
   return tenant
 }
 
-async function updateTenant(context, { _id, expires_on, system_name, system_logo }) {
+async function updateTenant(context, { _id, expires_on, name, ...branding }, allowPlatform = false) {
   const { db, actor } = await platform(context)
-  required(actor, tenantRights.status)
+  required(actor, tenantRights.update)
+  const details = name === undefined ? {} : { name: nameOf(name) }
+  if (allowPlatform && _id === PLATFORM_TENANT_ID) {
+    if (expires_on !== undefined) fail('系统平台不可设置到期日期', 'TENANT_CURRENT_FORBIDDEN')
+    const brand = parseBrand(branding)
+    const { updated } = await db.collection(TENANTS).doc(_id).update({ ...details, ...brand, ...updateFields(actor) })
+    if (!updated && !(await readDoc(db, TENANTS, _id))) invalid('系统平台记录不存在')
+    return { errCode: 0, ...details, ...brand }
+  }
   const tenant = await otherEnterprise(db, _id, context.adminScope.tenantId)
   const expiresAt = parseExpiry(expires_on)
-  const brand = parseBrand({ system_name, system_logo })
+  const brand = parseBrand(branding)
   await db.collection(TENANTS).doc(tenant._id).update({
-    expires_at: expiresAt === null ? db.command.remove() : expiresAt, ...brand, ...updateFields(actor)
+    expires_at: expiresAt === null ? db.command.remove() : expiresAt, ...details, ...brand, ...updateFields(actor)
   })
-  return { errCode: 0, expires_at: expiresAt, ...brand }
+  return { errCode: 0, expires_at: expiresAt, ...details, ...brand }
 }
 
 async function ensureRecord(db, table, field, row, actor) {
@@ -174,15 +187,16 @@ module.exports = {
     const paged = ['keyword', 'tenant_no', 'name', 'current', 'size'].some(key => Object.hasOwn(params, key))
     const tenants = paged ? searchTenants(db, params)
       : list(db, TENANTS).then(data => ({ data: data.sort((a, b) => a.tenant_no.localeCompare(b.tenant_no)) }))
-    return { errCode: 0, auth, ...await tenants, currentTenantId: this.adminScope.tenantId }
+    const [result, platformRecord] = await Promise.all([tenants, readPlatformTenant(db)])
+    return { errCode: 0, auth, ...result, platform_theme_color: platformRecord.theme_color || '', currentTenantId: this.adminScope.tenantId }
   },
-  async createTenant({ tenant_no, name, expires_on = null, system_name, system_logo } = {}) {
+  async createTenant({ tenant_no, name, expires_on = null, ...branding } = {}) {
     const { db, actor } = await platform(this)
     required(actor, tenantRights.create)
     if (typeof tenant_no !== 'string' || !/^\d{5}$/.test(tenant_no) || tenant_no === PLATFORM_TENANT_ID)
       invalid('请输入除 00000 之外的五位数字租户号')
     const expiresAt = parseExpiry(expires_on)
-    const brand = parseBrand({ system_name, system_logo })
+    const brand = parseBrand(branding)
     try {
       const { id } = await db.collection(TENANTS).add({
         tenant_no, name: nameOf(name), type: 'enterprise', enabled: true, product_package_ids: [],
@@ -196,7 +210,7 @@ module.exports = {
   },
   async assignTenantPackage({ _id, product_package_ids } = {}) {
     const { db, actor } = await platform(this)
-    required(actor, tenantRights.assign)
+    required(actor, tenantRights.update)
     const tenant = await otherEnterprise(db, _id, this.adminScope.tenantId)
     if (!Array.isArray(product_package_ids) ||
       product_package_ids.some(id => typeof id !== 'string' || !id || id.length > 100))
@@ -211,7 +225,7 @@ module.exports = {
   },
   async setTenantStatus({ _id, enabled } = {}) {
     const { db, actor } = await platform(this)
-    required(actor, tenantRights.status)
+    required(actor, tenantRights.update)
     const tenant = await otherEnterprise(db, _id, this.adminScope.tenantId)
     if (typeof enabled !== 'boolean') invalid('租户状态无效')
     await db.collection(TENANTS).doc(tenant._id).update({
@@ -223,7 +237,7 @@ module.exports = {
     return updateTenant(this, { _id, expires_on })
   },
   async updateTenant(params = {}) {
-    return updateTenant(this, params)
+    return updateTenant(this, params, true)
   },
   async listProductPackages(params = {}) {
     const { db, actor } = await platform(this)
@@ -233,7 +247,7 @@ module.exports = {
   },
   async getProductPackageOptions({ _id, keyword = '', current = 1 } = {}) {
     const { db, actor } = await platform(this)
-    required(actor, tenantRights.assign)
+    required(actor, tenantRights.update)
     const tenant = await otherEnterprise(db, _id, this.adminScope.tenantId)
     const [page, selected] = await Promise.all([
       searchPackages(db, { keyword, current }, { _id: true, name: true }),
@@ -301,7 +315,10 @@ module.exports = {
   async getTenantContext() {
     const scope = this.adminScope
     const { _id, name, tenant_no, type } = scope.tenant
-    const brand = type === 'enterprise' ? tenantBrand(await readDoc(uniCloud.database(), TENANTS, _id)) : tenantBrand()
-    return { errCode: 0, tenant: { _id, name, tenant_no, type, ...brand }, delegated: Boolean(scope.sessionId) }
+    const db = uniCloud.database()
+    const platformRecord = await readPlatformTenant(db)
+    const current = type === 'enterprise' ? await readDoc(db, TENANTS, _id) : platformRecord
+    const brand = tenantBrand(current, tenantBrand(platformRecord))
+    return { errCode: 0, tenant: { _id, name: current?.name || name, tenant_no, type, ...brand }, delegated: Boolean(scope.sessionId) }
   }
 }

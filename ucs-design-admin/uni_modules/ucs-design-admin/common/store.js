@@ -10,6 +10,7 @@ let store = reactive({
 	menuVersion: 0,
 	delegation: null,
 	userInfoVersion: 0,
+	tenantBrandVersion: 0,
 	// 面包屑菜单
 	breadcrumbMenu: []
 });

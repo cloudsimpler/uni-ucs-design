@@ -1,8 +1,16 @@
 <template>
 	<div class="admin-header">
 		<div class="header-brand" :class="{ 'is-collapsed': store.isCollapsed }" :style="{ width: sidebarWidth }">
-			<image class="brand-logo" :src="brandLogo" mode="aspectFit" @error="resetLogo" />
-			<text v-if="!store.isCollapsed" class="brand-name" :title="brandName">{{ brandName }}</text>
+			<el-skeleton v-if="!brandTenant || brandLogoLoading" class="brand-skeleton" animated role="status" aria-label="正在加载系统品牌">
+				<template #template>
+					<el-skeleton-item variant="rect" class="brand-logo" />
+					<el-skeleton-item v-if="!store.isCollapsed" variant="text" class="brand-name-placeholder" />
+				</template>
+			</el-skeleton>
+			<template v-else>
+				<image class="brand-logo" :src="brandLogo" mode="aspectFit" @error="resetLogo" />
+				<text v-if="!store.isCollapsed" class="brand-name" :title="brandName">{{ brandName }}</text>
+			</template>
 		</div>
 		<div class="header-navigation">
 			<el-button class="header-icon" text :aria-label="store.isCollapsed ? '展开菜单' : '收起菜单'" :aria-expanded="!store.isCollapsed" @click="onCollapsed">
@@ -25,7 +33,17 @@
 				</el-button>
 			</el-tooltip>
 			<div class="tools-divider" />
-			<el-dropdown trigger="click" :disabled="!hasAccountMenu || isLoggingOut" @command="onUserSelect">
+			<el-skeleton v-if="accountLoading && !isLoggingOut" class="account-skeleton" animated role="status" aria-label="正在加载账号资料">
+				<template #template>
+					<el-skeleton-item variant="circle" class="account-avatar-placeholder" />
+					<span class="account-info">
+						<el-skeleton-item variant="text" class="account-name-placeholder" />
+						<el-skeleton-item variant="text" class="account-username-placeholder" />
+					</span>
+					<el-skeleton-item v-if="hasAccountMenu" variant="text" class="account-arrow-placeholder" />
+				</template>
+			</el-skeleton>
+			<el-dropdown v-else trigger="click" :disabled="!hasAccountMenu || isLoggingOut" @command="onUserSelect">
 				<button type="button" class="account-trigger" aria-label="账号菜单" :disabled="!hasAccountMenu || isLoggingOut">
 					<el-avatar :size="32" :src="account.avatarPreview" class="account-avatar"><el-icon><User /></el-icon></el-avatar>
 					<span class="account-info">
@@ -46,7 +64,7 @@
 </template>
 
 <script setup>
-import { ElAvatar, ElBreadcrumb, ElBreadcrumbItem, ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElIcon, ElMessage, ElTooltip } from 'element-plus';
+import { ElAvatar, ElBreadcrumb, ElBreadcrumbItem, ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElIcon, ElMessage, ElSkeleton, ElSkeletonItem, ElTooltip } from 'element-plus';
 import UcsAdminDelegation from '../components/ucs-admin-delegation/ucs-admin-delegation.vue';
 import 'element-plus/es/components/avatar/style/css.mjs';
 import 'element-plus/es/components/breadcrumb/style/css.mjs';
@@ -56,31 +74,33 @@ import 'element-plus/es/components/dropdown/style/css.mjs';
 import 'element-plus/es/components/dropdown-item/style/css.mjs';
 import 'element-plus/es/components/dropdown-menu/style/css.mjs';
 import 'element-plus/es/components/icon/style/css.mjs';
+import 'element-plus/es/components/skeleton/style/css.mjs';
 import 'element-plus/es/components/tooltip/style/css.mjs';
 
 	import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 	import { ArrowDown, ArrowRight, Expand, Fold, User, SwitchButton, FullScreen, ScaleToOriginal, Moon, Sunny } from '@element-plus/icons-vue';
-	import pagesJson from '@/pages.json';
 	import store, { currentDelegationId } from '../common/store.js';
 	import { importTenantAdmin, setDelegation } from '../common/tenant-session.js';
 	import { useTenantBrand } from '../common/tenant-brand.js';
+	import { useTenantTheme, refreshTenantTheme } from '../common/tenant-theme.js';
 	import { getLoginRedirectUrl, getLoginTenantNo, rememberLoginTenant } from '../common/login-tenant.js';
 	import { sidebarWidth } from '../common/window-layout.js';
 	import { resolveUserAvatars } from '../common/avatar.js';
 	import { withSessionHandling, describeRequestError } from '../common/session-errors.js';
 
 	const brandTenant = ref(null);
-	const { name: brandName, logo: brandLogo, resetLogo } = useTenantBrand(() => brandTenant.value);
-	watch([() => store.isLogin, currentDelegationId], async ([isLogin], _previous, onCleanup) => {
-		brandTenant.value = null;
+	const { name: brandName, logo: brandLogo, logoLoading: brandLogoLoading, resetLogo } = useTenantBrand(() => brandTenant.value);
+	useTenantTheme(() => store.isLogin && brandTenant.value ? (brandTenant.value.theme_color || '') : undefined);
+	watch([() => store.isLogin, currentDelegationId, () => store.tenantBrandVersion], async ([isLogin, delegationId], previous, onCleanup) => {
+		if (!isLogin || !previous?.[0] || delegationId !== previous[1]) brandTenant.value = null;
 		if (!isLogin) return;
 		let active = true;
 		onCleanup(() => { active = false; });
 		try {
 			const result = await importTenantAdmin().getTenantContext();
-			if (active && !result.errCode) brandTenant.value = result.tenant;
+			if (active) brandTenant.value = result.errCode ? {} : (result.tenant || {});
 		} catch {
-			// A failed brand lookup does not prevent access to the header.
+			if (active) brandTenant.value = {};
 		}
 	}, { immediate: true });
 
@@ -88,7 +108,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	const accountLoading = ref(false);
 	const accountError = ref('');
 	const hasAccountMenu = computed(() => !store.delegation || Boolean(accountError.value));
-	const displayName = computed(() => account.value.nickname || account.value.username || (accountLoading.value ? '加载中…' : accountError.value ? '资料加载失败' : '当前用户'));
+	const displayName = computed(() => account.value.nickname || account.value.username || (accountError.value ? '资料加载失败' : '当前用户'));
 	let accountRequest = 0;
 	const loadAccount = async () => {
 		const isLogin = store.isLogin;
@@ -127,6 +147,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	const isDark = ref(document.documentElement.classList.contains('dark'));
 	const onDarkMode = () => {
 		isDark.value = document.documentElement.classList.toggle('dark');
+		refreshTenantTheme();
 	};
 	const isFullScreen = ref(false);
 	const syncFullscreen = () => {
@@ -165,8 +186,6 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 		isLoggingOut.value = true;
 		try {
 			uni.showLoading({ title: '正在退出…', mask: true });
-			const currentPages = getCurrentPages();
-			const route = currentPages[currentPages.length - 1]?.route || pagesJson.pages[0].path;
 			if (!getLoginTenantNo()) {
 				try {
 					const session = await uniCloud.importObject('uni-id-co', { customUI: true }).getTenantContext();
@@ -175,7 +194,7 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 					// The user can still sign out if the tenant context is unavailable.
 				}
 			}
-			const returnUrl = getLoginRedirectUrl(route);
+			const returnUrl = getLoginRedirectUrl();
 			const uniIdCo = uniCloud.importObject('uni-id-co', { customUI: true });
 			await withSessionHandling(() => uniIdCo.logout());
 			setDelegation(null);
@@ -196,7 +215,9 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	.admin-header { display: flex; align-items: center; height: 100%; box-sizing: border-box; background: var(--el-bg-color); border-bottom: 1px solid var(--el-border-color-light); color: var(--el-text-color-primary); }
 	.header-brand { height: 100%; flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 0 16px; box-sizing: border-box; overflow: hidden; }
 	.header-brand.is-collapsed { padding: 0 16px; }
+	.brand-skeleton { display: flex; align-items: center; gap: 10px; }
 	.brand-logo { width: 32px; height: 32px; flex-shrink: 0; }
+	.brand-name-placeholder { width: 96px; min-width: 0; height: 16px; }
 	.brand-name { min-width: 0; font-size: 16px; font-weight: 600; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.header-navigation { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; padding-left: 16px; }
 	.header-breadcrumb { min-width: 0; overflow: hidden; white-space: nowrap; line-height: 20px; }
@@ -206,7 +227,13 @@ import 'element-plus/es/components/tooltip/style/css.mjs';
 	.header-icon.el-button { width: 36px; height: 36px; padding: 0; margin: 0; border-radius: var(--el-border-radius-base); font-size: 19px; color: var(--el-text-color-regular); }
 	.header-icon.el-button:hover { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
 	.tools-divider { height: 22px; width: 1px; background: var(--el-border-color-lighter); margin: 0 12px; }
-	.account-trigger { display: flex; align-items: center; gap: 10px; height: 42px; margin: 0; padding: 0 6px; background: transparent; border: 0; border-radius: var(--el-border-radius-base); color: var(--el-text-color-regular); font: inherit; cursor: pointer; }
+	.account-skeleton, .account-trigger { display: flex; align-items: center; gap: 10px; height: 42px; box-sizing: border-box; margin: 0; padding: 0 6px; }
+	.account-skeleton { width: auto; }
+	.account-avatar-placeholder { width: 32px; height: 32px; flex-shrink: 0; }
+	.account-name-placeholder { width: 72px; height: 14px; }
+	.account-username-placeholder { width: 44px; height: 10px; }
+	.account-arrow-placeholder { width: 12px; height: 8px; flex-shrink: 0; }
+	.account-trigger { background: transparent; border: 0; border-radius: var(--el-border-radius-base); color: var(--el-text-color-regular); font: inherit; cursor: pointer; }
 	.account-trigger::after { border: 0; }
 	.account-trigger:not(:disabled):hover { background: var(--el-fill-color-light); }
 	.account-trigger:disabled { cursor: default; }

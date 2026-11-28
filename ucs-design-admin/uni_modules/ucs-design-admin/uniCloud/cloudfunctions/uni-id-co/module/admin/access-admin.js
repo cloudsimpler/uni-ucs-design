@@ -2,6 +2,7 @@ const { accessContext, fail } = require('./admin-access');
 const { PLATFORM_TENANT_ID } = require('../../lib/utils/platform-tenant');
 const { readByIds, readDoc } = require('./tenant-scope');
 const catalog = require('./permission-catalog');
+const { TENANT_MENU, retiredTenantPermissions } = require('./tenant-catalog');
 const MENU_TYPE = require('./menu-types');
 const { isPageScope } = require('./menu-scope');
 const isAssignablePage = menu => menu.menu_type === MENU_TYPE.PAGE &&
@@ -223,6 +224,12 @@ function createAccessAdmin(context) {
 						.collection('uni-id-permissions')
 						.doc(old._id)
 						.update({ menu_id, sort: old.sort ?? item.sort, ...updateFields(auth) });
+			}
+			if (menu_id === TENANT_MENU) {
+				for (const row of permissions.filter(row => row.menu_id === menu_id && retiredTenantPermissions.has(row.permission_id))) {
+					const roles = await db.collection('uni-id-roles').where({ permission: db.command.in([row.permission_id]) }).limit(1).get();
+					if (!roles.data.length) await db.collection('uni-id-permissions').doc(row._id).remove();
+				}
 			}
 			return { errCode: 0, created };
 		}

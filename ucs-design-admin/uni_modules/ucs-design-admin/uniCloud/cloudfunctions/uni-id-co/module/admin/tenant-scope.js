@@ -115,8 +115,16 @@ async function findEntryTenant(db, tenantNo) {
   if (tenant?.type === 'enterprise') return tenant
 }
 
-function tenantBrand(tenant) {
-  return { system_name: tenant?.system_name || '', system_logo: tenant?.system_logo || '' }
+function tenantBrand(tenant, defaults = {}) {
+  return {
+    system_name: tenant?.system_name || defaults.system_name || '',
+    system_logo: tenant?.system_logo || defaults.system_logo || '',
+    theme_color: tenant?.theme_color || defaults.theme_color || ''
+  }
+}
+
+async function readPlatformTenant(db) {
+  return (await readDoc(db, TENANTS, PLATFORM_TENANT_ID)) || platformTenant
 }
 
 async function resolveEntryTenantInfo(db, tenantNo = PLATFORM_TENANT_ID) {
@@ -137,7 +145,9 @@ async function getLoginTenantInfo(db, tenantNo = PLATFORM_TENANT_ID) {
   const tenant = await findEntryTenant(db, tenantNo)
   if (!tenant) fail('租户不存在', 'TENANT_INVALID')
   const { tenant_no, name } = tenant
-  if (tenant.type === 'platform') return { tenant_no, name, login_status: 'available', ...tenantBrand() }
+  const platform = await readPlatformTenant(db)
+  const platformBrand = tenantBrand(platform)
+  if (tenant.type === 'platform') return { tenant_no, name: platform.name, login_status: 'available', ...platformBrand }
   let login_status = 'available'
   if (!tenant.enabled) login_status = 'disabled'
   else if (tenantExpiry(tenant) <= Date.now()) login_status = 'expired'
@@ -149,7 +159,7 @@ async function getLoginTenantInfo(db, tenantNo = PLATFORM_TENANT_ID) {
       login_status = error.errCode === 'TENANT_EXPIRED' ? 'expired' : 'unavailable'
     }
   }
-  return { tenant_no, name, login_status, ...tenantBrand(tenant) }
+  return { tenant_no, name, login_status, ...tenantBrand(tenant, platformBrand) }
 }
 
 async function resolveEntryTenant(db, tenantNo) {
@@ -232,4 +242,4 @@ function scopedDatabase(db, scope) {
   }
 }
 
-module.exports = { fail, readDoc, ownerOf, tenantWhere, platformActor, tenantPackageIds, readByIds, enterprisePackageGrants, enterpriseScope, resolveEntryTenant, resolveEntryTenantInfo, resolveTenantScope, scopedDatabase, tenantExpiry, assertTenantUnexpired, getLoginTenantInfo, tenantBrand }
+module.exports = { fail, readDoc, ownerOf, tenantWhere, platformActor, tenantPackageIds, readByIds, enterprisePackageGrants, enterpriseScope, resolveEntryTenant, resolveEntryTenantInfo, resolveTenantScope, scopedDatabase, tenantExpiry, assertTenantUnexpired, getLoginTenantInfo, tenantBrand, readPlatformTenant }

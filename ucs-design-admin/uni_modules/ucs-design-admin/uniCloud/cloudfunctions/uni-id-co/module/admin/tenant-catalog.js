@@ -1,5 +1,6 @@
 const DIRECTORY = 'platform'
 const TENANT_MENU = 'platform_tenants'
+const retiredTenantPermissions = new Set(['ASSIGN_UCSDB_TENANT_PACKAGE', 'UPDATE_UCSDB_TENANT_STATUS', 'DELETE_UCSDB_TENANTS'])
 const PACKAGE_MENU = 'platform_product_packages'
 const MENU_MANAGEMENT = 'platform_menus'
 const DICTIONARY = 'platform_dictionaries'
@@ -16,8 +17,7 @@ const menus = [
 const tenantRights = {
   read: 'READ_UCSDB_TENANTS',
   create: 'CREATE_UCSDB_TENANTS',
-  assign: 'ASSIGN_UCSDB_TENANT_PACKAGE',
-  status: 'UPDATE_UCSDB_TENANT_STATUS',
+  update: 'UPDATE_UCSDB_TENANTS',
   enter: 'ENTER_UCSDB_TENANT_MANAGEMENT'
 }
 const packageRights = {
@@ -29,8 +29,7 @@ const packageRights = {
 const permissions = [
   [TENANT_MENU, tenantRights.read, '查看租户'],
   [TENANT_MENU, tenantRights.create, '开通租户'],
-  [TENANT_MENU, tenantRights.assign, '分配产品包'],
-  [TENANT_MENU, tenantRights.status, '启停租户'],
+  [TENANT_MENU, tenantRights.update, '编辑租户'],
   [TENANT_MENU, tenantRights.enter, '进入代管'],
   [PACKAGE_MENU, packageRights.read, '查看产品包'],
   [PACKAGE_MENU, packageRights.create, '新增产品包'],
@@ -38,4 +37,4 @@ const permissions = [
   [PACKAGE_MENU, packageRights.delete, '删除产品包']
 ].map(([menu_id, permission_id, permission_name], index) => ({ menu_id, permission_id, permission_name, sort: index + 1 }))
 
-module.exports = { DIRECTORY, MENU_MANAGEMENT, DICTIONARY, menus, legacyMenuNames, permissions, tenantRights, packageRights }
+module.exports = { DIRECTORY, TENANT_MENU, MENU_MANAGEMENT, DICTIONARY, menus, legacyMenuNames, permissions, tenantRights, packageRights, retiredTenantPermissions }

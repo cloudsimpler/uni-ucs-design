@@ -711,6 +711,15 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     loginAdminScope: { ...rootActor.loginAdminScope, isAdmin: false, permissions: [tenantRights.read] }
   }
   assert.equal((await methods.listTenants.call(readOnlyOperator)).auth.create, false)
+  const { id: editableTenant } = await run('createTenant', 'root', { tenant_no: '00028', name: '待停用租户' })
+  const editor = {
+    ...rootActor,
+    loginAdminScope: { ...rootActor.loginAdminScope, isAdmin: false, permissions: [tenantRights.update] }
+  }
+  await methods.assignTenantPackage.call(editor, { _id: editableTenant, product_package_ids: [pkg] })
+  await methods.setTenantStatus.call(editor, { _id: editableTenant, enabled: false })
+  assert.equal((await getLoginTenantInfo(db, '00028')).login_status, 'disabled')
+  assert.equal(Object.hasOwn(methods, 'deleteTenant'), false)
   await assert.rejects(methods.createTenant.call(readOnlyOperator, { tenant_no: '00003', name: '企业丙' }), {
     errCode: 'TENANT_ACCESS_FORBIDDEN'
   })
@@ -788,6 +797,13 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     .find(row => row.menu_id === 'custom_ops').children.some(row => row.menu_id === 'custom_ops_legacy'), false)
   const { createAccessAdmin } = require(path.join(root, 'module/admin/access-admin'))
   const rootAccess = createAccessAdmin({ db: platformDictionary.adminDb, uid: 'root', appId: 'test' })
+  for (const permission_id of ['ASSIGN_UCSDB_TENANT_PACKAGE', 'DELETE_UCSDB_TENANTS']) {
+    await db.collection('uni-id-permissions').add({ menu_id: 'platform_tenants', permission_id })
+  }
+  await rootAccess.initializeMenuPermissions({ menu_id: 'platform_tenants' })
+  const tenantPermissionIds = (await db.collection('uni-id-permissions').where({ menu_id: 'platform_tenants' }).get()).data
+    .map(row => row.permission_id).sort()
+  assert.deepEqual(tenantPermissionIds, Object.values(tenantRights).sort())
   const roleOptions = await rootAccess.getRoleAuthorization()
   assert.equal(roleOptions.menus.some(row => row.menu_id === 'custom_ops_public'), false)
   await assert.rejects(rootAccess.saveRole({ role_id: 'builtin_test', role_name: '内置页面测试', menu_ids: ['custom_ops_public'] }),
@@ -805,13 +821,14 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
 
   const { id: datedTenant } = await run('createTenant', 'root', {
     tenant_no: '00019', name: '测试有效期', expires_on: '2030-12-31',
-    system_name: ' 测试管理平台 ', system_logo: 'cloud://test/tenant-logos/old.png'
+    system_name: ' 测试管理平台 ', system_logo: 'cloud://test/tenant-logos/old.png', theme_color: '#f53f3f'
   })
   assert.equal((await getLoginTenantInfo(db, '00019')).login_status, 'unavailable')
   await run('assignTenantPackage', 'root', { _id: datedTenant, product_package_ids: [pkg] })
   const expiresAt = Date.parse('2030-12-31T16:00:00Z')
   const tenantDoc = db.collection('ucsdb-tenants').doc(datedTenant)
   assert.equal((await tenantDoc.get()).data[0].expires_at, expiresAt)
+  assert.equal((await tenantDoc.get()).data[0].theme_color, '#F53F3F')
   await assert.rejects(run('setTenantExpiry', 'root', { _id: datedTenant, expires_on: '2030-02-30' }),
     { errCode: 'TENANT_INVALID' })
   await assert.rejects(run('setTenantExpiry', 'operator', { _id: datedTenant, expires_on: null }),
@@ -819,15 +836,48 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
   await assert.rejects(getLoginTenantInfo(db, '99999'), { errCode: 'TENANT_INVALID' })
   await assert.rejects(getLoginTenantInfo(db, 'wrong'), { errCode: 'TENANT_INVALID' })
   assert.equal((await getLoginTenantInfo(db, '00000')).system_name, '')
+  assert.equal((await getLoginTenantInfo(db, '00000')).theme_color, '')
+  const platformBrand = { system_name: '平台工作台', system_logo: 'cloud://test/tenant-logos/platform.png', theme_color: '#165DFF' }
+  await assert.rejects(run('updateTenant', 'operator', { _id: '00000', ...platformBrand }),
+    { errCode: 'TENANT_ACCESS_FORBIDDEN' })
+  await assert.rejects(run('updateTenant', 'root', { _id: '00000', expires_on: null, ...platformBrand }),
+    { errCode: 'TENANT_CURRENT_FORBIDDEN' })
+  await assert.rejects(run('setTenantExpiry', 'root', { _id: '00000', expires_on: null }),
+    { errCode: 'TENANT_CURRENT_FORBIDDEN' })
+  const updatedPlatform = await run('updateTenant', 'root', {
+    _id: '00000', name: ' 运营平台 ', ...platformBrand, theme_color: '#165dff', enabled: false
+  })
+  assert.equal(updatedPlatform.name, '运营平台')
+  assert.deepEqual(await getLoginTenantInfo(db), { tenant_no: '00000', name: '运营平台', login_status: 'available', ...platformBrand })
+  const platformContext = await run('getTenantContext', 'root')
+  assert.equal(platformContext.tenant.name, '运营平台')
+  assert.equal(platformContext.tenant.theme_color, platformBrand.theme_color)
+  assert.equal(platformContext.tenant.system_logo, platformBrand.system_logo)
+  assert.equal((await run('listTenants', 'root', { keyword: '00019' })).platform_theme_color, platformBrand.theme_color)
+  assert.equal((await db.collection('ucsdb-tenants').doc('00000').get()).data[0].enabled, true)
+  const { id: inheritingTenant } = await run('createTenant', 'root', { tenant_no: '00029', name: '继承平台品牌' })
+  assert.equal((await getLoginTenantInfo(db, '00029')).theme_color, platformBrand.theme_color)
+  await db.collection('ucsdb-tenants').doc(inheritingTenant).remove()
+  assert.equal((await getLoginTenantInfo(db, '00019')).theme_color, '#F53F3F')
+  await run('updateTenant', 'root', { _id: '00000', system_name: '', system_logo: '', theme_color: '' })
+  assert.equal((await getLoginTenantInfo(db)).theme_color, '')
+  assert.equal((await getLoginTenantInfo(db)).name, '运营平台')
+  for (const name of ['  ', '名'.repeat(81)]) {
+    await assert.rejects(run('updateTenant', 'root', { _id: datedTenant, expires_on: null, name }), { errCode: 'TENANT_INVALID' })
+  }
   await assert.rejects(run('updateTenant', 'root', {
     _id: datedTenant, expires_on: null, system_logo: 'javascript:invalid'
   }), { errCode: 'TENANT_INVALID' })
+  for (const theme_color of ['red', '#F53F3FAA', 123]) {
+    await assert.rejects(run('updateTenant', 'root', { _id: datedTenant, expires_on: null, theme_color }),
+      { errCode: 'TENANT_INVALID' })
+  }
   let time = expiresAt - 60000
   const expiryClock = t.mock.method(Date, 'now', () => time)
   try {
     const publicBrand = {
       tenant_no: '00019', name: '测试有效期',
-      system_name: '测试管理平台', system_logo: 'cloud://test/tenant-logos/old.png'
+      system_name: '测试管理平台', system_logo: 'cloud://test/tenant-logos/old.png', theme_color: '#F53F3F'
     }
     assert.deepEqual(await getLoginTenantInfo(db, '00019'), { ...publicBrand, login_status: 'available' })
     const active = await run('enterTenantManagement', 'root', { _id: datedTenant })
@@ -838,21 +888,28 @@ test('签名权限按租户隔离，新的签发读取最新的产品包', async
     assert.deepEqual(await getLoginTenantInfo(db, '00019'), { ...publicBrand, login_status: 'expired' })
     await assert.rejects(run('enterTenantManagement', 'root', { _id: datedTenant }), { errCode: 'TENANT_EXPIRED' })
     const updatedBrand = await run('updateTenant', 'root', {
-      _id: datedTenant, expires_on: '2030-12-30', system_name: '', system_logo: 'cloud://test/tenant-logos/new.png'
+      _id: datedTenant, name: ' 有效期租户 ', expires_on: '2030-12-30', system_name: '', system_logo: 'cloud://test/tenant-logos/new.png',
+      theme_color: '#123ABC'
     })
     const { scope: adminScope } = await verifyDelegation(actor('root'), active.delegationToken)
     const { tenant: delegatedBrand } = await methods.getTenantContext.call({ adminScope })
+    assert.equal(updatedBrand.name, '有效期租户')
+    assert.equal(delegatedBrand.name, '有效期租户')
     assert.equal(delegatedBrand.system_name, updatedBrand.system_name)
     assert.equal(delegatedBrand.system_logo, updatedBrand.system_logo)
+    assert.equal(delegatedBrand.theme_color, '#123ABC')
     time = expiresAt
     await assert.rejects(verifyDelegation(actor('root'), active.delegationToken), { errCode: 'TENANT_SESSION_INVALID' })
     await run('setTenantStatus', 'root', { _id: datedTenant, enabled: false })
     assert.deepEqual(await getLoginTenantInfo(db, '00019'), {
-      ...publicBrand, system_name: '', system_logo: updatedBrand.system_logo, login_status: 'disabled'
+      ...publicBrand, name: '有效期租户', system_name: '', system_logo: updatedBrand.system_logo, theme_color: '#123ABC', login_status: 'disabled'
     })
     await run('setTenantExpiry', 'root', { _id: datedTenant, expires_on: null })
     assert.equal((await tenantDoc.get()).data[0].enabled, false)
     assert.equal(Object.hasOwn((await tenantDoc.get()).data[0], 'expires_at'), false)
+    assert.equal((await tenantDoc.get()).data[0].theme_color, '#123ABC')
+    await run('updateTenant', 'root', { _id: datedTenant, expires_on: null, theme_color: '' })
+    assert.equal((await getLoginTenantInfo(db, '00019')).theme_color, '')
     await run('setTenantStatus', 'root', { _id: datedTenant, enabled: true })
     assert.equal(await resolveEntryTenant(db, '00019'), datedTenant)
   } finally {

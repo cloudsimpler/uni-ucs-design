@@ -31,14 +31,17 @@
 						<el-tag v-else type="success">启用</el-tag>
 					</template>
 				</el-table-column>
-				<el-table-column label="操作" :width="auth.status ? 320 : 260" align="center">
+				<el-table-column label="操作" :width="auth.update ? 320 : 260" align="center">
 					<template #default="{ row }">
-						<el-tag v-if="row.type === 'platform'" size="small" type="info">系统平台</el-tag>
+						<template v-if="row.type === 'platform'">
+							<el-tag class="platform-tag" size="small" type="info">系统平台</el-tag>
+							<el-button v-if="auth.update" size="small" plain :disabled="busy" @click="openEdit(row)">编辑</el-button>
+						</template>
 						<el-tag v-else-if="row._id === currentTenantId" size="small" type="info">当前租户</el-tag>
 						<template v-else-if="row.type === 'enterprise'">
-							<el-button v-if="auth.status" size="small" plain :disabled="busy" @click="openEdit(row)">编辑</el-button>
-							<el-button v-if="auth.assign" size="small" plain type="primary" :disabled="busy" @click="openAssign(row)">分配产品包</el-button>
-							<el-button v-if="auth.status" size="small" plain :type="row.enabled ? 'danger' : 'success'" :disabled="busy" @click="toggle(row)">{{ row.enabled ? '停用' : '启用' }}</el-button>
+							<el-button v-if="auth.update" size="small" plain :disabled="busy" @click="openEdit(row)">编辑</el-button>
+							<el-button v-if="auth.update" size="small" plain type="primary" :disabled="busy" @click="openAssign(row)">分配产品包</el-button>
+							<el-button v-if="auth.update" size="small" plain :type="row.enabled ? 'danger' : 'success'" :disabled="busy" @click="toggle(row)">{{ row.enabled ? '停用' : '启用' }}</el-button>
 							<el-button v-if="auth.enter" size="small" plain type="primary" :disabled="busy || !row.enabled || isExpired(row) || !packageIds(row).length" @click="enter(row)">进入代管</el-button>
 						</template>
 						<span v-else>—</span>
@@ -47,7 +50,7 @@
 			</el-table>
 		</div>
 	</ucs-admin-layout>
-	<el-dialog v-model="editor" class="admin-form-dialog platform-editor" :title="editorTitles[editorMode]" width="560px" align-center append-to-body
+	<el-dialog v-model="editor" class="admin-form-dialog platform-editor" :title="editingPlatform ? '编辑系统平台' : editorTitles[editorMode]" width="560px" align-center append-to-body
 		:close-on-click-modal="false" :show-close="!busy && !logoUploading" :close-on-press-escape="!busy && !logoUploading">
 		<el-form id="platform-tenant-form" label-position="right" label-width="96px" :disabled="busy || logoUploading" @submit.prevent="save">
 			<el-form-item v-if="editorMode === 'assign'" label="产品包">
@@ -65,15 +68,39 @@
 					<el-form-item label="租户号" required><el-input v-model.trim="form.tenant_no" maxlength="5" inputmode="numeric" placeholder="请输入五位数字租户号" /></el-form-item>
 					<el-form-item label="企业名称" required><el-input v-model.trim="form.name" maxlength="80" placeholder="请输入企业名称" /></el-form-item>
 				</template>
-				<el-form-item v-else label="租户">{{ selected?.name }}（{{ selected?.tenant_no }}）</el-form-item>
+				<template v-else>
+					<el-form-item label="租户号">{{ selected?.tenant_no }}</el-form-item>
+					<el-form-item label="租户名称" required><el-input v-model.trim="form.name" maxlength="80" placeholder="请输入租户名称" /></el-form-item>
+				</template>
 				<el-form-item label="系统名称">
-					<el-input v-model.trim="form.system_name" maxlength="50" show-word-limit placeholder="留空使用平台默认名称" />
+					<el-input v-model.trim="form.system_name" maxlength="50" show-word-limit :placeholder="editingPlatform ? '留空使用内置系统名称' : '留空使用平台默认名称'" />
 				</el-form-item>
 				<el-form-item label="系统 Logo">
 					<ucs-admin-image-upload v-if="editor" v-model="form.system_logo" label="Logo" directory="tenant-logos" :disabled="busy"
 						@uploading-change="logoUploading = $event" @error="editorError = $event" />
 				</el-form-item>
-				<el-form-item label="到期日期">
+				<el-form-item label="主题色">
+					<el-popover v-if="editor" placement="bottom-start" trigger="click" width="max-content"
+						:popper-style="{ padding: 0 }" :disabled="busy || logoUploading">
+						<template #reference>
+						<el-button aria-label="选择租户主题色">
+								<span class="theme-selection">
+									<span class="theme-swatch" :style="{ backgroundColor: themePickerColor }" aria-hidden="true" />
+									<span>{{ themeLabel }}</span>
+								</span>
+							</el-button>
+						</template>
+						<el-color-picker-panel v-model="themePickerColor" color-format="hex" :predefine="predefinedThemeColors"
+							:border="false" :disabled="busy || logoUploading">
+							<template #footer>
+								<el-button link :disabled="!form.theme_color || busy || logoUploading" @click="form.theme_color = ''">
+									{{ editingPlatform ? '恢复内置默认' : '恢复平台默认' }}
+								</el-button>
+							</template>
+						</el-color-picker-panel>
+					</el-popover>
+				</el-form-item>
+				<el-form-item v-if="!editingPlatform" label="到期日期">
 					<el-date-picker v-model="form.expires_on" type="date" format="YYYY-MM-DD" value-format="YYYY-MM-DD" placeholder="长期有效" clearable />
 					<div class="expiry-hint">留空表示长期有效，所选日期当天仍可使用（北京时间）。</div>
 				</el-form-item>
@@ -89,13 +116,16 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
-import { ElAlert, ElButton, ElDatePicker, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElMessage, ElMessageBox, ElOption, ElSelect, ElTable, ElTableColumn, ElTag, vLoading } from 'element-plus';
+import { ElAlert, ElButton, ElColorPickerPanel, ElDatePicker, ElDialog, ElEmpty, ElForm, ElFormItem, ElInput, ElMessage, ElMessageBox, ElOption, ElPopover, ElSelect, ElTable, ElTableColumn, ElTag, vLoading } from 'element-plus';
+import 'element-plus/es/components/color-picker-panel/style/css.mjs';
 import 'element-plus/es/components/date-picker/style/css.mjs';
+import 'element-plus/es/components/popover/style/css.mjs';
 import { Refresh, Search } from '@element-plus/icons-vue';
 import UcsAdminImageUpload from '../../../components/ucs-admin-image-upload/ucs-admin-image-upload.vue';
 import '../platform-management.css';
 import { allowedMenuRoutes, loadNavigation } from '../../../common/navigation.js';
 import { exitDelegation, importTenantAdmin, setDelegation } from '../../../common/tenant-session.js';
+import { defaultTenantThemeColor, normalizeTenantThemeColor, tenantThemeOptions } from '../../../common/tenant-theme.js';
 import store from '../../../common/store.js';
 
 const api = importTenantAdmin();
@@ -113,8 +143,19 @@ let requestId = 0;
 const loading = ref(false), busy = ref(false), editor = ref(false), selected = ref(null);
 const error = ref(''), editorError = ref('');
 const editorMode = ref('create');
+const editingPlatform = computed(() => editorMode.value === 'edit' && selected.value?.type === 'platform');
 const editorTitles = { create: '开通企业租户', edit: '编辑租户', assign: '分配产品包' };
-const form = reactive({ tenant_no: '', name: '', product_package_ids: [], expires_on: '', system_name: '', system_logo: '' });
+const form = reactive({ tenant_no: '', name: '', product_package_ids: [], expires_on: '', system_name: '', system_logo: '', theme_color: '' });
+const platformThemeColor = ref('');
+const predefinedThemeColors = tenantThemeOptions.map(option => option.value);
+const themePickerColor = computed({
+	get: () => form.theme_color || (!editingPlatform.value && platformThemeColor.value) || defaultTenantThemeColor,
+	set: value => { form.theme_color = normalizeTenantThemeColor(value); }
+});
+const themeLabel = computed(() =>
+	tenantThemeOptions.find(option => option.value === form.theme_color)?.label || form.theme_color ||
+	(editingPlatform.value ? '内置默认' : '平台默认')
+);
 const logoUploading = ref(false);
 const now = ref(Date.now());
 let clock;
@@ -134,6 +175,7 @@ async function load({ current = pagination.current, size = pagination.size } = {
 		const result = resultOf(await api.listTenants({ keyword: appliedKeyword, current, size }));
 		if (id !== requestId) return;
 		rows.value = result.data;
+		platformThemeColor.value = normalizeTenantThemeColor(result.platform_theme_color);
 		listedTenantId.value = result.currentTenantId;
 		Object.assign(pagination, result.pagination);
 		auth.value = result.auth;
@@ -161,7 +203,7 @@ function changePage({ current, size }) {
 function openCreate() {
 	editorMode.value = 'create';
 	selected.value = null;
-	Object.assign(form, { tenant_no: '', name: '', expires_on: '', system_name: '', system_logo: '' });
+	Object.assign(form, { tenant_no: '', name: '', expires_on: '', system_name: '', system_logo: '', theme_color: '' });
 	editorError.value = '';
 	editor.value = true;
 }
@@ -169,7 +211,10 @@ function openCreate() {
 function openEdit(row) {
 	editorMode.value = 'edit';
 	selected.value = row;
-	Object.assign(form, { expires_on: expiryDate(row), system_name: row.system_name || '', system_logo: row.system_logo || '' });
+	Object.assign(form, {
+		name: row.name, expires_on: expiryDate(row), system_name: row.system_name || '', system_logo: row.system_logo || '',
+		theme_color: normalizeTenantThemeColor(row.theme_color)
+	});
 	editorError.value = '';
 	editor.value = true;
 }
@@ -217,22 +262,28 @@ async function save() {
 	editorError.value = '';
 	try {
 		const expires_on = form.expires_on || null;
-		const { system_name, system_logo } = form;
+		const { system_name, system_logo, theme_color } = form;
 		if (editorMode.value === 'edit') {
 			const _id = selected.value._id;
-			const result = resultOf(await api.updateTenant({ _id, expires_on, system_name, system_logo }));
-			const { expires_at } = result;
-			rows.value = rows.value.map(row => row._id === _id
-				? { ...row, expires_at, system_name: result.system_name, system_logo: result.system_logo } : row);
+			const isPlatform = editingPlatform.value;
+			const result = resultOf(await api.updateTenant({ _id, name: form.name, ...(!isPlatform ? { expires_on } : {}), system_name, system_logo, theme_color }));
+			rows.value = rows.value.map(row => row._id === _id ? {
+				...row, name: result.name, ...(!isPlatform ? { expires_at: result.expires_at } : {}), system_name: result.system_name,
+				system_logo: result.system_logo, theme_color: result.theme_color
+			} : row);
 			now.value = Date.now();
 			editor.value = false;
-			ElMessage.success('租户已更新');
+			if (isPlatform) {
+				platformThemeColor.value = result.theme_color;
+				store.tenantBrandVersion++;
+			}
+			ElMessage.success(isPlatform ? '系统平台已更新' : '租户已更新');
 			return;
 		}
 		if (editorMode.value === 'assign') {
 			resultOf(await api.assignTenantPackage({ _id: selected.value._id, product_package_ids: form.product_package_ids }));
 		} else {
-			resultOf(await api.createTenant({ tenant_no: form.tenant_no, name: form.name, expires_on, system_name, system_logo }));
+			resultOf(await api.createTenant({ tenant_no: form.tenant_no, name: form.name, expires_on, system_name, system_logo, theme_color }));
 		}
 		editor.value = false;
 		await load();
@@ -280,6 +331,18 @@ onUnmounted(() => clearInterval(clock));
 </script>
 
 <style scoped>
+.platform-tag + .el-button { margin-left: 8px; }
+.theme-selection {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+.theme-swatch {
+	width: 16px;
+	height: 16px;
+	border: 1px solid var(--el-border-color);
+	border-radius: 4px;
+}
 .expiry-hint {
 	width: 100%;
 	margin-top: 8px;

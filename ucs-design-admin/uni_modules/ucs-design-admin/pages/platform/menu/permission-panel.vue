@@ -155,7 +155,7 @@ const rows = ref([]),
 const empty = () => ({ _id: '', permission_id: '', permission_name: '', menu_id: '', sort: 0, comment: '' });
 const form = reactive(empty());
 const isPage = computed(() => menus.value.some(menu => menu.menu_id === props.menuId && menu.menu_type === MENU_TYPE.PAGE));
-const builtinMenus = ['system_customers', 'system_developer', 'system_users', 'system_roles', 'platform_menus', 'system_apps'];
+const builtinMenus = ['system_customers', 'system_developer', 'system_users', 'system_roles', 'platform_menus', 'platform_tenants', 'system_apps'];
 const menuName = (id) => menus.value.find((menu) => menu.menu_id === id)?.name || '所属页面不可用';
 const filtered = computed(() =>
 	rows.value

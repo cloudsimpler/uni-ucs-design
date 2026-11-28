@@ -2,8 +2,8 @@
 <template>
 	<div class="account-login" v-loading.fullscreen.lock="fullscreenLoading" element-loading-text="正在登录，请稍候…">
 		<div class="form-heading">
-			<h2>{{ loginTenant ? `登录到${loginTenant.system_name || loginTenant.name}` : '欢迎登录' }}</h2>
-			<p v-if="!blockedMessage">{{ checkingTenant ? '正在确认登录租户…' : '选择登录方式，进入管理工作台。' }}</p>
+			<h2>登录</h2>
+			<p v-if="!blockedMessage">选择登录方式，进入管理工作台</p>
 		</div>
 		<el-alert v-if="blockedMessage" :title="blockedMessage" :description="`租户号 ${loginTenant.tenant_no}`" type="warning" show-icon :closable="false" />
 		<template v-else-if="!checkingTenant">
@@ -72,6 +72,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 	import store from "../../common/store.js";
 	import { setDelegation } from "../../common/tenant-session.js";
 	import { isTenantNo, rememberLoginTenant } from '../../common/login-tenant.js';
+	import { holdLoginTenantTheme } from '../../common/tenant-theme.js';
 
 	import {
 		ref, reactive, computed, watch
@@ -80,7 +81,8 @@ import 'element-plus/es/components/message/style/css.mjs';
 	const props = defineProps({ routeOptions: { type: Object, required: true } });
 	const emit = defineEmits(['tenant-resolved']);
 	const loginTenant = ref(null);
-	const checkingTenant = ref(isTenantNo(props.routeOptions.tenant_no));
+	const checkingTenant = ref(true);
+	let loginBrand = null;
 	const blockedMessages = {
 		disabled: '该租户已停用，请联系平台管理员',
 		expired: '该租户使用有效期已到期，请联系平台管理员',
@@ -97,6 +99,7 @@ import 'element-plus/es/components/message/style/css.mjs';
 	const contactRef = ref(null);
 	const finishLogin = (result) => {
 		rememberLoginTenant(result.tenant_no);
+		if (loginBrand?.tenant_no === result.tenant_no) holdLoginTenantTheme(loginBrand?.theme_color);
         setDelegation(null);
         navigating.value = true;
 		store.isLogin = true;
@@ -151,20 +154,29 @@ import 'element-plus/es/components/message/style/css.mjs';
 		if (typeof redirect === 'string' && pagesJson.pages.some(({ path }) =>
 			`/${path}` === redirect.split(/[?#]/, 1)[0]
 		)) uniIdRedirectUrl.value = redirect;
-		if (checkingTenant.value) {
+		const tenantNo = isTenantNo(e.tenant_no) ? e.tenant_no : undefined;
+		if (tenantNo) {
 			try {
-				const tenant = await uniIdCo.getLoginTenant({ tenant_no: e.tenant_no });
-				if (tenant.errCode === 0 && tenant.tenant_no === e.tenant_no) {
+				const tenant = await uniIdCo.getLoginTenant({ tenant_no: tenantNo });
+				if (tenant.errCode === 0 && tenant.tenant_no === tenantNo) {
 					entryForm.value.tenant_no = tenant.tenant_no;
 					loginTenant.value = tenant;
-					emit('tenant-resolved', tenant);
 				}
 			} catch {
-				// Unavailable tenant links use the same form as the common login page.
-			} finally {
-				checkingTenant.value = false;
+				// Unresolved tenant links use the common login form.
 			}
 		}
+		loginBrand = loginTenant.value;
+		if (!loginBrand) {
+			try {
+				const platform = await uniIdCo.getLoginTenant();
+				if (platform.errCode === 0 && platform.tenant_no === '00000') loginBrand = platform;
+			} catch {
+				// Built-in branding remains available if the platform lookup fails.
+			}
+		}
+		checkingTenant.value = false;
+		emit('tenant-resolved', loginBrand);
 		if (blockedMessage.value || (loginTenant.value && loginTenant.value.tenant_no !== '00000')) return;
 		// 查询是否已经有管理员注册了，如果有，则隐藏注册管理员的入口
 		try {
